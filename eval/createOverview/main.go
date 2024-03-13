@@ -19,38 +19,51 @@ func main() {
 	pathToTrace := flag.String("t", "", "Path to the trace folder")
 	pathToResult := flag.String("r", "", "Path to the readable result file")
 	pathToTime := flag.String("d", "", "Path to a file with the time durations")
+	createCSV := true
 	flag.Parse()
-
 	programNameStr, pathToStatsStr, err := checkFlags(*programName, *pathToStats)
 	if err != nil {
 		println(err.Error())
 	}
 
-	statsPath := pathToStatsStr + "/" + programNameStr + "_stats.md"
-	err = createStatsFile(statsPath, programNameStr)
-	if err != nil {
-		panic(err)
+	if createCSV {
+		//create different files
+		println(*programName)
+		println(programNameStr)
+		statsPath := pathToStatsStr + "/" + programNameStr + "_stats" + ".md"
+		err = createStatsFile(statsPath, programNameStr)
+		if err != nil {
+			panic(err)
+		}
+
+	} else {
+		statsPath := pathToStatsStr + "/" + programNameStr + "_stats" + ".md"
+		err = createStatsFile(statsPath, programNameStr)
+		if err != nil {
+			panic(err)
+		}
+
+		err = parseProgram(*pathToProgram, statsPath)
+		if err != nil {
+			println(err.Error())
+		}
+
+		err = parseTrace(*pathToTrace, statsPath)
+		if err != nil {
+			println(err.Error())
+		}
+
+		err = writeTimes(*pathToTime, statsPath)
+		if err != nil {
+			println(err.Error())
+		}
+
+		err = copyResults(*pathToResult, statsPath)
+		if err != nil {
+			println(err.Error())
+		}
 	}
 
-	err = parseProgram(*pathToProgram, statsPath)
-	if err != nil {
-		println(err.Error())
-	}
-
-	err = parseTrace(*pathToTrace, statsPath)
-	if err != nil {
-		println(err.Error())
-	}
-
-	err = writeTimes(*pathToTime, statsPath)
-	if err != nil {
-		println(err.Error())
-	}
-
-	err = copyResults(*pathToResult, statsPath)
-	if err != nil {
-		println(err.Error())
-	}
 }
 
 func checkFlags(programName, pathToStats string) (string, string, error) {
@@ -350,49 +363,25 @@ func writeTraceStats(statsPath string, stats map[string]int) error {
 		file.WriteString("No trace found\n")
 		return nil
 	}
-	createCSV := true
-	if createCSV {
-		file.WriteString("Info,Value\n")
-		file.WriteString("Number of routine," + strconv.Itoa(stats["numberRoutines"]) + "\n")
-		file.WriteString("Number of spawns," + strconv.Itoa(stats["numberOfSpawns"]) + "\n")
-		file.WriteString("Number of atomics," + strconv.Itoa(stats["numberAtomics"]) + "\n")
-		file.WriteString("Number of atomicoperations," + strconv.Itoa(stats["numberAtomicOperations"]) + "\n")
-		file.WriteString("Number of channels," + strconv.Itoa(stats["numberChannels"]) + "\n")
-		file.WriteString("Number of channel operations," + strconv.Itoa(stats["numberChannelOperations"]) + "\n")
-		file.WriteString("Number of selects," + strconv.Itoa(stats["numberSelects"]) + "\n")
-		file.WriteString("Number of select cases," + strconv.Itoa(stats["numberSelectCases"]) + "\n")
-		file.WriteString("Number of select channel operations," + strconv.Itoa(stats["numberSelectChanOps"]) + "\n")
-		file.WriteString("Number of select default operations," + strconv.Itoa(stats["numberSelectDefaultOps"]) + "\n")
-		file.WriteString("Number of mutexes," + strconv.Itoa(stats["numberMutexes"]) + "\n")
-		file.WriteString("Number of mutex operations," + strconv.Itoa(stats["numberMutexOperations"]) + "\n")
-		file.WriteString("Number of wait groups," + strconv.Itoa(stats["numberWaitGroups"]) + "\n")
-		file.WriteString("Number of wait group operations," + strconv.Itoa(stats["numberWaitGroupOperations"]) + "\n")
-		file.WriteString("Number of cond vars," + strconv.Itoa(stats["numberCondVars"]) + "\n")
-		file.WriteString("Number of cond var operations," + strconv.Itoa(stats["numberCondVarOperations"]) + "\n")
-		file.WriteString("Number of once," + strconv.Itoa(stats["numberOnce"]) + "\n")
-		file.WriteString("Number of once operations," + strconv.Itoa(stats["numberOnceOperations"]))
-
-	} else {
-		file.WriteString("| Info | Value |\n| - | - |\n")
-		file.WriteString("| Number of routines | " + strconv.Itoa(stats["numberRoutines"]) + " |\n")
-		file.WriteString("| Number of spawns | " + strconv.Itoa(stats["numberOfSpawns"]) + " |\n")
-		file.WriteString("| Number of atomics | " + strconv.Itoa(stats["numberAtomics"]) + " |\n")
-		file.WriteString("| Number of atomic operations | " + strconv.Itoa(stats["numberAtomicOperations"]) + " |\n")
-		file.WriteString("| Number of channels | " + strconv.Itoa(stats["numberChannels"]) + " |\n")
-		file.WriteString("| Number of channel operations | " + strconv.Itoa(stats["numberChannelOperations"]) + " |\n")
-		file.WriteString("| Number of selects | " + strconv.Itoa(stats["numberSelects"]) + " |\n")
-		file.WriteString("| Number of select cases | " + strconv.Itoa(stats["numberSelectCases"]) + " |\n")
-		file.WriteString("| Number of select channel operations | " + strconv.Itoa(stats["numberSelectChanOps"]) + " |\n")
-		file.WriteString("| Number of select default operations | " + strconv.Itoa(stats["numberSelectDefaultOps"]) + " |\n")
-		file.WriteString("| Number of mutexes | " + strconv.Itoa(stats["numberMutexes"]) + " |\n")
-		file.WriteString("| Number of mutex operations | " + strconv.Itoa(stats["numberMutexOperations"]) + " |\n")
-		file.WriteString("| Number of wait groups | " + strconv.Itoa(stats["numberWaitGroups"]) + " |\n")
-		file.WriteString("| Number of wait group operations | " + strconv.Itoa(stats["numberWaitGroupOperations"]) + " |\n")
-		file.WriteString("| Number of cond vars | " + strconv.Itoa(stats["numberCondVars"]) + " |\n")
-		file.WriteString("| Number of cond var operations | " + strconv.Itoa(stats["numberCondVarOperations"]) + " |\n")
-		file.WriteString("| Number of once | " + strconv.Itoa(stats["numberOnce"]) + "| \n")
-		file.WriteString("| Number of once operations | " + strconv.Itoa(stats["numberOnceOperations"]) + " |\n\n\n")
-	}
+	file.WriteString("| Info | Value |\n| - | - |\n")
+	file.WriteString("| Number of routines | " + strconv.Itoa(stats["numberRoutines"]) + " |\n")
+	file.WriteString("| Number of spawns | " + strconv.Itoa(stats["numberOfSpawns"]) + " |\n")
+	file.WriteString("| Number of atomics | " + strconv.Itoa(stats["numberAtomics"]) + " |\n")
+	file.WriteString("| Number of atomic operations | " + strconv.Itoa(stats["numberAtomicOperations"]) + " |\n")
+	file.WriteString("| Number of channels | " + strconv.Itoa(stats["numberChannels"]) + " |\n")
+	file.WriteString("| Number of channel operations | " + strconv.Itoa(stats["numberChannelOperations"]) + " |\n")
+	file.WriteString("| Number of selects | " + strconv.Itoa(stats["numberSelects"]) + " |\n")
+	file.WriteString("| Number of select cases | " + strconv.Itoa(stats["numberSelectCases"]) + " |\n")
+	file.WriteString("| Number of select channel operations | " + strconv.Itoa(stats["numberSelectChanOps"]) + " |\n")
+	file.WriteString("| Number of select default operations | " + strconv.Itoa(stats["numberSelectDefaultOps"]) + " |\n")
+	file.WriteString("| Number of mutexes | " + strconv.Itoa(stats["numberMutexes"]) + " |\n")
+	file.WriteString("| Number of mutex operations | " + strconv.Itoa(stats["numberMutexOperations"]) + " |\n")
+	file.WriteString("| Number of wait groups | " + strconv.Itoa(stats["numberWaitGroups"]) + " |\n")
+	file.WriteString("| Number of wait group operations | " + strconv.Itoa(stats["numberWaitGroupOperations"]) + " |\n")
+	file.WriteString("| Number of cond vars | " + strconv.Itoa(stats["numberCondVars"]) + " |\n")
+	file.WriteString("| Number of cond var operations | " + strconv.Itoa(stats["numberCondVarOperations"]) + " |\n")
+	file.WriteString("| Number of once | " + strconv.Itoa(stats["numberOnce"]) + "| \n")
+	file.WriteString("| Number of once operations | " + strconv.Itoa(stats["numberOnceOperations"]) + " |\n\n\n")
 
 	return nil
 }
