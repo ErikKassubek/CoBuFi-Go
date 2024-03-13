@@ -30,8 +30,17 @@ func main() {
 		//create different files
 		println(*programName)
 		println(programNameStr)
-		statsPath := pathToStatsStr + "/" + programNameStr + "_stats" + ".md"
-		err = createStatsFile(statsPath, programNameStr)
+		println(pathToStatsStr)
+		//program
+		pathProgram := pathToStatsStr + "/" + programNameStr + "_program" + ".csv"
+		err = createCSVFile(pathProgram)
+		if err != nil {
+			panic(err)
+		}
+
+		//trace
+		pathTrace := pathToStatsStr + "/" + programNameStr + "_trace" + ".csv"
+		err = createCSVFile(pathTrace)
 		if err != nil {
 			panic(err)
 		}
@@ -81,6 +90,27 @@ func checkFlags(programName, pathToStats string) (string, string, error) {
 
 	return programName, pathToStats, err
 
+}
+
+func createCSVFile(path string) error {
+	if _, err := os.Stat(path); err == nil {
+		err = os.Remove(path)
+		if err != nil {
+			return err
+		}
+	}
+
+	_, err := os.Create(path)
+	if err != nil {
+		return err
+	}
+
+	file, err := os.OpenFile(path, os.O_APPEND|os.O_WRONLY, 0644)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+	return nil
 }
 
 func createStatsFile(statsPath string, programName string) error {
