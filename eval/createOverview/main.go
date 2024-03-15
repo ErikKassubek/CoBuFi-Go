@@ -34,7 +34,7 @@ func main() {
 		if err != nil {
 			panic(err)
 		}
-		//parseProgramToCSV(*pathToProgram, pathToProgramCSV)
+		parseProgramToCSV(*pathToProgram, pathToProgramCSV)
 
 		//trace
 		pathToTraceCSV := pathToStatsStr + "/" + programNameStr + "_trace" + ".csv"
@@ -207,6 +207,65 @@ func parseProgramFile(filePath string) (map[string]int, error) {
 	}
 
 	return res, nil
+}
+
+func parseProgramToCSV(programPath string, csvPath string) error {
+	if programPath == "" {
+		writeProgramStats(csvPath, map[string]int{"numberFiles": 0, "numberLines": 0, "numberNonEmptyLines": 0})
+		return errors.New("Please provide a path to the program that was analyzed. Set with -p [file]")
+	}
+
+	res := make(map[string]int)
+	res["numberFiles"] = 0
+	res["numberLines"] = 0
+	res["numberNonEmptyLines"] = 0
+
+	err := filepath.Walk(programPath, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
+		if info.IsDir() {
+			return nil
+		}
+
+		if filepath.Ext(path) == ".go" {
+			resFile, err := parseProgramFile(path)
+			if err != nil {
+				return err
+			}
+
+			res["numberFiles"]++
+			res["numberLines"] += resFile["numberLines"]
+			res["numberNonEmptyLines"] += resFile["numberNonEmptyLines"]
+		}
+
+		return nil
+	})
+	if err != nil {
+		return err
+	}
+
+	return writeProgramStatsToCSV(csvPath, res)
+}
+
+func writeProgramStatsToCSV(statsPath string, stats map[string]int) error {
+	file, err := os.OpenFile(statsPath, os.O_APPEND|os.O_WRONLY, 0644)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	if stats["numberFiles"] == 0 {
+		file.WriteString("No program found\n")
+		return nil
+	}
+
+	file.WriteString("Info,Value\n")
+	file.WriteString("Number of go files," + strconv.Itoa(stats["numberFiles"]) + "\n")
+	file.WriteString("Number of lines," + strconv.Itoa(stats["numberLines"]) + "\n")
+	file.WriteString("Number of non-empty lines," + strconv.Itoa(stats["numberNonEmptyLines"]) + "\n")
+	return nil
 }
 
 // ========================= Trace =========================
