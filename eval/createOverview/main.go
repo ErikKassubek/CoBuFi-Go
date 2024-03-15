@@ -32,15 +32,15 @@ func main() {
 		println(programNameStr)
 		println(pathToStatsStr)
 		//program
-		pathProgram := pathToStatsStr + "/" + programNameStr + "_program" + ".csv"
-		err = createCSVFile(pathProgram)
+		pathToProgramCSV := pathToStatsStr + "/" + programNameStr + "_program" + ".csv"
+		err = createFile(pathToProgramCSV)
 		if err != nil {
 			panic(err)
 		}
 
 		//trace
-		pathTrace := pathToStatsStr + "/" + programNameStr + "_trace" + ".csv"
-		err = createCSVFile(pathTrace)
+		pathToTraceCSV := pathToStatsStr + "/" + programNameStr + "_trace" + ".csv"
+		err = createFile(pathToTraceCSV)
 		if err != nil {
 			panic(err)
 		}
@@ -92,49 +92,30 @@ func checkFlags(programName, pathToStats string) (string, string, error) {
 
 }
 
-func createCSVFile(path string) error {
-	if _, err := os.Stat(path); err == nil {
-		err = os.Remove(path)
+func createFile(path string, initialContent ...string) error {
+	if err := os.Remove(path); err != nil && !os.IsNotExist(err) {
+		return err
+	}
+
+	file, err := os.Create(path)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	for _, content := range initialContent {
+		_, err := file.WriteString(content)
 		if err != nil {
 			return err
 		}
 	}
 
-	_, err := os.Create(path)
-	if err != nil {
-		return err
-	}
-
-	file, err := os.OpenFile(path, os.O_APPEND|os.O_WRONLY, 0644)
-	if err != nil {
-		return err
-	}
-	defer file.Close()
 	return nil
 }
 
 func createStatsFile(statsPath string, programName string) error {
-	// delete file if it exists
-	if _, err := os.Stat(statsPath); err == nil {
-		err = os.Remove(statsPath)
-		if err != nil {
-			return err
-		}
-	}
-
-	_, err := os.Create(statsPath)
-	if err != nil {
-		return err
-	}
-
-	file, err := os.OpenFile(statsPath, os.O_APPEND|os.O_WRONLY, 0644)
-	if err != nil {
-		return err
-	}
-	defer file.Close()
-	file.WriteString("# " + programName + " Stats\n\n")
-
-	return nil
+	initialContent := []string{"# " + programName + " Stats\n\n"}
+	return createFile(statsPath, initialContent...)
 }
 
 // ========================= Program =========================
