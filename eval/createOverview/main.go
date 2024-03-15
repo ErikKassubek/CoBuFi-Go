@@ -333,10 +333,6 @@ func parseTraceToCSV(tracePath string, statsPath string) error {
 		println(err.Error())
 	}
 
-	fmt.Println("res:")
-	for key, value := range res {
-		fmt.Printf("%s: %d\n", key, value)
-	}
 	return writeTraceCSV(statsPath, res)
 }
 
@@ -437,10 +433,6 @@ func parseTrace(tracePath string, statsPath string) error {
 		println(err.Error())
 	}
 
-	fmt.Println("res:")
-	for key, value := range res {
-		fmt.Printf("%s: %d\n", key, value)
-	}
 	return writeTraceStats(statsPath, res)
 }
 
