@@ -28,15 +28,13 @@ func main() {
 
 	if createCSV {
 		//create different files
-		println(*programName)
-		println(programNameStr)
-		println(pathToStatsStr)
 		//program
 		pathToProgramCSV := pathToStatsStr + "/" + programNameStr + "_program" + ".csv"
 		err = createFile(pathToProgramCSV)
 		if err != nil {
 			panic(err)
 		}
+		//parseProgramToCSV(*pathToProgram, pathToProgramCSV)
 
 		//trace
 		pathToTraceCSV := pathToStatsStr + "/" + programNameStr + "_trace" + ".csv"
@@ -44,6 +42,7 @@ func main() {
 		if err != nil {
 			panic(err)
 		}
+		parseTraceToCSV(*pathToTrace, pathToTraceCSV)
 
 	} else {
 		statsPath := pathToStatsStr + "/" + programNameStr + "_stats" + ".md"
@@ -212,6 +211,110 @@ func parseProgramFile(filePath string) (map[string]int, error) {
 
 // ========================= Trace =========================
 
+func parseTraceToCSV(tracePath string, statsPath string) error {
+	if tracePath == "" {
+		writeTraceStats(statsPath, map[string]int{"numberFiles": 0, "numberLines": 0, "numberNonEmptyLines": 0})
+		return errors.New("Please provide a path to the trace folder. Set with -t [file]")
+	}
+
+	res := map[string]int{
+		"numberRoutines": 0,
+		"numberOfSpawns": 0,
+
+		"numberAtomics":          0,
+		"numberAtomicOperations": 0,
+
+		"numberChannels":          0,
+		"numberChannelOperations": 0,
+
+		"numberSelects":          0,
+		"numberSelectCases":      0,
+		"numberSelectChanOps":    0, // number of executed channel operations in select
+		"numberSelectDefaultOps": 0, // number of executed default operations in select
+
+		"numberMutexes":         0,
+		"numberMutexOperations": 0,
+
+		"numberWaitGroups":          0,
+		"numberWaitGroupOperations": 0,
+
+		"numberCondVars":          0,
+		"numberCondVarOperations": 0,
+
+		"numberOnce":           0,
+		"numberOnceOperations": 0,
+	}
+
+	known := map[string][]string{
+		"atomic":    []string{},
+		"channel":   []string{},
+		"mutex":     []string{},
+		"waitGroup": []string{},
+		"condVar":   []string{},
+		"once":      []string{},
+	}
+
+	err := filepath.Walk(tracePath, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
+		if info.IsDir() {
+			return nil
+		}
+
+		if filepath.Ext(path) != ".log" {
+			return nil
+		}
+
+		return parseTraceFile(path, res, known)
+	})
+
+	if err != nil {
+		println(err.Error())
+	}
+
+	fmt.Println("res:")
+	for key, value := range res {
+		fmt.Printf("%s: %d\n", key, value)
+	}
+	return writeTraceCSV(statsPath, res)
+}
+
+func writeTraceCSV(statsPath string, stats map[string]int) error {
+	file, err := os.OpenFile(statsPath, os.O_APPEND|os.O_WRONLY, 0644)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	if stats["numberRoutines"] == 0 {
+		file.WriteString("No trace found\n")
+		return nil
+	}
+	file.WriteString("Info,Value\n")
+	file.WriteString("Number of routines," + strconv.Itoa(stats["numberRoutines"]) + "\n")
+	file.WriteString("Number of spawns," + strconv.Itoa(stats["numberOfSpawns"]) + "\n")
+	file.WriteString("Number of atomics," + strconv.Itoa(stats["numberAtomics"]) + "\n")
+	file.WriteString("Number of atomic operations," + strconv.Itoa(stats["numberAtomicOperations"]) + "\n")
+	file.WriteString("Number of channels," + strconv.Itoa(stats["numberChannels"]) + "\n")
+	file.WriteString("Number of channel operations," + strconv.Itoa(stats["numberChannelOperations"]) + "\n")
+	file.WriteString("Number of selects," + strconv.Itoa(stats["numberSelects"]) + "\n")
+	file.WriteString("Number of select cases," + strconv.Itoa(stats["numberSelectCases"]) + "\n")
+	file.WriteString("Number of select channel operations," + strconv.Itoa(stats["numberSelectChanOps"]) + "\n")
+	file.WriteString("Number of select default operations," + strconv.Itoa(stats["numberSelectDefaultOps"]) + "\n")
+	file.WriteString("Number of mutexes," + strconv.Itoa(stats["numberMutexes"]) + "\n")
+	file.WriteString("Number of mutex operations," + strconv.Itoa(stats["numberMutexOperations"]) + "\n")
+	file.WriteString("Number of wait groups," + strconv.Itoa(stats["numberWaitGroups"]) + "\n")
+	file.WriteString("Number of wait group operations," + strconv.Itoa(stats["numberWaitGroupOperations"]) + "\n")
+	file.WriteString("Number of cond vars," + strconv.Itoa(stats["numberCondVars"]) + "\n")
+	file.WriteString("Number of cond var operations," + strconv.Itoa(stats["numberCondVarOperations"]) + "\n")
+	file.WriteString("Number of once," + strconv.Itoa(stats["numberOnce"]) + "\n")
+	file.WriteString("Number of once operations," + strconv.Itoa(stats["numberOnceOperations"]) + "\n")
+
+	return nil
+}
+
 func parseTrace(tracePath string, statsPath string) error {
 	if tracePath == "" {
 		writeTraceStats(statsPath, map[string]int{"numberFiles": 0, "numberLines": 0, "numberNonEmptyLines": 0})
@@ -275,6 +378,10 @@ func parseTrace(tracePath string, statsPath string) error {
 		println(err.Error())
 	}
 
+	fmt.Println("res:")
+	for key, value := range res {
+		fmt.Printf("%s: %d\n", key, value)
+	}
 	return writeTraceStats(statsPath, res)
 }
 
