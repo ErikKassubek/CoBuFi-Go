@@ -19,14 +19,14 @@ func main() {
 	pathToTrace := flag.String("t", "", "Path to the trace folder")
 	pathToResult := flag.String("r", "", "Path to the readable result file")
 	pathToTime := flag.String("d", "", "Path to a file with the time durations")
-	createCSV := true
+	createCSV := flag.Bool("c", false, "Flag to toggle CSV creation")
 	flag.Parse()
 	programNameStr, pathToStatsStr, err := checkFlags(*programName, *pathToStats)
 	if err != nil {
 		println(err.Error())
 	}
 
-	if createCSV {
+	if *createCSV {
 		//create different files
 		//program
 		pathToProgramCSV := pathToStatsStr + "/" + programNameStr + "_program" + ".csv"
