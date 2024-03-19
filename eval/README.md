@@ -25,7 +25,7 @@ Usage of ./overview:
   -t string
     	Path to the trace folder
   -c boolean
-      If set to true csv files are created instead of the .md files
+      If set to true csv files are created instead of the md files
 ```
 This means, the program run and analysis must be run before the 
 overview is created. This can be done by hand or using the `run`
