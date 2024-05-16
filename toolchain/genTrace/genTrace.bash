@@ -1,8 +1,8 @@
 #!/bin/bash
-pathToPatchedGoRuntime="/home/mario/Desktop/thesis/ADVOCATE/go-patch/bin/go"
-pathToGoRoot="GOROOT=$HOME/Desktop/thesis/ADVOCATE/go-patch/"
-pathToOverHeaderInserter="/home/mario/Desktop/thesis/GoDynAnalysis/doc/Occhinegro-Bachelor/toolchain/overHeadInserter/inserter"
-pathToOverheadRemover="/home/mario/Desktop/thesis/GoDynAnalysis/doc/Occhinegro-Bachelor/toolchain/overHeadRemover/remover"
+pathToPatchedGoRuntime="../../go-patch/bin/go"
+pathToGoRoot="../../go-patch/"
+pathToOverHeaderInserter="../overHeadInserter/inserter"
+pathToOverheadRemover="../overHeadRemover/remover"
 
 echo "Running full workflow on $1"
 echo "Step 0: Remove Overhead just in case"
