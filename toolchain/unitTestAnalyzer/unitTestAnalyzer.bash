@@ -5,10 +5,10 @@ if [ -z "$1" ]; then
 fi
 
 dir="$1"
-pathToUnitTestOverheadInserter="/home/mario/Desktop/thesis/GoDynAnalysis/doc/Occhinegro-Bachelor/toolchain/unitTestOverheadInserter/unitTestOverheadInserter.go"
-pathToUnitTestOverheadRemover="/home/mario/Desktop/thesis/GoDynAnalysis/doc/Occhinegro-Bachelor/toolchain/unitTestOverheadRemover/unitTestOverheadRemover.go"
-pathToPatchedGoRuntime="/home/mario/Desktop/thesis/ADVOCATE/go-patch/bin/go"
-pathToGoRoot="GOROOT=$HOME/Desktop/thesis/ADVOCATE/go-patch/"
+pathToUnitTestOverheadInserter="../unitTestOverheadInserter/unitTestOverheadInserter.go"
+pathToUnitTestOverheadRemover="../unitTestOverheadRemover/unitTestOverheadRemover.go"
+pathToPatchedGoRuntime="../../go-patch/bin/go"
+pathToGoRoot="../../go-patch/"
 cd "$dir"
 #make folder to store the result
 rm -r "advocateResults"
@@ -18,7 +18,6 @@ export $pathToGoRoot
 test_files=$(find "$dir" -name "*_test.go")
 for file in $test_files; do
     package_path=$(dirname "$file")
-    #grep -oE "[a-zA-Z0-9_]+ *Test[a-zA-Z0-9_]*" pod_workers_test.go | sed 's/ *\(t *\*testing\.T\)//' | sed 's/func //'
     test_functions=$(grep -oE "[a-zA-Z0-9_]+ *Test[a-zA-Z0-9_]*" $file | sed 's/ *\(t *\*testing\.T\)//' | sed 's/func //')
     for test_func in $test_functions; do
         echo "Running test: $test_func" in "$file of package $package_path"

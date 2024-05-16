@@ -1,5 +1,5 @@
-genTrace="/home/mario/Desktop/thesis/GoDynAnalysis/doc/Occhinegro-Bachelor/toolchain/genTrace/genTrace.bash"
-analyzer="/home/mario/Desktop/thesis/ADVOCATE/analyzer/analyzer"
+genTrace="../genTrace/genTrace.bash"
+analyzer="../../analyzer/analyzer"
 githubUrl=$1
 git clone $githubUrl
 cd $(basename "$githubUrl" .git)
