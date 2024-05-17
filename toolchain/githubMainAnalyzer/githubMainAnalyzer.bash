@@ -22,11 +22,6 @@ while [[ $# -gt 0 ]]; do
       shift
       shift
       ;;
-    -f|--file)
-      file="$2"
-      shift
-      shift
-      ;;
     -t|--gen-trace)
       genTrace="$2"
       shift 
@@ -48,8 +43,8 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-if [-z $genTrace] || [-z $analyzer] || [-z $githubUrl] || [ -z "$pathToPatchedGoRuntime" ] || [ -z "$pathToGoRoot" ] || [ -z "$pathToOverHeaderInserter" ] || [ -z "$pathToOverheadRemover" ] || [ -z "$file" ]; then
-  echo "Usage: $0 -p <patched-go-runtime> -g <go-root> -i <overhead-inserter> -r <overhead-remover> -f <file>"
+if [ -z "$genTrace" ] || [ -z "$analyzer" ] || [ -z "$githubUrl" ] || [ -z "$pathToPatchedGoRuntime" ] || [ -z "$pathToGoRoot" ] || [ -z "$pathToOverHeaderInserter" ] || [ -z "$pathToOverheadRemover" ] ;then
+  echo "Usage: $0 -p <patched-go-runtime> -g <go-root> -i <overhead-inserter> -r <overhead-remover> -t <gen-trace> -a <analyzer> -u <github-url>"
   exit 1
 fi
 
@@ -74,7 +69,7 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 echo "Run Analysis"
-"$analyzer" -t adadvocateTrace
+"$analyzer" -t advocateTrace
 if [ $? -ne 0 ]; then
     echo "Error: Failed to run the analysis."
     exit 1
