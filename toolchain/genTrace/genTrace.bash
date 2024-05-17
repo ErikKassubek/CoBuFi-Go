@@ -33,7 +33,6 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-# Check if all required arguments are provided
 if [ -z "$pathToPatchedGoRuntime" ] || [ -z "$pathToGoRoot" ] || [ -z "$pathToOverHeaderInserter" ] || [ -z "$pathToOverheadRemover" ] || [ -z "$file" ]; then
   echo "Usage: $0 -p <patched-go-runtime> -g <go-root> -i <overhead-inserter> -r <overhead-remover> -f <file>"
   exit 1
