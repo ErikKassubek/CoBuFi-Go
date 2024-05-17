@@ -109,6 +109,4 @@ func removeOverhead(fileName string, testName string) {
 		fmt.Fprintln(writer, line)
 	}
 	writer.Flush()
-
-	fmt.Println("Overhead removed successfully.")
 }

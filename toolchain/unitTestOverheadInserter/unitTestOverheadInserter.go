@@ -100,6 +100,4 @@ func addOverhead(fileName string, testName string) {
 		fmt.Fprintln(writer, line)
 	}
 	writer.Flush()
-
-	fmt.Println("Overhead added successfully.")
 }
