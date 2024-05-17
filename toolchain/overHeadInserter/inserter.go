@@ -13,23 +13,24 @@ func main() {
 	fileName := flag.String("f", "", "path to the file")
 	flag.Parse()
 	if *fileName == "" {
-		fmt.Println("Please provide a file name")
-		fmt.Println("Usage: preambleInserter -f <file>")
-		return
+		fmt.Fprintln(os.Stderr, "Please provide a file name")
+		fmt.Fprintln(os.Stderr, "Usage: preambleInserter -f <file>")
+		os.Exit(1)
 	}
 	if _, err := os.Stat(*fileName); os.IsNotExist(err) {
-		fmt.Printf("File %s does not exist\n", *fileName)
-		return
+		fmt.Fprintf(os.Stderr, "File %s does not exist\n", *fileName)
+		os.Exit(1)
+
 	}
 	exists, err := mainMethodExists(*fileName)
 	if err != nil {
-		fmt.Println("Error:", err)
-		return
+		fmt.Fprintln(os.Stderr, "Error:", err)
+		os.Exit(1)
 	}
 
 	if !exists {
-		fmt.Println("Main Method not found in file")
-		return
+		fmt.Fprintln(os.Stderr, "Main Method not found in file")
+		os.Exit(1)
 	}
 
 	addOverhead(*fileName)
@@ -61,8 +62,8 @@ func mainMethodExists(fileName string) (bool, error) {
 func addOverhead(fileName string) {
 	file, err := os.OpenFile(fileName, os.O_RDWR, 0644)
 	if err != nil {
-		fmt.Println("Error:", err)
-		return
+		fmt.Fprintln(os.Stderr, "Error:", err)
+		os.Exit(1)
 	}
 	defer file.Close()
 
@@ -72,9 +73,9 @@ func addOverhead(fileName string) {
 		line := scanner.Text()
 		lines = append(lines, line)
 
-		if strings.Contains(line, "import \""){
+		if strings.Contains(line, "import \"") {
 			lines = append(lines, "import \"advocate\"")
-		}else if strings.Contains(line, "import ("){
+		} else if strings.Contains(line, "import (") {
 			lines = append(lines, "\t\"advocate\"")
 		}
 
