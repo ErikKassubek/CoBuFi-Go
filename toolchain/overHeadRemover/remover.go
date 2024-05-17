@@ -12,13 +12,13 @@ func main() {
 	fileName := flag.String("f", "", "path to the file")
 	flag.Parse()
 	if *fileName == "" {
-		fmt.Println("Please provide a file name")
-		fmt.Println("Usage: preambleInserter -f <file>")
-		return
+		fmt.Fprintln(os.Stderr, "Please provide a file name")
+		fmt.Fprintln(os.Stderr, "Usage: preambleInserter -f <file>")
+		os.Exit(1)
 	}
 	if _, err := os.Stat(*fileName); os.IsNotExist(err) {
-		fmt.Printf("File %s does not exist\n", *fileName)
-		return
+		fmt.Fprintf(os.Stderr, "File %s does not exist\n", *fileName)
+		os.Exit(1)
 	}
 	file, err := os.Open(*fileName)
 	if err != nil {
