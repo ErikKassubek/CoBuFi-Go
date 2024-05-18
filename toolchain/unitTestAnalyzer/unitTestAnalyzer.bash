@@ -66,6 +66,11 @@ for file in $test_files; do
         echo "Running test: $test_func" in "$file of package $package_path"
         echo "$pathToOverheadInserter -f $file -t $test_func"
         $pathToOverheadInserter -f $file -t $test_func
+        if [ $? -ne 0 ]; then
+          # If the overhead inserter fails, skip the test
+          echo "Overhead inserter failed for $file $test_func. Skipping test."
+          continue
+        fi
         $pathToPatchedGoRuntime test -count=1 -run="$test_func" "$package_path"
         $pathToOverheadRemover -f "$file" -t "$test_func"
         packageName=$(basename "$package_path")
