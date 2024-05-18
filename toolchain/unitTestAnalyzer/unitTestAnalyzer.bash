@@ -19,7 +19,7 @@ while [[ $# -gt 0 ]]; do
       shift
       ;;
     -i|--overhead-inserter)
-      pathToOverHeaderInserter="$2"
+      pathToOverheadInserter="$2"
       shift
       shift
       ;;
@@ -39,7 +39,7 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-if [ -z "$pathToPatchedGoRuntime" ] || [ -z "$pathToGoRoot" ] || [ -z "$pathToOverHeaderInserter" ] || [ -z "$pathToOverheadRemover" ] || [-z "$dir" ];then
+if [ -z "$pathToPatchedGoRuntime" ] || [ -z "$pathToGoRoot" ] || [ -z "$pathToOverheadInserter" ] || [ -z "$pathToOverheadRemover" ] || [ -z "$dir" ];then
   echo "Usage: $0 -p <patched-go-runtime> -g <go-root> -i <overhead-inserter> -r <overhead-remover> -f <folder>"
   exit 1
 fi
@@ -48,21 +48,26 @@ fi
 
 
 cd "$dir"
-#make folder to store the result
 rm -r "advocateResults"
 mkdir "advocateResults"
+echo  "In directory: $dir"
 
-export $pathToGoRoot
+export GOROOT=$pathToGoRoot
+echo "Goroot exported"
 test_files=$(find "$dir" -name "*_test.go")
+echo "Test files: $test_files"
 for file in $test_files; do
+    echo "Processing file: $file"
     package_path=$(dirname "$file")
+    echo "Package path: $package_path"
     test_functions=$(grep -oE "[a-zA-Z0-9_]+ *Test[a-zA-Z0-9_]*" $file | sed 's/ *\(t *\*testing\.T\)//' | sed 's/func //')
+    echo "Test functions: $test_functions"
     for test_func in $test_functions; do
         echo "Running test: $test_func" in "$file of package $package_path"
-        $pathToPatchedGoRuntime run "$pathToOverheadInserter" -f "$file" -t "$test_func"
-        echo "go test -count=1 -run=$test_func $package_path"
+        echo "$pathToOverheadInserter -f $file -t $test_func"
+        $pathToOverheadInserter -f $file -t $test_func
         $pathToPatchedGoRuntime test -count=1 -run="$test_func" "$package_path"
-        $pathToPatchedGoRuntime run "$pathToOverheadRemover" -f "$file" -t "$test_func"
+        $pathToOverheadRemover -f "$file" -t "$test_func"
         packageName=$(basename "$package_path")
         fileName=$(basename "$file")
         mkdir -p "advocateResults/$packageName/$fileName/$test_func"

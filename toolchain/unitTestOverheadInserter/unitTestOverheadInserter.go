@@ -34,6 +34,7 @@ func main() {
 	}
 	if !testExists {
 		fmt.Println("Test Method not found in file")
+		os.Exit(1)
 		return
 	}
 
