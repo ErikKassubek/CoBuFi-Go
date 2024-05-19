@@ -1,0 +1,1 @@
+Intended for use together with unitTestAnalyzer (unitTestGenTrace) with the advocateResults as input
