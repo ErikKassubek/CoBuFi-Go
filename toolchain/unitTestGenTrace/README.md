@@ -1,4 +1,4 @@
-# Unit Test Analyzer
+# Unit Test Gen Trace
 With this script it is possible to automatically run all Go Unit Tests within a folder while collecting traces and storing them in a folder for later analysis.
 
 ## Usage with Kubernetes
