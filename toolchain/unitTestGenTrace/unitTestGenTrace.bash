@@ -1,10 +1,4 @@
 #!/bin/bash
-if [ -z "$1" ]; then
-    echo "Usage: $0 <directory>"
-    exit 1
-fi
-
-
 while [[ $# -gt 0 ]]; do
   key="$1"
   case $key in
