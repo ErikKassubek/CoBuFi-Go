@@ -55,8 +55,11 @@ echo  "In directory: $dir"
 export GOROOT=$pathToGoRoot
 echo "Goroot exported"
 test_files=$(find "$dir" -name "*_test.go")
+total_files=$(echo "$test_files" | wc -l)
+current_file=1
 echo "Test files: $test_files"
 for file in $test_files; do
+    echo "Progress: $current_file/$total_files"
     echo "Processing file: $file"
     package_path=$(dirname "$file")
     echo "Package path: $package_path"
@@ -78,4 +81,5 @@ for file in $test_files; do
         mkdir -p "advocateResults/$packageName/$fileName/$test_func"
         mv "$package_path/advocateTrace" "advocateResults/$packageName/$fileName/$test_func/advocateTrace"
     done
+    current_file=$((current_file+1))
 done
