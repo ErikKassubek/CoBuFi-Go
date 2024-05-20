@@ -51,7 +51,7 @@ echo "Goroot exported"
 test_files=$(find "$dir" -name "*_test.go")
 total_files=$(echo "$test_files" | wc -l)
 current_file=1
-echo "Test files: $test_files"
+#echo "Test files: $test_files"
 for file in $test_files; do
     echo "Progress: $current_file/$total_files"
     echo "Processing file: $file"
@@ -68,11 +68,15 @@ for file in $test_files; do
           echo "Overhead inserter failed for $file $test_func. Skipping test."
           continue
         fi
+        echo "$pathToPatchedGoRuntime test -count=1 -run=$test_func $package_path"
         $pathToPatchedGoRuntime test -count=1 -run="$test_func" "$package_path"
+        echo "$pathToOverheadRemover -f $file -t $test_func"
         $pathToOverheadRemover -f "$file" -t "$test_func"
         packageName=$(basename "$package_path")
         fileName=$(basename "$file")
+        echo "mkdir -p advocateResults/$packageName/$fileName/$test_func"
         mkdir -p "advocateResults/$packageName/$fileName/$test_func"
+        echo "mv $package_path/advocateTrace advocateResults/$packageName/$fileName/$test_func/advocateTrace"
         mv "$package_path/advocateTrace" "advocateResults/$packageName/$fileName/$test_func/advocateTrace"
     done
     current_file=$((current_file+1))
