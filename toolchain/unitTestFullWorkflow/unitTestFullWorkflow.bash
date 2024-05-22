@@ -53,7 +53,7 @@ while [[ $# -gt 0 ]]; do
 done
 
 if [ -z "$pathToPatchedGoRuntime" ] || [ -z "$pathToAnalyzer" ] || [ -z "$pathToGoRoot" ] || [ -z "$pathToOverheadInserter" ] || [ -z "$pathToOverheadRemover" ] || [ -z "$dir" ] || [ -z $testName ] || [ -z $package];then
-  echo "Usage: $0 -p <patched-go-runtime> -g <go-root> -i <overhead-inserter> -r <overhead-remover> -a <analyzer> -f <folder>"
+  echo "Usage: $0 -p <patched-go-runtime> -g <go-root> -i <overhead-inserter> -r <overhead-remover> -a <analyzer> -f <folder> -t <testName> -package <package>"
   exit 1
 fi
 
