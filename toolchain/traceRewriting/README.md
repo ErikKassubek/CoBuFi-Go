@@ -1,1 +1,0 @@
-Attempts to rewrite trace and saves exit codes in csv as statistic
