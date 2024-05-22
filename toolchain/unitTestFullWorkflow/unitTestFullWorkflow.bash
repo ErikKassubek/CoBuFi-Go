@@ -107,8 +107,12 @@ $pathToPatchedGoRuntime test -count=1 -run=$testName "./$package"
 echo "Remove Overhead"
 $pathToOverheadRemover -f $file -t $testName
 #Run Analyzer
-
+$pathToAnalyzer -t "$dir/$package/advocateTrace"
 #Loop through every rewritten traces
+rewritten_traces =  $(find "./$package" -type d -name "rewritten_trace*")
+for trace in $rewritten_traces; do
+  tree trace
+done
 ## Remove Overhead just in case
 ## Apply reorder overhead
 ## Run test
