@@ -104,9 +104,10 @@ $pathToOverheadInserter -f $file -t $testName
 echo "Run test"
 $pathToPatchedGoRuntime test -count=1 -run=$testName "./$package"
 ##Remove Overhead
-#echo "$pathToOverheadRemover -f $file -t $testName"
-#"$pathToOverheadRemover -f $package/$file -t $testName"
+echo "Remove Overhead"
+$pathToOverheadRemover -f $file -t $testName
 #Run Analyzer
+
 #Loop through every rewritten traces
 ## Remove Overhead just in case
 ## Apply reorder overhead
