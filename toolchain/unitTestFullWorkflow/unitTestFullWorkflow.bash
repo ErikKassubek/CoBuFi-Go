@@ -109,12 +109,15 @@ $pathToOverheadRemover -f $file -t $testName
 #Run Analyzer
 $pathToAnalyzer -t "$dir/$package/advocateTrace"
 #Loop through every rewritten traces
-rewritten_traces =  $(find "./$package" -type d -name "rewritten_trace*")
+rewritten_traces=$(find "./$package" -type d -name "rewritten_trace*")
+rtracenum=1
 for trace in $rewritten_traces; do
-  tree trace
+  ## Apply reorder overhead
+  $pathToOverheadInserter -f $file -t $testName -r true -n $rtracenum
+  ## Run test
+  echo "Run reordered test"
+  $pathToPatchedGoRuntime test -count=1 -run=$testName "./$package"
+  ## Remove reorder overhead
+  $pathToOverheadRemover -f $file -t $testName
 done
-## Remove Overhead just in case
-## Apply reorder overhead
-## Run test
-## Remove reorder overhead
 unset GOROOT
