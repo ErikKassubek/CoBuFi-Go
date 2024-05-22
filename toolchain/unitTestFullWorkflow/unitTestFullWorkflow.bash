@@ -2,7 +2,7 @@
 while [[ $# -gt 0 ]]; do
   key="$1"
   case $key in
-    -patch|--patched-go-runtime)
+    -p|--patched-go-runtime)
       pathToPatchedGoRuntime="$2"
       shift
       shift
@@ -32,19 +32,15 @@ while [[ $# -gt 0 ]]; do
       shift
       shift
       ;;
-    -t|--testName)
+    -t|--test-name)
       testName="$2"
       shift
       shift
       ;;
-    -package|--package)
+    -package)
       package="$2"
       shift
       shift
-      ;;
-    -h|--help)
-      echo "Usage: $0 -p <patched-go-runtime> -g <go-root> -i <overhead-inserter> -r <overhead-remover> -a <analyzer> -f <folder> -t <testName> -package <package>"
-      exit 0
       ;;
     *)
       shift
@@ -52,8 +48,33 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-if [ -z "$pathToPatchedGoRuntime" ] || [ -z "$pathToAnalyzer" ] || [ -z "$pathToGoRoot" ] || [ -z "$pathToOverheadInserter" ] || [ -z "$pathToOverheadRemover" ] || [ -z "$dir" ] || [ -z $testName ] || [ -z $package];then
-  echo "Usage: $0 -p <patched-go-runtime> -g <go-root> -i <overhead-inserter> -r <overhead-remover> -a <analyzer> -f <folder> -t <testName> -package <package>"
+if [ -z "$pathToPatchedGoRuntime" ]; then
+  echo "Path to patched go runtime is empty"
+fi
+if [ -z "$pathToGoRoot" ]; then
+  echo "Path to go root is empty"
+fi
+if [ -z "$pathToOverheadInserter" ]; then
+  echo "Path to overhead inserter is empty"
+fi
+if [ -z "$pathToOverheadRemover" ]; then
+  echo "Path to overhead remover is empty"
+fi
+if [ -z "$pathToAnalyzer" ]; then
+  echo "Path to analyzer is empty"
+fi
+if [ -z "$dir" ]; then
+  echo "Directory is empty"
+fi
+if [ -z "$testName" ]; then
+  echo "Test name is empty"
+fi
+if [ -z "$package" ]; then
+  echo "Package is empty"
+fi
+
+if [ -z "$pathToPatchedGoRuntime" ] || [ -z "$pathToGoRoot" ] || [ -z "$pathToOverheadInserter" ] || [ -z "$pathToOverheadRemover" ] || [ -z "$pathToAnalyzer" ] || [ -z "$dir" ] || [ -z "$testName" ] || [ -z "$package" ]; then
+  echo "Usage: $0 -patch|--patched-go-runtime <pathToPatchedGoRuntime> -g|--go-root <pathToGoRoot> -i|--overhead-inserter <pathToOverheadInserter> -r|--overhead-remover <pathToOverheadRemover> -a|--analyzer <pathToAnalyzer> -f|--folder <directory> -t|--test-name <testName> -package <package>"
   exit 1
 fi
 
@@ -64,18 +85,22 @@ cd "$dir"
 echo  "In directory: $dir"
 export GOROOT=$pathToGoRoot
 echo "Goroot exported"
+#Get all files in package
+
 #Remove Overhead just in case
-echo "$pathToOverheadRemover -f $package/$file -t $testName"
-"$pathToOverheadRemover -f $package/$file -t $testName"
+echo "Remove Overhead just in case"
+echo "$pathToOverheadRemover -f ./$file -t $testName"
+"$pathToOverheadRemover -f $file -t $testName"
 #Add Overhead
-echo "$pathToOverheadInserter -f $file -t $testName"
-"$pathToOverheadInserter -f $package/$file -t $testName"
-#Run test
-echo "$pathToPatchedGoRuntime test -count=1 -run=$testName $package"
-"$pathToPatchedGoRuntime test -count=1 -run=$testName $package"
-#Remove Overhead
-echo "$pathToOverheadRemover -f $file -t $testName"
-"$pathToOverheadRemover -f $package/$file -t $testName"
+#echo "Add Overhead"
+#echo "$pathToOverheadInserter -f $file -t $testName"
+#$pathToOverheadInserter -f $package/$file -t $testName
+##Run test
+#echo "$pathToPatchedGoRuntime test -count=1 -run=$testName $package"
+#"$pathToPatchedGoRuntime test -count=1 -run=$testName $package"
+##Remove Overhead
+#echo "$pathToOverheadRemover -f $file -t $testName"
+#"$pathToOverheadRemover -f $package/$file -t $testName"
 #Run Analyzer
 #Loop through every rewritten traces
 ## Remove Overhead just in case
