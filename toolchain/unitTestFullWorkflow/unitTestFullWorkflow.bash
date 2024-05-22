@@ -37,13 +37,13 @@ while [[ $# -gt 0 ]]; do
       shift
       shift
       ;;
-    -package|--packageName)
-      packageName="$2"
+    -package|--package)
+      package="$2"
       shift
       shift
       ;;
     -h|--help)
-      echo "Usage: $0 -p <patched-go-runtime> -g <go-root> -i <overhead-inserter> -r <overhead-remover> -a <analyzer> -f <folder> -t <testName> -package <packageName>"
+      echo "Usage: $0 -p <patched-go-runtime> -g <go-root> -i <overhead-inserter> -r <overhead-remover> -a <analyzer> -f <folder> -t <testName> -package <package>"
       exit 0
       ;;
     *)
@@ -52,7 +52,7 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-if [ -z "$pathToPatchedGoRuntime" ] || [ -z "$pathToAnalyzer" ] || [ -z "$pathToGoRoot" ] || [ -z "$pathToOverheadInserter" ] || [ -z "$pathToOverheadRemover" ] || [ -z "$dir" ] || [ -z $testName ] || [ -z $packageName];then
+if [ -z "$pathToPatchedGoRuntime" ] || [ -z "$pathToAnalyzer" ] || [ -z "$pathToGoRoot" ] || [ -z "$pathToOverheadInserter" ] || [ -z "$pathToOverheadRemover" ] || [ -z "$dir" ] || [ -z $testName ] || [ -z $package];then
   echo "Usage: $0 -p <patched-go-runtime> -g <go-root> -i <overhead-inserter> -r <overhead-remover> -a <analyzer> -f <folder>"
   exit 1
 fi
@@ -65,21 +65,21 @@ echo  "In directory: $dir"
 export GOROOT=$pathToGoRoot
 echo "Goroot exported"
 #Remove Overhead just in case
+echo "$pathToOverheadRemover -f $package/$file -t $testName"
+"$pathToOverheadRemover -f $package/$file -t $testName"
 #Add Overhead
+echo "$pathToOverheadInserter -f $file -t $testName"
+"$pathToOverheadInserter -f $package/$file -t $testName"
 #Run test
+echo "$pathToPatchedGoRuntime test -count=1 -run=$testName $package"
+"$pathToPatchedGoRuntime test -count=1 -run=$testName $package"
 #Remove Overhead
+echo "$pathToOverheadRemover -f $file -t $testName"
+"$pathToOverheadRemover -f $package/$file -t $testName"
 #Run Analyzer
 #Loop through every rewritten traces
 ## Remove Overhead just in case
 ## Apply reorder overhead
 ## Run test
 ## Remove reorder overhead
-echo "$pathToOverheadInserter -f $file -t $test_func"
-$pathToOverheadInserter -f $file -t $test_func
-echo "$pathToPatchedGoRuntime test -count=1 -run=$test_func $package_path"
-$pathToPatchedGoRuntime test -count=1 -run="$test_func" "$package_path"
-echo "$pathToOverheadRemover -f $file -t $test_func"
-$pathToOverheadRemover -f "$file" -t "$test_func"
-packageName=$(basename "$package_path")
-fileName=$(basename "$file")
 unset GOROOT
