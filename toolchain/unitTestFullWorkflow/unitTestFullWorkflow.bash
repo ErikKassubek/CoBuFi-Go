@@ -96,17 +96,13 @@ echo "Goroot exported"
 #Remove Overhead just in case
 echo "Remove Overhead just in case"
 #echo "$pathToOverheadRemover -f $file -t $testName"
-echo "Remover: $pathToOverheadRemover"
-echo "File: $file"
-echo "Test Name: $testName"
 $pathToOverheadRemover -f $file -t $testName
 #Add Overhead
-#echo "Add Overhead"
-#echo "$pathToOverheadInserter -f $file -t $testName"
-#$pathToOverheadInserter -f $package/$file -t $testName
+echo "Add Overhead"
+$pathToOverheadInserter -f $file -t $testName
 ##Run test
-#echo "$pathToPatchedGoRuntime test -count=1 -run=$testName $package"
-#"$pathToPatchedGoRuntime test -count=1 -run=$testName $package"
+echo "Run test"
+$pathToPatchedGoRuntime test -count=1 -run=$testName "./$package"
 ##Remove Overhead
 #echo "$pathToOverheadRemover -f $file -t $testName"
 #"$pathToOverheadRemover -f $package/$file -t $testName"
