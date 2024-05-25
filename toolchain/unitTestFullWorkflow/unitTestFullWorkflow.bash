@@ -119,5 +119,6 @@ for trace in $rewritten_traces; do
   $pathToPatchedGoRuntime test -count=1 -run=$testName "./$package"
   ## Remove reorder overhead
   $pathToOverheadRemover -f $file -t $testName
+  rtracenum=$((rtracenum+1))
 done
 unset GOROOT
