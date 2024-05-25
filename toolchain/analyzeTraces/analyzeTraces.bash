@@ -16,6 +16,6 @@ for dir in $directories; do
     echo "Processing directory $current_dir of $num_dirs"
     echo "Directory Name: $dir"
     $path_to_analyzer -t $dir
-    $path_to_analyzer -t $dir &>"$dir/../advocateAnalysis.txt"
+    #$path_to_analyzer -t $dir &>"$dir/../advocateAnalysis.txt"
     current_dir=$((current_dir+1))
 done
