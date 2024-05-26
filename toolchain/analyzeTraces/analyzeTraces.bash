@@ -18,4 +18,4 @@ for dir in $directories; do
     $path_to_analyzer -t $dir
     #$path_to_analyzer -t $dir &>"$dir/../advocateAnalysis.txt"
     current_dir=$((current_dir+1))
-done
+done 

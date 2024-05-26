@@ -102,6 +102,7 @@ echo "Add Overhead"
 $pathToOverheadInserter -f $file -t $testName
 ##Run test
 echo "Run test"
+echo "$pathToPatchedGoRuntime test -count=1 -run=$testName ./$package"
 $pathToPatchedGoRuntime test -count=1 -run=$testName "./$package"
 ##Remove Overhead
 echo "Remove Overhead"
