@@ -2,41 +2,24 @@
 while [[ $# -gt 0 ]]; do
   key="$1"
   case $key in
-    -p|--patched-go-runtime)
-      pathToPatchedGoRuntime="$2"
-      shift
-      shift
-      ;;
-    -g|--go-root)
-      pathToGoRoot="$2"
-      shift
-      shift
-      ;;
-    -i|--overhead-inserter)
-      pathToOverheadInserter="$2"
-      shift
-      shift
-      ;;
-    -r|--overhead-remover)
-      pathToOverheadRemover="$2"
+    -a|--advocate)
+      pathToAdvocate="$2"
       shift
       shift
       ;;
     -f|--folder)
-      dir="$2"
-      shift
-      shift
-      ;;
-    -a|--analyzer)
-      pathToAnalyzer="$2"
-      shift
-      shift
-      ;;
     *)
       shift
       ;;
   esac
 done
+
+if [ -z "$pathToAdvocate" ]; then
+  echo "Path to advocate is empty"
+  exit 1
+fi
+
+#Initialize Variables
 
 
 if [ -z "$pathToPatchedGoRuntime" ]; then
