@@ -50,15 +50,19 @@ fi
 fileToExecute=$(echo "$fileToExecute" | sed 's|^\./||')
 #remove overhead just in case
 echo "Removing overhead"
+echo "$pathToOverheadRemover -f $fileToExecute"
 "$pathToOverheadRemover" -f "$fileToExecute"
 #insert overhead
 echo "Inserting overhead"
+echo "$pathToOverHeaderInserter -f $fileToExecute"
 "$pathToOverHeaderInserter" -f "$fileToExecute"
 #run main
 echo "Running main"
+echo "$pathToPatchedGoRuntime run $fileToExecute"
 "$pathToPatchedGoRuntime" run "$fileToExecute"
 #remove overhead
 echo "Removing overhead"
+echo "$pathToOverheadRemover -f $fileToExecute"
 "$pathToOverheadRemover" -f "$fileToExecute"
 echo "Run Analysis"
 "$analyzer" -t advocateTrace
