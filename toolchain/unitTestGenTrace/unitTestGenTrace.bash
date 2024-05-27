@@ -2,23 +2,8 @@
 while [[ $# -gt 0 ]]; do
   key="$1"
   case $key in
-    -p|--patched-go-runtime)
-      pathToPatchedGoRuntime="$2"
-      shift
-      shift
-      ;;
-    -g|--go-root)
-      pathToGoRoot="$2"
-      shift
-      shift
-      ;;
-    -i|--overhead-inserter)
-      pathToOverheadInserter="$2"
-      shift
-      shift
-      ;;
-    -r|--overhead-remover)
-      pathToOverheadRemover="$2"
+    -a | --advocate)
+      pathToAdvocate="$2"
       shift
       shift
       ;;
@@ -33,13 +18,15 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-if [ -z "$pathToPatchedGoRuntime" ] || [ -z "$pathToGoRoot" ] || [ -z "$pathToOverheadInserter" ] || [ -z "$pathToOverheadRemover" ] || [ -z "$dir" ];then
-  echo "Usage: $0 -p <patched-go-runtime> -g <go-root> -i <overhead-inserter> -r <overhead-remover> -f <folder>"
+if [ -z "$pathToAdvocate" ]; then
+  echo "Path to advocate is empty"
   exit 1
 fi
-
-
-
+# intialize variables
+pathToPatchedGoRuntime="$pathToAdvocate/go-patch/bin/go"
+pathToGoRoot="$pathToAdvocate/go-patch"
+pathToOverheadInserter="$pathToAdvocate/toolchain/unitTestOverheadInserter/unitTestOverheadInserter"
+pathToOverheadRemover="$pathToAdvocate/toolchain/unitTestOverheadRemover/unitTestOverheadRemover"
 
 cd "$dir"
 rm -r "advocateResults"
@@ -80,4 +67,5 @@ for file in $test_files; do
         mv "$package_path/advocateTrace" "advocateResults/$packageName/$fileName/$test_func/advocateTrace"
     done
     current_file=$((current_file+1))
+    sleep 5
 done
