@@ -1,13 +1,32 @@
 
-
 while [[ $# -gt 0 ]]; do
   key="$1"
   case $key in
-    -a|--advocate)
-      pathToAdvocate="$2"
+    -p|--patched-go-runtime)
+      pathToPatchedGoRuntime="$2"
       shift
       shift
-      ;; 
+      ;;
+    -g|--go-root)
+      pathToGoRoot="$2"
+      shift
+      shift
+      ;;
+    -i|--overhead-inserter)
+      pathToOverheadInserter="$2"
+      shift
+      shift
+      ;;
+    -r|--overhead-remover)
+      pathToOverheadRemover="$2"
+      shift
+      shift
+      ;;
+    -a|--analyzer)
+      pathToAnalyzer="$2"
+      shift
+      shift
+      ;;
     -f|--folder)
       dir="$2"
       shift
@@ -18,7 +37,7 @@ while [[ $# -gt 0 ]]; do
       shift
       shift
       ;;
-    -p |--package)
+    -package)
       package="$2"
       shift
       shift
@@ -34,20 +53,20 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-# previous command
-#./unitTestFullWorkflow.bash -p /home/mario/Desktop/thesis/ADVOCATE/go-patch/bin/go -g /home/mario/Desktop/thesis/ADVOCATE/go-patch -i /home/mario/Desktop/thesis/ADVOCATE/toolchain/unitTestOverheadInserter/unitTestOverheadInserter -r /home/mario/Desktop/thesis/ADVOCATE/toolchain/unitTestOverheadRemover/unitTestOverheadRemover -a /home/mario/Desktop/thesis/ADVOCATE/analyzer/analyzer -f ~/Desktop/fullMod -t TestSomething -package module/path -tf /home/mario/Desktop/fullMod/module/path/some_test.go 
-
-#Initialize Variables
-pathToPatchedGoRuntime="$pathToAdvocate/go-patch/bin/go"
-pathToGoRoot="$pathToAdvocate/go-patch"
-pathToOverheadInserter="$pathToAdvocate/toolchain/unitTestOverheadInserter/unitTestOverheadInserter"
-pathToOverheadRemover="$pathToAdvocate/toolchain/unitTestOverheadRemover/unitTestOverheadRemover"
-pathToAnalyzer="$pathToAdvocate/analyzer/analyzer"
-
-
-
-if [ -z "$pathToAdvocate" ]; then
-  echo "Path to advocate is empty"
+if [ -z "$pathToPatchedGoRuntime" ]; then
+  echo "Path to patched go runtime is empty"
+fi
+if [ -z "$pathToGoRoot" ]; then
+  echo "Path to go root is empty"
+fi
+if [ -z "$pathToOverheadInserter" ]; then
+  echo "Path to overhead inserter is empty"
+fi
+if [ -z "$pathToOverheadRemover" ]; then
+  echo "Path to overhead remover is empty"
+fi
+if [ -z "$pathToAnalyzer" ]; then
+  echo "Path to analyzer is empty"
 fi
 if [ -z "$dir" ]; then
   echo "Directory is empty"
@@ -61,6 +80,12 @@ fi
 if [ -z "$file" ]; then
   echo "Test file is empty"
 fi
+
+if [ -z "$pathToPatchedGoRuntime" ] || [ -z "$pathToGoRoot" ] || [ -z "$pathToOverheadInserter" ] || [ -z "$pathToOverheadRemover" ] || [ -z "$pathToAnalyzer" ] || [ -z "$dir" ] || [ -z "$testName" ] || [ -z "$package" ] || [ -z "$file" ]; then
+  echo "Usage: $0 -patch|--patched-go-runtime <pathToPatchedGoRuntime> -g|--go-root <pathToGoRoot> -i|--overhead-inserter <pathToOverheadInserter> -r|--overhead-remover <pathToOverheadRemover> -a|--analyzer <pathToAnalyzer> -f|--folder <directory> -t|--test-name <testName> -package <package> -tf|--test-file <testFile>"
+  exit 1
+fi
+
 
 
 

@@ -8,6 +8,10 @@ while [[ $# -gt 0 ]]; do
       shift
       ;;
     -f|--folder)
+      dir="$2"
+      shift
+      shift
+      ;;
     *)
       shift
       ;;
@@ -18,37 +22,18 @@ if [ -z "$pathToAdvocate" ]; then
   echo "Path to advocate is empty"
   exit 1
 fi
-
-#Initialize Variables
-
-
-if [ -z "$pathToPatchedGoRuntime" ]; then
-  echo "Path to patched go runtime is empty"
-  exit 1
-fi
-if [ -z "$pathToGoRoot" ]; then
-  echo "Path to go root is empty"
-  exit 1
-fi
-if [ -z "$pathToOverheadInserter" ]; then
-  echo "Path to overhead inserter is empty"
-  exit 1
-fi
-if [ -z "$pathToOverheadRemover" ]; then
-  echo "Path to overhead remover is empty"
-  exit 1
-fi
 if [ -z "$dir" ]; then
   echo "Directory is empty"
   exit 1
 fi
-if [ -z "$pathToAnalyzer" ]; then
-  echo "Path to analyzer is empty"
-  exit 1
-fi
 
-
-
+#Initialize Variables
+pathToPatchedGoRuntime="$pathToAdvocate/go-patch/bin/go"
+pathToGoRoot="$pathToAdvocate/go-patch"
+pathToOverheadInserter="$pathToAdvocate/toolchain/unitTestOverheadInserter/unitTestOverheadInserter"
+pathToOverheadRemover="$pathToAdvocate/toolchain/unitTestOverheadRemover/unitTestOverheadRemover"
+pathToAnalyzer="$pathToAdvocate/analyzer/analyzer"
+pathToFullWorkflowExecutor="$pathToAdvocate/toolchain/unitTestFullWorkflow/unitTestFullWorkflow.bash"
 
 cd "$dir"
 echo  "In directory: $dir"
@@ -68,7 +53,7 @@ for file in $test_files; do
         #runfullworkflow for single test pass all 
         echo "Running full workflow for test: $test_func in package: $package_path in file: $file"
         adjustedPackagePath=$(echo "$package_path" | sed "s|$dir||g")
-        /home/mario/Desktop/thesis/ADVOCATE/toolchain/unitTestFullWorkflow/unitTestFullWorkflow.bash -p $pathToPatchedGoRuntime -g $pathToGoRoot -i $pathToOverheadInserter -r $pathToOverheadRemover -package $adjustedPackagePath -f $dir -tf $file -a $pathToAnalyzer -t $test_func
+        $pathToFullWorkflowExecutor -a $pathToAdvocate -p $adjustedPackagePath -f $dir -tf $file -t $test_func
     done
     current_file=$((current_file+1))
 done
