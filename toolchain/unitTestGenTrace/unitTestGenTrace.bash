@@ -22,6 +22,10 @@ if [ -z "$pathToAdvocate" ]; then
   echo "Path to advocate is empty"
   exit 1
 fi
+if [ -z "$dir" ]; then
+  echo "Directory is empty"
+  exit 1
+fi
 # intialize variables
 pathToPatchedGoRuntime="$pathToAdvocate/go-patch/bin/go"
 pathToGoRoot="$pathToAdvocate/go-patch"
