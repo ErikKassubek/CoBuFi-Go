@@ -71,5 +71,4 @@ for file in $test_files; do
         mv "$package_path/advocateTrace" "advocateResults/$packageName/$fileName/$test_func/advocateTrace"
     done
     current_file=$((current_file+1))
-    sleep 5
 done
