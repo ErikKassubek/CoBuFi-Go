@@ -3,7 +3,7 @@ This script recursively looks for `advocateTrace` folders an runs the analyzer t
 Initially this tool was written to evaluate a large amount of traces as produced by the `toolchain/unitTestGenTrace`
 ## Usage
 The program expects the absolute path to:
-- the analyzer binary
+- the analyzer binary (`ADVOCATE/analyzer/analyzer`)
 - a folder containing advocate traces
 ### Command
 ```shell
