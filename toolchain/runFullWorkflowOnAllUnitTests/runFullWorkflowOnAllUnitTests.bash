@@ -50,7 +50,6 @@ for file in $test_files; do
     echo "Processing file: $file"
     package_path=$(dirname "$file")
     test_functions=$(grep -oE ".*Test.*\(.*testing\.T\)" $file | sed 's/(.*\*testing\.T.*)//' | sed 's/func //')
-    echo $test_functions
     for test_func in $test_functions; do
         attempted_tests=$((attempted_tests+1))
         packageName=$(basename "$package_path")
