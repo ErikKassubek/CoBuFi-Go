@@ -111,6 +111,5 @@ for trace in $rewritten_traces; do
 	echo "Remove reorder overhead"
 	echo "$pathToOverheadRemover -f $file -t $testName"
 	$pathToOverheadRemover -f $file -t $testName
-	#increase rtracenum
 done
 unset GOROOT
