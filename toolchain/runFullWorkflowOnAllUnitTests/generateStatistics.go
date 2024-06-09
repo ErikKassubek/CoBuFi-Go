@@ -16,43 +16,11 @@ func main() {
 		fmt.Fprintln(os.Stderr, "Usage generateStatistics -f <folder>")
 		os.Exit(1)
 	}
-	codes := []string{
-		"A1",
-		"A2",
-		"A3",
-		"A4",
-		"A5",
-		"P1",
-		"P2",
-		"P3",
-		"L1",
-		"L2",
-		"L3",
-		"L4",
-		"L5",
-		"L6",
-		"L7",
-		"L8",
-		"L9",
-		"L0",
-	}
-	possibleCodes := make(map[string]int)
-	for _, code := range codes {
-		possibleCodes[code] = 0
-	}
-	fmt.Println("Starting Program")
-	files, err := getFiles("/home/mario/Desktop/thesis/ADVOCATE/toolchain/runFullWorkflowOnAllUnitTests/file(135)-test(752)-storage_test.go-TestWatch", "results_machine.log")
+	predictedCodes, err := getPredictedBugCounts(*folderName)
 	if err != nil {
 		fmt.Println(err)
 	}
-	bugCodes := getBugCodes(files[0])
-	for _, code := range bugCodes {
-		_, ok := possibleCodes[code]
-		if ok {
-			possibleCodes[code]++
-		}
-	}
-	fmt.Println(possibleCodes)
+	fmt.Println(predictedCodes)
 }
 
 func getBugCodes(filePath string) []string {
@@ -94,4 +62,47 @@ func getFiles(folderPath string, fileName string) ([]string, error) {
 		return nil, err
 	}
 	return files, nil
+}
+
+func getPredictedBugCounts(folderPath string) (map[string]int, error) {
+	codes := []string{
+		"A1",
+		"A2",
+		"A3",
+		"A4",
+		"A5",
+		"P1",
+		"P2",
+		"P3",
+		"L1",
+		"L2",
+		"L3",
+		"L4",
+		"L5",
+		"L6",
+		"L7",
+		"L8",
+		"L9",
+		"L0",
+	}
+	predictedCodes := make(map[string]int)
+	for _, code := range codes {
+		predictedCodes[code] = 0
+	}
+
+	files, err := getFiles(folderPath, "results_machine.log")
+	if err != nil {
+		fmt.Println(err)
+	}
+	for _, file := range files {
+		bugCodes := getBugCodes(file)
+		for _, code := range bugCodes {
+			_, ok := predictedCodes[code]
+			if ok {
+				predictedCodes[code]++
+			}
+		}
+	}
+
+	return predictedCodes, nil
 }
