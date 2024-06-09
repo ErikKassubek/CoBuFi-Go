@@ -20,7 +20,10 @@ func main() {
 	if err != nil {
 		fmt.Println(err)
 	}
+	fmt.Println("Predicted Bug Counts:")
 	fmt.Println(predictedCodes)
+	fmt.Println("Predicted Exit Codes Counts:")
+	fmt.Println("Actual Exit Codes Counts:")
 }
 
 func getBugCodes(filePath string) []string {
@@ -105,4 +108,12 @@ func getPredictedBugCounts(folderPath string) (map[string]int, error) {
 	}
 
 	return predictedCodes, nil
+}
+
+func getPredictedExitCodesCounts(folderPath string) (map[int]int, error) {
+	return nil, nil
+}
+
+func getActualExitCodesCounts(folderPath string) (map[int]int, error) {
+	return nil, nil
 }
