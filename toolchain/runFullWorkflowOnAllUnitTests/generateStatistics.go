@@ -2,16 +2,45 @@ package main
 
 import (
 	"bufio"
-	"time"
 	"fmt"
 	"os"
 	"strings"
 )
 
 func main() {
+	codes := []string{
+		"A1",
+		"A2",
+		"A3",
+		"A4",
+		"A5",
+		"P1",
+		"P2",
+		"P3",
+		"L1",
+		"L2",
+		"L3",
+		"L4",
+		"L5",
+		"L6",
+		"L7",
+		"L8",
+		"L9",
+		"L0",
+	}
+	possibleCodes := make(map[string]int)
+	for _, code := range codes {
+		possibleCodes[code] = 0
+	}
 	fmt.Println("Starting Program")
 	bugCodes := getBugCodes("./results_machine.log")
-	fmt.Print(bugCodes)
+	for _, code := range bugCodes {
+		_, ok := possibleCodes[code]
+		if ok {
+			possibleCodes[code]++
+		}
+	}
+	fmt.Println(possibleCodes)
 }
 
 func getBugCodes(filePath string) []string {
@@ -31,7 +60,6 @@ func getBugCodes(filePath string) []string {
 		} else {
 			fmt.Println("no comma found in line -> invalid format")
 		}
-		time.Sleep(5000)
 	}
 	return bugCodes
 }
