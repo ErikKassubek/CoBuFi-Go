@@ -2,12 +2,20 @@ package main
 
 import (
 	"bufio"
+	"flag"
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 )
 
 func main() {
+	folderName := flag.String("f", "", "path to the file")
+	flag.Parse()
+	if *folderName == "" {
+		fmt.Fprintln(os.Stderr, "Usage generateStatistics -f <folder>")
+		os.Exit(1)
+	}
 	codes := []string{
 		"A1",
 		"A2",
@@ -33,7 +41,11 @@ func main() {
 		possibleCodes[code] = 0
 	}
 	fmt.Println("Starting Program")
-	bugCodes := getBugCodes("./results_machine.log")
+	files, err := getFiles("/home/mario/Desktop/thesis/ADVOCATE/toolchain/runFullWorkflowOnAllUnitTests/file(135)-test(752)-storage_test.go-TestWatch", "results_machine.log")
+	if err != nil {
+		fmt.Println(err)
+	}
+	bugCodes := getBugCodes(files[0])
 	for _, code := range bugCodes {
 		_, ok := possibleCodes[code]
 		if ok {
@@ -62,4 +74,24 @@ func getBugCodes(filePath string) []string {
 		}
 	}
 	return bugCodes
+}
+
+func getFiles(folderPath string, fileName string) ([]string, error) {
+	var files []string
+	err := filepath.Walk(folderPath, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		if info.IsDir() {
+			return nil
+		}
+		if filepath.Base(path) == fileName {
+			files = append(files, path)
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	return files, nil
 }
