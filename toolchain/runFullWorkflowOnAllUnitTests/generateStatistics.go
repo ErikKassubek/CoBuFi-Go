@@ -23,6 +23,7 @@ func main() {
 	fmt.Println("Predicted Bug Counts:")
 	fmt.Println(predictedCodes)
 	fmt.Println("Predicted Exit Codes Counts:")
+
 	fmt.Println("Actual Exit Codes Counts:")
 }
 
@@ -111,7 +112,36 @@ func getPredictedBugCounts(folderPath string) (map[string]int, error) {
 }
 
 func getPredictedExitCodesCounts(folderPath string) (map[int]int, error) {
+	files, err := getFiles(folderPath, "rewrite_info.log")
+	fmt.Print(files)
+	if err != nil {
+		fmt.Println(err)
+	}
+  for _, file := range files {
+    number, bugtype, expectedExitCode, err := parseRewriteInfoFile(file)
+    if err != nil {
+      fmt.Println(err)
+    }
 	return nil, nil
+}
+
+func parseRewriteInfoFile(filePath string) (string, string, string, error) {
+	file, err := os.Open(filePath)
+	if err != nil {
+		return "", "", "", err
+	}
+	defer file.Close()
+
+	scanner := bufio.NewScanner(file)
+	if !scanner.Scan() {
+		return "", "", "", fmt.Errorf("no data in file")
+	}
+	line := scanner.Text()
+	parts := strings.Split(line, "#")
+	if len(parts) != 3 {
+		return "", "", "", fmt.Errorf("expected 3 parts, got %d", len(parts))
+	}
+	return parts[0], parts[1], parts[2], nil
 }
 
 func getActualExitCodesCounts(folderPath string) (map[int]int, error) {
