@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
+	"strconv"
 	"strings"
 )
 
@@ -24,11 +26,17 @@ func main() {
 	if err != nil {
 		fmt.Println(err)
 	}
+	actualExitCodes, err := getActualExitCodes(*folderName)
+	if err != nil {
+		fmt.Println(err)
+	}
+
 	fmt.Println("Predicted Bug Counts:")
 	fmt.Println(predictedCodes)
 	fmt.Println("Predicted Exit Codes Counts:")
 	fmt.Println(predictedExitCodes)
 	fmt.Println("Actual Exit Codes Counts:")
+	fmt.Println(actualExitCodes)
 }
 
 func getBugCodes(filePath string) []string {
@@ -167,4 +175,63 @@ func parseRewriteInfoFile(filePath string) (string, string, string, error) {
 		return "", "", "", fmt.Errorf("expected 3 parts, got %d", len(parts))
 	}
 	return parts[0], parts[1], parts[2], nil
+}
+
+func getActualExitCodes(filePath string) (map[string]int, error) {
+	actualCodes := make(map[string]int)
+	exitCodes := []string{
+		"0",
+		"10",
+		"11",
+		"12",
+		"13",
+		"20",
+		"21",
+		"22",
+		"23",
+		"24",
+		"30",
+		"31",
+		"32",
+	}
+	for _, code := range exitCodes {
+		actualCodes[code] = 0
+	}
+	files, err := getFiles(filePath, "reorder_output.txt")
+	if err != nil {
+		return nil, err
+	}
+	for _, file := range files {
+		file, err := os.Open(file)
+		if err != nil {
+			return nil, err
+		}
+		defer file.Close()
+		scanner := bufio.NewScanner(file)
+		fileContent := ""
+		for scanner.Scan() {
+			line := scanner.Text()
+			fileContent += line
+		}
+		actualCode, err := extractActualCode(fileContent)
+		if err != nil {
+			continue
+		}
+		code := strconv.Itoa(actualCode)
+		actualCodes[code]++
+	}
+	return actualCodes, nil
+}
+
+func extractActualCode(s string) (int, error) {
+	re := regexp.MustCompile(`Exit Replay with code  (\d+)`)
+	match := re.FindStringSubmatch(s)
+	if match == nil {
+		return -1, fmt.Errorf("no exit code found")
+	}
+	code, err := strconv.Atoi(match[1])
+	if err != nil {
+		return -1, err
+	}
+	return code, nil
 }
