@@ -11,6 +11,27 @@ import (
 	"strings"
 )
 
+caseExitCodeMap := map[string]string{
+		"A1":"-1",
+		"A2":"-1",
+		"A3":"-1",
+		"A4":"-1",
+		"A5":"-1",
+		"P1":"30",
+		"P2":"31",
+		"P3":"32",
+		"L1":"20",
+		"L2":"-1",
+		"L3":"21",
+		"L4":"-1",
+		"L5":"-1",
+		"L6":"20",
+		"L7":"-1",
+		"L8":"22",
+		"L9":"24",
+		"L0":"23",
+}
+
 func main() {
 	folderName := flag.String("f", "", "path to the file")
 	flag.Parse()
@@ -37,6 +58,7 @@ func main() {
 	fmt.Println(predictedExitCodes)
 	fmt.Println("Actual Exit Codes Counts:")
 	fmt.Println(actualExitCodes)
+	fmt.Println("New Overview")
 }
 
 func getBugCodes(filePath string) []string {
