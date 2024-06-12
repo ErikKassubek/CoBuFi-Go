@@ -11,29 +11,119 @@ import (
 	"strings"
 )
 
-caseExitCodeMap := map[string]string{
-		"A1":"-1",
-		"A2":"-1",
-		"A3":"-1",
-		"A4":"-1",
-		"A5":"-1",
-		"P1":"30",
-		"P2":"31",
-		"P3":"32",
-		"L1":"20",
-		"L2":"-1",
-		"L3":"21",
-		"L4":"-1",
-		"L5":"-1",
-		"L6":"20",
-		"L7":"-1",
-		"L8":"22",
-		"L9":"24",
-		"L0":"23",
+func main() {
+	folderName := flag.String("f", "", "path to the folder")
+	flag.Parse()
+	if *folderName == "" {
+		fmt.Fprintln(os.Stderr, "Usage generateStatistics -f <folder>")
+		os.Exit(1)
+	}
+	codes := []string{
+		"A1",
+		"A2",
+		"A3",
+		"A4",
+		"A5",
+		"P1",
+		"P2",
+		"P3",
+		"L1",
+		"L2",
+		"L3",
+		"L4",
+		"L5",
+		"L6",
+		"L7",
+		"L8",
+		"L9",
+		"L0",
+	}
+	caseReports := make([]caseReport, 0)
+	for _, code := range codes {
+		fmt.Printf("Processing code %s\n", code)
+		report := getCaseReportForCode(code, *folderName)
+		caseReports = append(caseReports, report)
+	}
+	predictedBugCounts, err := getPredictedBugCounts(*folderName)
+	if err != nil {
+		fmt.Println(err)
+	}
+	for i, report := range caseReports {
+		caseReports[i].occurenceCount = predictedBugCounts[report.caseCode]
+	}
+	for _, report := range caseReports {
+		report.prettyPrint()
+	}
 }
 
-func main() {
-	folderName := flag.String("f", "", "path to the file")
+type caseReport struct {
+	caseCode        string
+	occurenceCount  int
+	actualExitCodes []string
+}
+
+func (c *caseReport) prettyPrint() {
+	fmt.Printf("%s:%d:", c.caseCode, c.occurenceCount)
+	for _, code := range c.actualExitCodes {
+		fmt.Printf("%s,", code)
+	}
+	fmt.Println("")
+}
+
+func getCaseReportForCode(code string, folder string) caseReport {
+	toRet := caseReport{
+		caseCode:        code,
+		occurenceCount:  0,
+		actualExitCodes: make([]string, 0),
+	}
+	files, err := getFiles(folder, "rewrite_info.log")
+	if err != nil {
+		fmt.Println(err)
+	}
+	filteredFiles := make([]string, 0)
+	for _, file := range files {
+		_, caseCode, _, err := parseRewriteInfoFile(file)
+		if err != nil {
+			fmt.Println(err)
+			return toRet
+		}
+		if caseCode == code {
+			filteredFiles = append(filteredFiles, file)
+		}
+	}
+	for _, file := range filteredFiles {
+		dir := filepath.Dir(file)
+		reorderFiles, err := getFiles(dir, "reorder_output.txt")
+		if err != nil {
+			fmt.Println(err)
+			return toRet
+		}
+		for _, reorderFile := range reorderFiles {
+			file, err := os.Open(reorderFile)
+			if err != nil {
+				fmt.Println(err)
+				return toRet
+			}
+			defer file.Close()
+			scanner := bufio.NewScanner(file)
+			fileContent := ""
+			for scanner.Scan() {
+				line := scanner.Text()
+				fileContent += line
+			}
+			actualCode, err := extractActualCode(fileContent)
+			if err != nil {
+				continue
+			}
+			code := strconv.Itoa(actualCode)
+			toRet.actualExitCodes = append(toRet.actualExitCodes, code)
+		}
+	}
+	return toRet
+}
+
+func initialReport() {
+	folderName := flag.String("f", "", "path to the folder")
 	flag.Parse()
 	if *folderName == "" {
 		fmt.Fprintln(os.Stderr, "Usage generateStatistics -f <folder>")
@@ -58,7 +148,6 @@ func main() {
 	fmt.Println(predictedExitCodes)
 	fmt.Println("Actual Exit Codes Counts:")
 	fmt.Println(actualExitCodes)
-	fmt.Println("New Overview")
 }
 
 func getBugCodes(filePath string) []string {
