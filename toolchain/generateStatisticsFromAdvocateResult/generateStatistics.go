@@ -122,34 +122,6 @@ func getCaseReportForCode(code string, folder string) caseReport {
 	return toRet
 }
 
-func initialReport() {
-	folderName := flag.String("f", "", "path to the folder")
-	flag.Parse()
-	if *folderName == "" {
-		fmt.Fprintln(os.Stderr, "Usage generateStatistics -f <folder>")
-		os.Exit(1)
-	}
-	predictedCodes, err := getPredictedBugCounts(*folderName)
-	if err != nil {
-		fmt.Println(err)
-	}
-	predictedExitCodes, err := getPredictedExitCodesCounts(*folderName)
-	if err != nil {
-		fmt.Println(err)
-	}
-	actualExitCodes, err := getActualExitCodes(*folderName)
-	if err != nil {
-		fmt.Println(err)
-	}
-
-	fmt.Println("Predicted Bug Counts:")
-	fmt.Println(predictedCodes)
-	fmt.Println("Predicted Exit Codes Counts:")
-	fmt.Println(predictedExitCodes)
-	fmt.Println("Actual Exit Codes Counts:")
-	fmt.Println(actualExitCodes)
-}
-
 func getBugCodes(filePath string) []string {
 	bugCodes := make([]string, 0)
 	file, err := os.Open(filePath)
