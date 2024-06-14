@@ -68,8 +68,6 @@ func testExists(testName string, fileName string) (bool, error) {
 }
 
 func addOverhead(fileName string, testName string, replayOverhead bool, replayNumber string) {
-	// print replay num for debugging
-	fmt.Println("Replay number: ", replayNumber)
 	file, err := os.OpenFile(fileName, os.O_RDWR, 0644)
 	if err != nil {
 		fmt.Println("Error:", err)
