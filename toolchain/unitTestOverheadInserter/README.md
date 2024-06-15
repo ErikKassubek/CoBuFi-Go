@@ -1,8 +1,11 @@
-# Unit Test Preamble Import Inserter
+# Explanation
 This tool automates adding the Advocate overhead for a given file.
 Applying this tool to a given file and testname will handle the preamble inertion.
 Also Additional flags can be provided to also handle the replay overhead insertion
-### Usage
+# Input
+# Output
+Has not output itself, but file will be modified
+# Usage
 If a go file contains a main method the cool can be used like so
 ```sh
 go run inserter.go -f filename.go
@@ -12,10 +15,7 @@ or like so if you want the replay overhead
 ```sh
 go run unitTestOverheadInserter.go -f <file> -t <test-name> -r true -n <trace-number>
 ```
-### Output
-Has not output itself, but file will be modified
-### Example
-#### Trace recording
+# Example
 Given a file `file.go`
 ```go
 package main

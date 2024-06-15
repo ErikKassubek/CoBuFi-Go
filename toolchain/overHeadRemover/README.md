@@ -1,14 +1,14 @@
-# Overhead Remover
+# Explanation
 This tool removes overhead from a a given file.
 The preamble and import will be removed
-### Usage
+# Input
+# Output
+# Usage
 If a go file contains a main method the cool can be used like so
 ```sh
 go run remover.go -f filename.go
 ```
-### Output
-Has not output itself, but file will be modified
-### Example
+# Example
 Given a file `file.go`
 ```go
 package main

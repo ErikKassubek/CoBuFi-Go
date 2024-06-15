@@ -1,3 +1,5 @@
-This script generates a compact overview over an advocateResult folder.
-## Usage
+# Explanation
+# Input
+# Output
+# Usage
 `go run generateStatistics.go -f <advocate-folder>`

@@ -1,7 +1,9 @@
-# Run Full Workflow On All Unit Tests
+# Explanation
 This script wraps the Fullworkflow for an individual test in `unitTestFullWorkflow`.
 And applies it to every test it can find in a repository
-## Usage
+# Input
+# Output
+# Usage
 It takes two parameters:
 - absolut path to advocate root
 - absolut path to go project root
@@ -14,7 +16,7 @@ The full workflow contains:
 ```sh
 ./runFullWorkflowOnAllUnitTests -a <path-to-advocate> -f <path-to-folder> 
 ```
-## Example
+# Example
 First we need an repository to test to run the program on.
 For this I have chosen the kubernetes repository.
 `git clone https://github.com/kubernetes/kubernetes`
