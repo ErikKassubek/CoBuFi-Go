@@ -61,11 +61,10 @@ for file in $test_files; do
         adjustedPackagePath=$(echo "$package_path" | sed "s|$dir||g")
         directoryName="advocateResult/file($current_file)-test($attempted_tests)-$fileName-$test_func"
         mkdir -p $directoryName
-        #check if module mode is set to true if so call with -m true else call without it
-        if [ -z "$modulemode" ]; then
-            $pathToFullWorkflowExecutor -a $pathToAdvocate -p $adjustedPackagePath -f $dir -tf $file -t $test_func &> $directoryName/output.txt
-        else
+        if [ "$modulemode" == "true" ]; then
             $pathToFullWorkflowExecutor -a $pathToAdvocate -p $adjustedPackagePath -m true -f $dir -tf $file -t $test_func &> $directoryName/output.txt
+        else
+            $pathToFullWorkflowExecutor -a $pathToAdvocate -p $adjustedPackagePath -f $dir -tf $file -t $test_func &> $directoryName/output.txt
         fi
         if [ $? -ne 0 ]; then
             echo "File $current_file with Test $attempted_tests failed, check output.txt for more information. Skipping..."

@@ -78,8 +78,7 @@ if [ $? -ne 0 ]; then
 	exit 1
 fi
 echo "Run test"
-#check if module mode is enabled
-if [ -z "$modulemode" ]; then
+if [ "$modulemode" == "true" ]; then
 	echo "$pathToPatchedGoRuntime test -count=1 -run=$testName -mod=mod ./$package"
 	$pathToPatchedGoRuntime test -count=1 -run=$testName -mod=mod "./$package"
 else
@@ -102,8 +101,7 @@ for trace in $rewritten_traces; do
 	echo "Apply reorder overhead"
 	echo $pathToOverheadInserter -f $file -t $testName -r true -n "$rtracenum"
 	$pathToOverheadInserter -f $file -t $testName -r true -n "$rtracenum"
-	# check if module mode is enabled
-	if [ -z "$modulemode" ]; then
+	if [ "$modulemode" == "true" ]; then
 		echo "$pathToPatchedGoRuntime test -count=1 -run=$testName -mod=mod ./$package"
 		$pathToPatchedGoRuntime test -count=1 -run=$testName -mod=mod "./$package" 2>&1 | tee -a "$trace/reorder_output.txt"
 	else
