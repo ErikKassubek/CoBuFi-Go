@@ -73,8 +73,8 @@ if [ $? -ne 0 ]; then
 	exit 1
 fi
 echo "Run test"
-echo "$pathToPatchedGoRuntime test -count=1 -run=$testName ./$package"
-$pathToPatchedGoRuntime test -count=1 -run=$testName "./$package"
+echo "$pathToPatchedGoRuntime test -count=1 -run=$testName -mod=mod ./$package"
+$pathToPatchedGoRuntime test -count=1 -run=$testName -mod=mod "./$package" 
 if [ $? -ne 0 ]; then
 	echo "Remove Overhead"
 	$pathToOverheadRemover -f $file -t $testName
