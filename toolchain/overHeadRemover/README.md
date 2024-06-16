@@ -1,9 +1,11 @@
 # Explanation
 This tool removes the advocate overhead from a a given file. 
 Similar to the inserter it checks every line and if it finds the inserted lines they will be removed.
+
 # Input
 The program takes 1 parameter as input
 - -f: path to the file that you want to remove the overhead from
+
 # Output
 The output is the adjusted file with the same name the original
 # Usage
