@@ -3,6 +3,7 @@ This tool automates adding the Advocate overhead for a given file.
 Applying this tool to a given file and testname will handle the preamble inertion.
 Also Additional flags can be provided to also handle the replay overhead insertion.
 It works by checking each line and if it sees the function signature it will insert the overhead below it.
+
 # Input
 The program takes up 4 parameters as input.
 - -f: path to the file that you want to add the overhead to
@@ -11,6 +12,7 @@ The program takes up 4 parameters as input.
 - -n: (optional) if `r` set to true you can the rewritte_trace number with this parameter
 # Output
 The output is the adjusted file with the same name the original
+
 # Usage
 Given a testfile `some_test.go` you can use the script like so
 ```sh

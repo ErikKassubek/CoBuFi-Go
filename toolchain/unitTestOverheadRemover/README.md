@@ -1,19 +1,22 @@
 # Example
 This tool removes the advocate overhead for a testfile.
 It does so by looking through every line and if it finds the advocate import or preamble somwhere skips them.
+
 # Input
 This script takes 2 arguments.
+
 - -f: Filepath to the testfile
 - -t: Testname
+
 # Output
 The output is the adjusted file with the same name the original
+
 # Usage
 Given a file `some_test.go` you can use the script like so
 ```bash
 go run unitTestOverheadRemover.go -f <path-to-some_test.go> -t <test-name>
 ```
 ### Example
-#### Trace recording
 Given a file `file.go`
 ```go
 package main
