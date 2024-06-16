@@ -21,6 +21,14 @@ The script will produce the following
 - if possible rewritten_trace folders
 - `reorder_output`.txt files withing their respective trace folders
 # Example
+For the case of this example it is assumed that your `ADOCATE` repository is in your home directory.
+Let's assume you want to the test `TestPostPath` of `~/prometheus` located in the file
+`~/prometheus/notifier/notifier_test.go`.
+The way you execute the program is like this
+```bash
+./unitTestFullWorkflow.bash -a ~/ADVOCATE/ -p ./notifier -f ~/prometheus/ -tf /home/mario/Desktop/prometheus/notifier/notifier_test.go -t TestPostPath
+```
+
 # Common Problems
 This tool requires a go.mod at the project root otherwise the tests won't run.
 This is the case for some repositories (eg Moby).
