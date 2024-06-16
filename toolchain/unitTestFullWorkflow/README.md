@@ -1,4 +1,25 @@
 # Explanation
+This script goes through the whole advocate worklfow for a single go test.
+It can be used on its own, but is mainly intended to be used within the [runFullWorkflowOnAllUnitTests.bash](../runFullWorkflowOnAllUnitTests/runFullWorkflowOnAllUnitTests.bash) script.
+It will automatically manage the usual steps usually associated with the advocate analyze process.
+The script does the following
+1. Change the directory the the project root and export GOROOT
+2. Run the test with the patched go runtime
+3. Run the analyzer on the produced trace
+4. If rewritten_traces were constructed run those traces and save the result in `reorder_outputs.txt`
+# Input
+As Input it takes up to 6 parameters. 5 of which are needed at minimum.
+- -a: Path to the adovacte repository root
+- -f: Path to the project root
+- -tf: Path to the test file
+- -p: Package path of the test
+- -t: Testname you want to execute
+- -m: (optional) in case you want to enable module mode. See [Common Problems](#common-problems)
+# Output
+The script will produce the following
+- the advocateTrace folder
+- if possible rewritten_trace folders
+- `reorder_output`.txt files withing their respective trace folders
 # Example
 # Common Problems
 This tool requires a go.mod at the project root otherwise the tests won't run.
