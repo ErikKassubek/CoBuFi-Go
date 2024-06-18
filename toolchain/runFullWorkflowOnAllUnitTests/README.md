@@ -22,7 +22,7 @@ For a given go project contained in the folder `myGoProject` you can simply run
 ./runFullWorkflowOnAllUnitTests.bash -a <path-to-advocate> -f <path-tomyGoProject>
 ```
 ## Project that doesn't yet have a go.mod
-For the unusual case that no go.mod is provided at the root you can try to create one yourself using `go mod init`.
+In the unusual case that no go.mod is provided at the root you can try to create one yourself using `go mod init`.
 In this case because the project is still not set up correct you need to add the additional flag `-m true` and run the program. Like so
 ```bash
 ./runFullWorkflowOnAllUnitTests.bash -a <path-to-advocate> -f <path-tomyGoProject> -m true
