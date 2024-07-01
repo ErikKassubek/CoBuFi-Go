@@ -11,7 +11,6 @@ import (
 )
 
 func main() {
-	fmt.Println("Hello, playground")
 	folderName := flag.String("f", "", "path to the folder")
 	advocateroot := flag.String("a", "", "path to the advocate root")
 	flag.Parse()
@@ -23,12 +22,8 @@ func main() {
 	if err != nil {
 		fmt.Println(err)
 	}
-	count := 0
-	allFileCount := len(files)
 	analyzerPath := filepath.Join(*advocateroot, "analyzer", "analyzer")
 	for _, file := range files {
-		count++
-		fmt.Printf("At file %d/%d\n", count, allFileCount)
 		folder := filepath.Dir(file)
 		advocateTraceFolder := filepath.Join(folder, "advocateTrace")
 		cmd := exec.Command("wc", "-l", file)

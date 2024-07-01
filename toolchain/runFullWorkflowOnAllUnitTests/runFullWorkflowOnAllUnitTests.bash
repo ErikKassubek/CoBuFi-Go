@@ -81,8 +81,8 @@ for file in $test_files; do
     current_file=$((current_file+1))
 done
 echo "Generate Bug Reports"
-echo "$pathToAdvocate/toolchain/generateBugReports/generateBugReports -a $pathToAdvocate -f $dir/advocateResult"
-$pathToAdvocate/toolchain/generateBugReports/generateBugReports -a $pathToAdvocate -f $dir/advocateResult
+echo "$pathToAdvocate/toolchain/generateBugReportsFromAdvocateResult/generateBugReports -a $pathToAdvocate -f $dir/advocateResult"
+$pathToAdvocate/toolchain/generateBugReportsFromAdvocateResult/generateBugReports -a $pathToAdvocate -f $dir/advocateResult
 echo "Finished fullworkflow for all tests"
 echo "Attempted tests: $attempted_tests"
 echo "Skipped tests: $skipped_tests"
