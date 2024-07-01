@@ -117,19 +117,5 @@ for trace in $rewritten_traces; do
 	echo "$pathToOverheadRemover -f $file -t $testName" >>advocateCommand.log
 	$pathToOverheadRemover -f $file -t $testName
 done
-lineCount=$(wc -l < "$dir/$package/results_machine.log")
-echo "Results machine log line count: $lineCount"
-if [ $lineCount -ge 1 ]; then
-	echo "Generate bug report"
-	#usage ./analyzer -e -t advocateTrace -i 1
-	# for every line in results_machine.log, get the line number and run the analyzer
-	for i in $(seq 1 $lineCount); do
-		echo "$pathToAnalyzer -e -t $dir/$package/advocateTrace -i $i" >>advocateCommand.log
-		$pathToAnalyzer -e -t "$dir/$package/advocateTrace" -i $i
-	done
-	
-else
-	echo "Results machine log is empty => no need to generate bug report"
-fi
 
 unset GOROOT
