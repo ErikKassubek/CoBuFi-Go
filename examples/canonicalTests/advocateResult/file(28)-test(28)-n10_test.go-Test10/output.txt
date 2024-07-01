@@ -1,0 +1,98 @@
+In directory: /home/mario/Desktop/thesis/ADVOCATE/examples/canonicalTests/
+Goroot exported
+Remove Overhead just in case
+Add Overhead
+Run test
+ok  	canonicalTests/tests	0.510s
+Remove Overhead
+
+ $$$$$$\  $$$$$$$\  $$\    $$\  $$$$$$\   $$$$$$\   $$$$$$\ $$$$$$$$\ $$$$$$$$\ 
+$$  __$$\ $$  __$$\ $$ |   $$ |$$  __$$\ $$  __$$\ $$  __$$\\__$$  __|$$  _____|
+$$ /  $$ |$$ |  $$ |$$ |   $$ |$$ /  $$ |$$ /  \__|$$ /  $$ |  $$ |   $$ |      
+$$$$$$$$ |$$ |  $$ |\$$\  $$  |$$ |  $$ |$$ |      $$$$$$$$ |  $$ |   $$$$$\    
+$$  __$$ |$$ |  $$ | \$$\$$  / $$ |  $$ |$$ |      $$  __$$ |  $$ |   $$  __|   
+$$ |  $$ |$$ |  $$ |  \$$$  /  $$ |  $$ |$$ |  $$\ $$ |  $$ |  $$ |   $$ |      
+$$ |  $$ |$$$$$$$  |   \$  /    $$$$$$  |\$$$$$$  |$$ |  $$ |  $$ |   $$$$$$$$\ 
+\__|  \__|\_______/     \_/     \______/  \______/ \__|  \__|  \__|   \________|
+
+
+
+Welcome to the trace analyzer and rewriter.
+This program analyzes a trace file and detects common concurrency bugs in Go programs.
+It can also create a reordered trace file based on the analysis results.
+Be aware, that the analysis is based on the trace file and may not be complete.
+Be aware, that the analysis may contain false positives and false negatives.
+
+If the rewrite of a trace file does not create the expected result, it can help to run the
+analyzer with the -c flag to ignore the happens before relations of critical sections (mutex lock/unlock operations).
+For the first analysis this is not recommended, because it increases the likelihood of false positives.
+
+
+Read trace from /home/mario/Desktop/thesis/ADVOCATE/examples/canonicalTests//tests/advocateTrace...
+Start Analysis for all scenarios
+Set channel as last send
+SetChannelAsLastSend
+Check for possible send on closed channel  true true
+Possible send on closed channel:
+	send: /home/mario/Desktop/thesis/ADVOCATE/examples/canonicalTests/tests/n10_test.go:29@318
+	close: /home/mario/Desktop/thesis/ADVOCATE/examples/canonicalTests/tests/n10_test.go:24@322
+
+Analysis finished
+
+==================== Summary ====================
+
+-------------------- Critical -------------------
+
+1 Possible send on closed channel:
+	send: /home/mario/Desktop/thesis/ADVOCATE/examples/canonicalTests/tests/n10_test.go:29@318
+	close: /home/mario/Desktop/thesis/ADVOCATE/examples/canonicalTests/tests/n10_test.go:24@322
+
+
+
+Start rewriting trace files...
+Read analysis results from /home/mario/Desktop/thesis/ADVOCATE/examples/canonicalTests/tests//results_machine.log for index 0...
+Analysis results read
+Possible send on closed channel:
+	send: /home/mario/Desktop/thesis/ADVOCATE/examples/canonicalTests/tests/n10_test.go:29@318
+	close: /home/mario/Desktop/thesis/ADVOCATE/examples/canonicalTests/tests/n10_test.go:24@322
+Start rewriting trace for receive on closed channel...
+Create new trace at /home/mario/Desktop/thesis/ADVOCATE/examples/canonicalTests/tests//rewritten_trace_1/...
+Trace written
+
+
+Finished Rewrite
+
+
+	Number Results:  1
+	Successfully rewrites:  1
+	No need/not possible to rewrite:  0
+	Failed rewrites:  0
+
+
+
+Apply reorder overhead
+Reading trace from rewritten_trace_1
+Replay enabled
+Exit Replay with code  3 The program panicked unexpectedly
+panic: send on closed channel
+
+goroutine 51 [running]:
+canonicalTests/tests.n10.func2()
+	/home/mario/Desktop/thesis/ADVOCATE/examples/canonicalTests/tests/n10_test.go:29 +0x1c
+created by canonicalTests/tests.n10 in goroutine 18
+	/home/mario/Desktop/thesis/ADVOCATE/examples/canonicalTests/tests/n10_test.go:27 +0xa5
+FAIL	canonicalTests/tests	0.284s
+FAIL
+Remove reorder overhead
+Apply reorder overhead
+# canonicalTests/tests
+tests/n10_test.go:12:24: expected operand, found ','
+FAIL	canonicalTests/tests [setup failed]
+FAIL
+Remove reorder overhead
+Apply reorder overhead
+# canonicalTests/tests
+tests/n10_test.go:12:24: expected operand, found ','
+FAIL	canonicalTests/tests [setup failed]
+FAIL
+Remove reorder overhead

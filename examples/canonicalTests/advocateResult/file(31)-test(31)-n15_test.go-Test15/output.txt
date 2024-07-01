@@ -1,0 +1,120 @@
+In directory: /home/mario/Desktop/thesis/ADVOCATE/examples/canonicalTests/
+Goroot exported
+Remove Overhead just in case
+Add Overhead
+Run test
+ok  	canonicalTests/tests	1.309s
+Remove Overhead
+
+ $$$$$$\  $$$$$$$\  $$\    $$\  $$$$$$\   $$$$$$\   $$$$$$\ $$$$$$$$\ $$$$$$$$\ 
+$$  __$$\ $$  __$$\ $$ |   $$ |$$  __$$\ $$  __$$\ $$  __$$\\__$$  __|$$  _____|
+$$ /  $$ |$$ |  $$ |$$ |   $$ |$$ /  $$ |$$ /  \__|$$ /  $$ |  $$ |   $$ |      
+$$$$$$$$ |$$ |  $$ |\$$\  $$  |$$ |  $$ |$$ |      $$$$$$$$ |  $$ |   $$$$$\    
+$$  __$$ |$$ |  $$ | \$$\$$  / $$ |  $$ |$$ |      $$  __$$ |  $$ |   $$  __|   
+$$ |  $$ |$$ |  $$ |  \$$$  /  $$ |  $$ |$$ |  $$\ $$ |  $$ |  $$ |   $$ |      
+$$ |  $$ |$$$$$$$  |   \$  /    $$$$$$  |\$$$$$$  |$$ |  $$ |  $$ |   $$$$$$$$\ 
+\__|  \__|\_______/     \_/     \______/  \______/ \__|  \__|  \__|   \________|
+
+
+
+Welcome to the trace analyzer and rewriter.
+This program analyzes a trace file and detects common concurrency bugs in Go programs.
+It can also create a reordered trace file based on the analysis results.
+Be aware, that the analysis is based on the trace file and may not be complete.
+Be aware, that the analysis may contain false positives and false negatives.
+
+If the rewrite of a trace file does not create the expected result, it can help to run the
+analyzer with the -c flag to ignore the happens before relations of critical sections (mutex lock/unlock operations).
+For the first analysis this is not recommended, because it increases the likelihood of false positives.
+
+
+Read trace from /home/mario/Desktop/thesis/ADVOCATE/examples/canonicalTests//tests/advocateTrace...
+Start Analysis for all scenarios
+Check for possible send on closed channel  true true
+Possible send on closed channel:
+	send: /home/mario/Desktop/thesis/ADVOCATE/examples/canonicalTests/tests/n15_test.go:26@408
+	close: /home/mario/Desktop/thesis/ADVOCATE/examples/canonicalTests/tests/n15_test.go:41@438
+
+Analysis finished
+
+==================== Summary ====================
+
+-------------------- Critical -------------------
+
+1 Possible send on closed channel:
+	send: /home/mario/Desktop/thesis/ADVOCATE/examples/canonicalTests/tests/n15_test.go:26@408
+	close: /home/mario/Desktop/thesis/ADVOCATE/examples/canonicalTests/tests/n15_test.go:41@438
+
+
+-------------------- Warning --------------------
+
+2 Possible receive on closed channel:
+	recv: /home/mario/Desktop/thesis/ADVOCATE/examples/canonicalTests/tests/n15_test.go:37@418
+	close: /home/mario/Desktop/thesis/ADVOCATE/examples/canonicalTests/tests/n15_test.go:41@438
+
+
+
+Start rewriting trace files...
+Read analysis results from /home/mario/Desktop/thesis/ADVOCATE/examples/canonicalTests/tests//results_machine.log for index 0...
+Analysis results read
+Possible send on closed channel:
+	send: /home/mario/Desktop/thesis/ADVOCATE/examples/canonicalTests/tests/n15_test.go:26@408
+	close: /home/mario/Desktop/thesis/ADVOCATE/examples/canonicalTests/tests/n15_test.go:41@438
+Start rewriting trace for receive on closed channel...
+Create new trace at /home/mario/Desktop/thesis/ADVOCATE/examples/canonicalTests/tests//rewritten_trace_1/...
+Trace written
+
+
+Read analysis results from /home/mario/Desktop/thesis/ADVOCATE/examples/canonicalTests/tests//results_machine.log for index 1...
+Analysis results read
+Possible receive on closed channel:
+	recv: /home/mario/Desktop/thesis/ADVOCATE/examples/canonicalTests/tests/n15_test.go:37@418
+	close: /home/mario/Desktop/thesis/ADVOCATE/examples/canonicalTests/tests/n15_test.go:41@438
+Start rewriting trace for receive on closed channel...
+Create new trace at /home/mario/Desktop/thesis/ADVOCATE/examples/canonicalTests/tests//rewritten_trace_2/...
+Trace written
+
+
+Finished Rewrite
+
+
+	Number Results:  2
+	Successfully rewrites:  2
+	No need/not possible to rewrite:  0
+	Failed rewrites:  0
+
+
+
+Apply reorder overhead
+Reading trace from rewritten_trace_1
+Replay enabled
+Exit Replay with code  30 Send on close
+FAIL	canonicalTests/tests	1.025s
+FAIL
+Remove reorder overhead
+Apply reorder overhead
+Reading trace from rewritten_trace_2
+Replay enabled
+Exit Replay with code  3 The program panicked unexpectedly
+panic: send on closed channel
+
+goroutine 39 [running]:
+canonicalTests/tests.n15.func1()
+	/home/mario/Desktop/thesis/ADVOCATE/examples/canonicalTests/tests/n15_test.go:26 +0x3a
+created by canonicalTests/tests.n15 in goroutine 18
+	/home/mario/Desktop/thesis/ADVOCATE/examples/canonicalTests/tests/n15_test.go:23 +0x89
+FAIL	canonicalTests/tests	1.021s
+FAIL
+Remove reorder overhead
+Apply reorder overhead
+# canonicalTests/tests
+tests/n15_test.go:12:24: expected operand, found ','
+FAIL	canonicalTests/tests [setup failed]
+FAIL
+Remove reorder overhead
+Apply reorder overhead
+# canonicalTests/tests
+tests/n15_test.go:12:24: expected operand, found ','
+FAIL	canonicalTests/tests [setup failed]
+FAIL
+Remove reorder overhead

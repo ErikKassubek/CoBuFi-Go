@@ -1,0 +1,14 @@
+```
+==================== Summary ====================
+
+-------------------- Critical -------------------
+
+1 Leak on select with possible partner:
+	select: /home/mario/Desktop/thesis/ADVOCATE/examples/canonicalTests/tests/n53_test.go:33@848
+	partner: /home/mario/Desktop/thesis/ADVOCATE/examples/canonicalTests/tests/n53_test.go:27@836
+
+2 Leak on select with possible partner:
+	select: /home/mario/Desktop/thesis/ADVOCATE/examples/canonicalTests/tests/n53_test.go:33@848
+	partner: /home/mario/Desktop/thesis/ADVOCATE/examples/canonicalTests/tests/n53_test.go:23@834
+
+```

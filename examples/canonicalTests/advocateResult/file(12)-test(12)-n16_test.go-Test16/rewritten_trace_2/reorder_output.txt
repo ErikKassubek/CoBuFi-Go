@@ -1,0 +1,12 @@
+Reading trace from rewritten_trace_2
+Replay enabled
+Exit Replay with code  3 The program panicked unexpectedly
+panic: send on closed channel
+
+goroutine 38 [running]:
+canonicalTests/tests.n16.func1()
+	/home/mario/Desktop/thesis/ADVOCATE/examples/canonicalTests/tests/n16_test.go:26 +0x3a
+created by canonicalTests/tests.n16 in goroutine 18
+	/home/mario/Desktop/thesis/ADVOCATE/examples/canonicalTests/tests/n16_test.go:23 +0x89
+FAIL	canonicalTests/tests	0.123s
+FAIL

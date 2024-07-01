@@ -1,0 +1,39 @@
+/home/mario/Desktop/thesis/ADVOCATE/examples/canonicalTests/tests/n09_test.go
+Test09
+/home/mario/Desktop/thesis/ADVOCATE//toolchain/unitTestOverheadRemover/unitTestOverheadRemover -f /home/mario/Desktop/thesis/ADVOCATE/examples/canonicalTests/tests/n09_test.go -t Test09
+/home/mario/Desktop/thesis/ADVOCATE//toolchain/unitTestOverheadInserter/unitTestOverheadInserter -f /home/mario/Desktop/thesis/ADVOCATE/examples/canonicalTests/tests/n09_test.go -t Test09
+Import added at line: 3
+Overhead added at line: 8
+/home/mario/Desktop/thesis/ADVOCATE//go-patch/bin/go test -count=1 -run=Test09 ./tests
+/home/mario/Desktop/thesis/ADVOCATE//toolchain/unitTestOverheadRemover/unitTestOverheadRemover -f /home/mario/Desktop/thesis/ADVOCATE/examples/canonicalTests/tests/n09_test.go -t Test09
+/home/mario/Desktop/thesis/ADVOCATE//analyzer/analyzer -t /home/mario/Desktop/thesis/ADVOCATE/examples/canonicalTests//tests/advocateTrace
+/home/mario/Desktop/thesis/ADVOCATE//toolchain/unitTestOverheadInserter/unitTestOverheadInserter -f /home/mario/Desktop/thesis/ADVOCATE/examples/canonicalTests/tests/n09_test.go -t Test09 -r true -n 4
+Import added at line: 3
+Overhead added at line: 8
+/home/mario/Desktop/thesis/ADVOCATE//go-patch/bin/go test -count=1 -run=Test09 ./tests
+/home/mario/Desktop/thesis/ADVOCATE//toolchain/unitTestOverheadRemover/unitTestOverheadRemover -f /home/mario/Desktop/thesis/ADVOCATE/examples/canonicalTests/tests/n09_test.go -t Test09
+/home/mario/Desktop/thesis/ADVOCATE//toolchain/unitTestOverheadInserter/unitTestOverheadInserter -f /home/mario/Desktop/thesis/ADVOCATE/examples/canonicalTests/tests/n09_test.go -t Test09 -r true -n 3
+Import added at line: 3
+Overhead added at line: 8
+/home/mario/Desktop/thesis/ADVOCATE//go-patch/bin/go test -count=1 -run=Test09 ./tests
+/home/mario/Desktop/thesis/ADVOCATE//toolchain/unitTestOverheadRemover/unitTestOverheadRemover -f /home/mario/Desktop/thesis/ADVOCATE/examples/canonicalTests/tests/n09_test.go -t Test09
+/home/mario/Desktop/thesis/ADVOCATE//toolchain/unitTestOverheadInserter/unitTestOverheadInserter -f /home/mario/Desktop/thesis/ADVOCATE/examples/canonicalTests/tests/n09_test.go -t Test09 -r true -n 1
+Import added at line: 3
+Overhead added at line: 8
+/home/mario/Desktop/thesis/ADVOCATE//go-patch/bin/go test -count=1 -run=Test09 ./tests
+/home/mario/Desktop/thesis/ADVOCATE//toolchain/unitTestOverheadRemover/unitTestOverheadRemover -f /home/mario/Desktop/thesis/ADVOCATE/examples/canonicalTests/tests/n09_test.go -t Test09
+/home/mario/Desktop/thesis/ADVOCATE//toolchain/unitTestOverheadInserter/unitTestOverheadInserter -f /home/mario/Desktop/thesis/ADVOCATE/examples/canonicalTests/tests/n09_test.go -t Test09 -r true -n 2
+Import added at line: 3
+Overhead added at line: 8
+/home/mario/Desktop/thesis/ADVOCATE//go-patch/bin/go test -count=1 -run=Test09 ./tests
+/home/mario/Desktop/thesis/ADVOCATE//toolchain/unitTestOverheadRemover/unitTestOverheadRemover -f /home/mario/Desktop/thesis/ADVOCATE/examples/canonicalTests/tests/n09_test.go -t Test09
+/home/mario/Desktop/thesis/ADVOCATE//toolchain/unitTestOverheadInserter/unitTestOverheadInserter -f /home/mario/Desktop/thesis/ADVOCATE/examples/canonicalTests/tests/n09_test.go -t Test09 -r true -n 
+Import added at line: 3
+Overhead added at line: 8
+/home/mario/Desktop/thesis/ADVOCATE//go-patch/bin/go test -count=1 -run=Test09 ./tests
+/home/mario/Desktop/thesis/ADVOCATE//toolchain/unitTestOverheadRemover/unitTestOverheadRemover -f /home/mario/Desktop/thesis/ADVOCATE/examples/canonicalTests/tests/n09_test.go -t Test09
+/home/mario/Desktop/thesis/ADVOCATE//toolchain/unitTestOverheadInserter/unitTestOverheadInserter -f /home/mario/Desktop/thesis/ADVOCATE/examples/canonicalTests/tests/n09_test.go -t Test09 -r true -n 
+Import added at line: 3
+Overhead added at line: 8
+/home/mario/Desktop/thesis/ADVOCATE//go-patch/bin/go test -count=1 -run=Test09 ./tests
+/home/mario/Desktop/thesis/ADVOCATE//toolchain/unitTestOverheadRemover/unitTestOverheadRemover -f /home/mario/Desktop/thesis/ADVOCATE/examples/canonicalTests/tests/n09_test.go -t Test09

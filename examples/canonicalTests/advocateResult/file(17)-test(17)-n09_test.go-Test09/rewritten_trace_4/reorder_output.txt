@@ -1,0 +1,5 @@
+Reading trace from rewritten_trace_4
+Replay enabled
+Exit Replay with code  31 Receive on close
+FAIL	canonicalTests/tests	0.378s
+FAIL

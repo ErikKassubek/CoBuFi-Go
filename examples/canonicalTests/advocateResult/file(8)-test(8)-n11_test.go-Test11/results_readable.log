@@ -1,0 +1,17 @@
+```
+==================== Summary ====================
+
+-------------------- Critical -------------------
+
+1 Possible send on closed channel:
+	send: /home/mario/Desktop/thesis/ADVOCATE/examples/canonicalTests/tests/n11_test.go:27@336
+	close: /home/mario/Desktop/thesis/ADVOCATE/examples/canonicalTests/tests/n11_test.go:22@344
+
+
+-------------------- Warning --------------------
+
+2 Possible receive on closed channel:
+	recv: /home/mario/Desktop/thesis/ADVOCATE/examples/canonicalTests/tests/n11_test.go:35@340
+	close: /home/mario/Desktop/thesis/ADVOCATE/examples/canonicalTests/tests/n11_test.go:22@344
+
+```

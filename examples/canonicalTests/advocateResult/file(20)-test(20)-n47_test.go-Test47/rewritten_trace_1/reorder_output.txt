@@ -1,0 +1,5 @@
+Reading trace from rewritten_trace_1
+Replay enabled
+Exit Replay with code  20 Leak: Leaking unbuffered channel or select was unstuck
+FAIL	canonicalTests/tests	0.213s
+FAIL

@@ -1,0 +1,10 @@
+```
+==================== Summary ====================
+
+-------------------- Critical -------------------
+
+1 Leak on unbuffered channel with possible partner:
+	channel: /home/mario/Desktop/thesis/ADVOCATE/examples/canonicalTests/tests/n47_test.go:27@744
+	partner: /home/mario/Desktop/thesis/ADVOCATE/examples/canonicalTests/tests/n47_test.go:30@732
+
+```

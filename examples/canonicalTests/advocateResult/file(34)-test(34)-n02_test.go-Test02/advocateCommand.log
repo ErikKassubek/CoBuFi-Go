@@ -1,0 +1,19 @@
+/home/mario/Desktop/thesis/ADVOCATE/examples/canonicalTests/tests/n02_test.go
+Test02
+/home/mario/Desktop/thesis/ADVOCATE//toolchain/unitTestOverheadRemover/unitTestOverheadRemover -f /home/mario/Desktop/thesis/ADVOCATE/examples/canonicalTests/tests/n02_test.go -t Test02
+/home/mario/Desktop/thesis/ADVOCATE//toolchain/unitTestOverheadInserter/unitTestOverheadInserter -f /home/mario/Desktop/thesis/ADVOCATE/examples/canonicalTests/tests/n02_test.go -t Test02
+Import added at line: 3
+Overhead added at line: 9
+/home/mario/Desktop/thesis/ADVOCATE//go-patch/bin/go test -count=1 -run=Test02 ./tests
+/home/mario/Desktop/thesis/ADVOCATE//toolchain/unitTestOverheadRemover/unitTestOverheadRemover -f /home/mario/Desktop/thesis/ADVOCATE/examples/canonicalTests/tests/n02_test.go -t Test02
+/home/mario/Desktop/thesis/ADVOCATE//analyzer/analyzer -t /home/mario/Desktop/thesis/ADVOCATE/examples/canonicalTests//tests/advocateTrace
+/home/mario/Desktop/thesis/ADVOCATE//toolchain/unitTestOverheadInserter/unitTestOverheadInserter -f /home/mario/Desktop/thesis/ADVOCATE/examples/canonicalTests/tests/n02_test.go -t Test02 -r true -n 
+Import added at line: 3
+Overhead added at line: 9
+/home/mario/Desktop/thesis/ADVOCATE//go-patch/bin/go test -count=1 -run=Test02 ./tests
+/home/mario/Desktop/thesis/ADVOCATE//toolchain/unitTestOverheadRemover/unitTestOverheadRemover -f /home/mario/Desktop/thesis/ADVOCATE/examples/canonicalTests/tests/n02_test.go -t Test02
+/home/mario/Desktop/thesis/ADVOCATE//toolchain/unitTestOverheadInserter/unitTestOverheadInserter -f /home/mario/Desktop/thesis/ADVOCATE/examples/canonicalTests/tests/n02_test.go -t Test02 -r true -n 
+Import added at line: 3
+Overhead added at line: 9
+/home/mario/Desktop/thesis/ADVOCATE//go-patch/bin/go test -count=1 -run=Test02 ./tests
+/home/mario/Desktop/thesis/ADVOCATE//toolchain/unitTestOverheadRemover/unitTestOverheadRemover -f /home/mario/Desktop/thesis/ADVOCATE/examples/canonicalTests/tests/n02_test.go -t Test02

@@ -1,0 +1,11 @@
+```
+==================== Summary ====================
+
+
+-------------------- Warning --------------------
+
+1 Found select case without partner or nil case
+	select: /home/mario/Desktop/thesis/ADVOCATE/examples/canonicalTests/tests/n48_test.go:24@746
+	case: 29:CR
+
+```
