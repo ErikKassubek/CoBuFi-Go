@@ -1,5 +1,0 @@
-Reading trace from rewritten_trace_1
-Replay enabled
-Exit Replay with code  30 Send on close
-FAIL	canonicalTests/tests	0.334s
-FAIL

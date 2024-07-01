@@ -1,5 +1,0 @@
-Reading trace from rewritten_trace_1
-Replay enabled
-Exit Replay with code  32 Negative WaitGroup counter
-FAIL	canonicalTests/tests	0.202s
-FAIL
