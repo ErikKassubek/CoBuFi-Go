@@ -19,32 +19,28 @@ func main() {
 		fmt.Fprintln(os.Stderr, "Usage generateBugReports -f <folder> -a <advocate root>")
 		os.Exit(1)
 	}
-	//find all files with name results_machine.log
 	files, err := getFiles(*folderName, "results_machine.log")
 	if err != nil {
 		fmt.Println(err)
 	}
-	//path to analyzer binary in advocate/analyzer/analyzer
+	count := 0
+	allFileCount := len(files)
 	analyzerPath := filepath.Join(*advocateroot, "analyzer", "analyzer")
-	//go through each file
 	for _, file := range files {
-		//get folder of file
+		count++
+		fmt.Printf("At file %d/%d\n", count, allFileCount)
 		folder := filepath.Dir(file)
-		//get advocateTrace Folder 	in the same folder
 		advocateTraceFolder := filepath.Join(folder, "advocateTrace")
-		//get line count of results_machine.log file
 		cmd := exec.Command("wc", "-l", file)
 		out, err := cmd.Output()
 		if err != nil {
 			fmt.Println(err)
 		}
-		//parse output to int
 		lineCount, err := strconv.Atoi(strings.Fields(string(out))[0])
 		if err != nil {
 			fmt.Println(err)
 		}
 		for i := 1; i <= lineCount; i++ {
-			//run analyzer with these flags ./analyzer -e -t advocateTrace -i 1
 			cmd := exec.Command(analyzerPath, "-e", "-t", advocateTraceFolder, "-i", strconv.Itoa(i))
 			err := cmd.Run()
 			if err != nil {
