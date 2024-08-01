@@ -17,6 +17,7 @@ var atomicRecordingDisabled = false
  */
 type AdvocateRoutine struct {
 	id      uint64
+	maxObjectId uint64
 	G       *g
 	Trace   []string
 	Atomics []string
@@ -31,7 +32,8 @@ type AdvocateRoutine struct {
  * 	the new advocate routine
  */
 func newAdvocateRoutine(g *g) *AdvocateRoutine {
-	routine := &AdvocateRoutine{id: GetAdvocateRoutineID(), G: g,
+	routine := &AdvocateRoutine{id: GetAdvocateRoutineID(), maxObjectId: 0,
+		G: g,
 		Trace:   make([]string, 0),
 		Atomics: make([]string, 0)}
 
