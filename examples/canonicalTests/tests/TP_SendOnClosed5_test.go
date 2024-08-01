@@ -17,7 +17,7 @@ func n18() {
 
 	g.Add(1)
 
-	func() {
+	go func() {
 		g.Done()
 		ch <- 1
 	}()
