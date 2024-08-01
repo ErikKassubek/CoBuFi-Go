@@ -50,7 +50,7 @@ func CreateTraceFromFiles(filePath string, ignoreAtomics bool) (int, error) {
 		}
 		numberIds = max(numberIds, routine)
 
-		maxTokenSize, err = CreateTraceFromFile(filePath+"/"+file.Name(), routine, maxTokenSize, ignoreAtomics)
+		err = CreateTraceFromFile(filePath+"/"+file.Name(), routine, maxTokenSize, ignoreAtomics)
 		if err != nil {
 			return 0, err
 		}
@@ -70,26 +70,26 @@ func CreateTraceFromFiles(filePath string, ignoreAtomics bool) (int, error) {
  *   maxTokenSize (int): The max token size
  *   ignoreAtomics (bool): If atomic operations should be ignored
  * Returns:
- *   int: The max token size
+ *	 error: An error if the trace could not be created
  */
-func CreateTraceFromFile(filePath string, routine int, maxTokenSize int, ignoreAtomics bool) (int, error) {
+func CreateTraceFromFile(filePath string, routine int, maxTokenSize int, ignoreAtomics bool) error {
 	logging.Debug("Create trace from file "+filePath+"...", logging.INFO)
-	mb := 1048576 // 1 MB
+	kb := 4096 // 4kB
 
 	for {
 		file, err := os.Open(filePath)
 		if err != nil {
 			logging.Debug("Error opening file: "+filePath, logging.ERROR)
-			return maxTokenSize, err
+			return err
 		}
 
 		scanner := bufio.NewScanner(file)
-		scanner.Buffer(make([]byte, 0, maxTokenSize*mb), maxTokenSize*mb)
+		scanner.Buffer(make([]byte, 0, maxTokenSize*kb), maxTokenSize*kb)
 
 		alreadyRead := false
 		for scanner.Scan() {
 			if alreadyRead {
-				return maxTokenSize, errors.New("Log file contains more than one line")
+				return errors.New("Log file contains more than one line")
 			}
 
 			line := scanner.Text()
@@ -104,14 +104,14 @@ func CreateTraceFromFile(filePath string, routine int, maxTokenSize int, ignoreA
 				maxTokenSize *= 2 // max buffer was to short, restart
 				// println("Increase max file size to " + strconv.Itoa(maxTokenSize) + "MB")
 			} else {
-				return maxTokenSize, err
+				return err
 			}
 		} else {
 			break
 		}
 	}
 
-	return maxTokenSize, nil
+	return nil
 }
 
 /*
