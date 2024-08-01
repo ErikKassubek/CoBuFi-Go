@@ -231,11 +231,9 @@ func splitString(line string, sep string) []string {
 // MARK: ADVOCATE
 
 var advocateCurrentRoutineID uint64
-var advocateCurrentObjectID uint64
 var advocateGlobalCounter uint64
 
 var advocateCurrentRoutineIDMutex mutex
-var advocateCurrentObjectIDMutex mutex
 var advocateGlobalCounterMutex mutex
 
 /*
@@ -247,6 +245,9 @@ func GetAdvocateRoutineID() uint64 {
 	lock(&advocateCurrentRoutineIDMutex)
 	defer unlock(&advocateCurrentRoutineIDMutex)
 	advocateCurrentRoutineID++
+	if advocateCurrentRoutineID > 184467440 {
+		panic("Overflow Error: Two many routines. Max: 184467440")
+	}
 	return advocateCurrentRoutineID
 }
 
@@ -256,10 +257,13 @@ func GetAdvocateRoutineID() uint64 {
  * 	new id
  */
 func GetAdvocateObjectID() uint64 {
-	lock(&advocateCurrentObjectIDMutex)
-	defer unlock(&advocateCurrentObjectIDMutex)
-	advocateCurrentObjectID++
-	return advocateCurrentObjectID
+	routine := currentGoRoutine()
+	routine.maxObjectId++
+	if routine.maxObjectId > 99999999999 {
+		panic("Overflow Error: Tow many objects in one routine. Max: 99999999999")
+	}
+	id := routine.id * 100000000000 + routine.maxObjectId
+	return id
 }
 
 /*
