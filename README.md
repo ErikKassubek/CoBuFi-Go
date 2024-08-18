@@ -1,4 +1,7 @@
 # AdvocateGo
+> [!NOTE]
+> This program is still a work in progress and may result in incorrect or incomplete results.
+
 ## What is AdvocateGo
 AdvocateGo is an analysis tool for Go programs.
 It detects concurrency bugs and gives  diagnostic insight.
@@ -26,7 +29,7 @@ import "advocate"
 // ======= Preamble End =======
 ...
 ```
-Eg. like this 
+Eg. like this
 ```go
 import "advocate"
 func main(){
@@ -112,9 +115,9 @@ AdvocateGo currently supports following bugs
 - L5: Leak on nil channel
 - L6: Leak on select with possible partner
 - L7: Leak on select without possible partner
-- L8: Leak on mutex 
-- L9: Leak on waitgroup 
-- L0: Leak on cond 
+- L8: Leak on mutex
+- L9: Leak on waitgroup
+- L0: Leak on cond
 
 ## Replay
 ### How to replay the program and cause the predicted bug
@@ -137,7 +140,7 @@ A more detailed description of how replays work and a list of what bugs are curr
 
 
 ## Tooling
-There are certain scripts that will come in handy when working with AdvocateGo 
+There are certain scripts that will come in handy when working with AdvocateGo
 ### Preamble and Import Management
 There are scripts that automatically add and remove the overhead described in [Step 1](#step-1-add-overhead)
 #### For Main Methods
@@ -146,7 +149,7 @@ It will insert the overhead right at the start of main and manage the imports.
 
 It throws an error if no main method is present.
 
-Likewise [main overhead remover](./toolchain/overHeadRemover/remover.go) will remove the overhead 
+Likewise [main overhead remover](./toolchain/overHeadRemover/remover.go) will remove the overhead
 #### For Unit Tests
 [Unit test overhead inserter]() additionally requires the test name you want to apply the overhead to. Apart from that it works just like with [main method overhead inserter](#for-main-methods)
 
@@ -167,8 +170,8 @@ After analyzing you can evaluate your `advocateResult` folder with [generateStat
 - Overview of expected exit codes (after rewrite)
 - Overview of actual exit codes that appeared after running the reordered programs
 ## Warning
-It is the users responsibility of the user to make sure, that the input to 
-the program, including e.g. API calls are equal for the recording and the 
+It is the users responsibility of the user to make sure, that the input to
+the program, including e.g. API calls are equal for the recording and the
 tracing. Otherwise the replay is likely to get stuck.
 
 Do not change the program code between trace recording and replay. The identification of the operations is based on the file names and lines, where the operations occur. If they get changed, the program will most likely block without terminating. If you need to change the program, you must either rerun the trace recording or change the effected trace elements in the recorded trace.
