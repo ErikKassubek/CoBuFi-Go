@@ -67,6 +67,7 @@ func rewriteClosedChannel(bug bugs.Bug, exitCode int) error {
 	// and then adding a after c
 	trace.RemoveConcurrent(bug.TraceElement2[0], t1)
 	(*bug.TraceElement1[0]).SetT(t2 + 1)
+
 	trace.AddElementToTrace(*bug.TraceElement1[0])
 
 	// add a stop marker -> T1 ++ T2' ++ [c, a, X']

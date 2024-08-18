@@ -660,7 +660,7 @@ func RemoveConcurrent(element *TraceElement, tmin int) {
 				continue
 			}
 
-			if clock.GetHappensBefore((*element).GetVC(), elem.GetVC()) != clock.Concurrent {
+			if clock.GetHappensBefore(elem.GetVC(), (*element).GetVC()) != clock.Concurrent {
 				result = append(result, elem)
 			}
 		}
