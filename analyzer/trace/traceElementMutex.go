@@ -315,10 +315,12 @@ func (mu *TraceElementMutex) ToString() string {
 var mutexNoPartner []*TraceElementMutex
 
 /*
- * Update the vector clock of the trace and element
- * MARK: VectorClock
+* Update the vector clock of the trace and element
+* MARK: VectorClock
  */
 func (mu *TraceElementMutex) updateVectorClock() {
+	mu.vc = currentVCHb[mu.routine].Copy()
+
 	switch mu.opM {
 	case LockOp:
 		analysis.Lock(mu.routine, mu.id, currentVCHb, currentVCWmhb, mu.tID, mu.tPost)
@@ -358,12 +360,12 @@ func (mu *TraceElementMutex) updateVectorClock() {
 		err := "Unknown mutex operation: " + mu.ToString()
 		logging.Debug(err, logging.ERROR)
 	}
-	mu.vc = currentVCHb[mu.routine].Copy()
 }
 
 func (mu *TraceElementMutex) updateVectorClockAlt() {
-	currentVCHb[mu.routine] = currentVCHb[mu.routine].Inc(mu.routine)
 	mu.vc = currentVCHb[mu.routine].Copy()
+
+	currentVCHb[mu.routine] = currentVCHb[mu.routine].Inc(mu.routine)
 }
 
 /*

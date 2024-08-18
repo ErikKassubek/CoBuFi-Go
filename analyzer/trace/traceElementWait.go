@@ -271,6 +271,8 @@ func (wa *TraceElementWait) ToString() string {
  * MARK: VectorClock
  */
 func (wa *TraceElementWait) updateVectorClock() {
+	wa.vc = currentVCHb[wa.routine].Copy()
+
 	switch wa.opW {
 	case ChangeOp:
 		analysis.Change(wa.routine, wa.id, wa.delta, wa.tID, currentVCHb)
@@ -280,8 +282,6 @@ func (wa *TraceElementWait) updateVectorClock() {
 		err := "Unknown operation on wait group: " + wa.ToString()
 		logging.Debug(err, logging.ERROR)
 	}
-
-	wa.vc = currentVCHb[wa.routine].Copy()
 }
 
 /*

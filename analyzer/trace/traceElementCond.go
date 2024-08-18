@@ -313,6 +313,8 @@ func (co *TraceElementCond) ToString() string {
  * MARK: VectorClock
  */
 func (co *TraceElementCond) updateVectorClock() {
+	co.vc = currentVCHb[co.routine].Copy()
+
 	switch co.opC {
 	case WaitCondOp:
 		analysis.CondWait(co.id, co.routine, currentVCHb, co.tPost == 0)
@@ -322,7 +324,6 @@ func (co *TraceElementCond) updateVectorClock() {
 		analysis.CondBroadcast(co.id, co.routine, currentVCHb)
 	}
 
-	co.vc = currentVCHb[co.routine].Copy()
 }
 
 // MARK: Copy

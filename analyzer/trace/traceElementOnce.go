@@ -230,13 +230,14 @@ func (on *TraceElementOnce) ToString() string {
  * MARK: VectorClock
  */
 func (on *TraceElementOnce) updateVectorClock() {
+	on.vc = currentVCHb[on.routine].Copy()
+
 	if on.suc {
 		analysis.DoSuc(on.routine, on.id, currentVCHb)
 	} else {
 		analysis.DoFail(on.routine, on.id, currentVCHb)
 	}
 
-	on.vc = currentVCHb[on.routine].Copy()
 }
 
 /*

@@ -285,6 +285,9 @@ var exitCodeExplanation = map[string]string{
 		"in the trace. If the given trace was a directly recorded trace, this is the " +
 		"expected behavior. If it was rewritten by the analyzer, this could be an indication " +
 		"that something went wrong during rewrite.",
+	"3": "During the replay, the program panicked unexpectedly.\n" +
+		"This can be expected behavior, e.g. if the program tries to replay a recv on closed " +
+		"but the recent on closed is necessarily preceded by a send on closed.",
 	"10": "The replay got stuck during the execution.\n" +
 		"The main routine has already finished, but the trace still contains not executed operations.\n" +
 		"This can be caused by a stuck replay.\n" +

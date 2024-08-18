@@ -235,6 +235,8 @@ func (at *TraceElementAtomic) ToString() string {
  * Update and calculate the vector clock of the element
  */
 func (at *TraceElementAtomic) updateVectorClock() {
+	at.vc = currentVCHb[at.routine].Copy()
+
 	switch at.opA {
 	case LoadOp:
 		analysis.Read(at.routine, at.id, currentVCHb, true)
@@ -246,13 +248,14 @@ func (at *TraceElementAtomic) updateVectorClock() {
 		err := "Unknown operation: " + at.ToString()
 		logging.Debug(err, logging.ERROR)
 	}
-	at.vc = currentVCHb[at.routine].Copy()
 }
 
 /*
  * Update and calculate the vector clock of the element
  */
 func (at *TraceElementAtomic) updateVectorClockAlt() {
+	at.vc = currentVCHb[at.routine].Copy()
+
 	switch at.opA {
 	case LoadOp:
 		analysis.Read(at.routine, at.id, currentVCHb, false)
@@ -264,7 +267,6 @@ func (at *TraceElementAtomic) updateVectorClockAlt() {
 		err := "Unknown operation: " + at.ToString()
 		logging.Debug(err, logging.ERROR)
 	}
-	at.vc = currentVCHb[at.routine].Copy()
 }
 
 // MARK: Copy

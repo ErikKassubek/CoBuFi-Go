@@ -450,6 +450,11 @@ func (ch *TraceElementChannel) toStringSep(sep string, pos bool) string {
  * MARK: Vector Clock
  */
 func (ch *TraceElementChannel) updateVectorClock() {
+	ch.vc = currentVCHb[ch.routine].Copy()
+	if ch.partner != nil {
+		ch.partner.vc = currentVCHb[ch.partner.routine].Copy()
+	}
+
 	// hold back receive operations, until the send operation is processed
 	for _, elem := range waitingReceive {
 		if elem.oID <= maxOpID[ch.id] {
@@ -548,10 +553,6 @@ func (ch *TraceElementChannel) updateVectorClock() {
 		}
 	}
 
-	ch.vc = currentVCHb[ch.routine].Copy()
-	if ch.partner != nil {
-		ch.partner.vc = currentVCHb[ch.partner.routine].Copy()
-	}
 }
 
 /*

@@ -93,7 +93,7 @@ func getReplayInfo(path string, index int) (string, string, string, error) {
 	}
 
 	if len(traceNumbers) != len(linesWithCode) {
-		res := "Invalid format in output.txt. Number of trace numbers does not match number of exit codes."
+		res := fmt.Sprintf("Invalid format in output.txt. Number of trace numbers (%d) does not match number of exit codes (%d).", len(traceNumbers), len(linesWithCode))
 		return "", res, "failed", errors.New(res)
 	}
 

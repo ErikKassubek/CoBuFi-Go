@@ -444,11 +444,17 @@ func (se *TraceElementSelect) ToString() string {
 }
 
 /*
- * Update and calculate the vector clock of the select element.
- * MARK: VectorClock
+* Update and calculate the vector clock of the select element.
+* MARK: VectorClock
  */
 func (se *TraceElementSelect) updateVectorClock() {
 	leak := se.chosenDefault || se.tPost == 0
+
+	if leak {
+		se.vc = currentVCHb[se.routine].Copy()
+	} else {
+		se.vc = se.chosenCase.vc.Copy()
+	}
 
 	if leak {
 		currentVCHb[se.routine] = currentVCHb[se.routine].Inc(se.routine)
@@ -470,12 +476,6 @@ func (se *TraceElementSelect) updateVectorClock() {
 
 		analysis.CheckForSelectCaseWithoutPartnerSelect(se.routine, se.id, ids, buffered, sendInfo,
 			currentVCHb[se.routine], se.tID, se.chosenIndex)
-	}
-
-	if leak {
-		se.vc = currentVCHb[se.routine].Copy()
-	} else {
-		se.vc = se.chosenCase.vc.Copy()
 	}
 
 	for _, c := range se.cases {

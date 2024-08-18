@@ -191,9 +191,10 @@ func (fo *TraceElementFork) ToString() string {
  * MARK: VectorClock
  */
 func (fo *TraceElementFork) updateVectorClock() {
+	fo.vc = currentVCHb[fo.routine].Copy()
+
 	analysis.Fork(fo.routine, fo.id, currentVCHb, currentVCWmhb)
 
-	fo.vc = currentVCHb[fo.routine].Copy()
 }
 
 /*
