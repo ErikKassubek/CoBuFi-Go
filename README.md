@@ -1,6 +1,6 @@
 # AdvocateGo
 > [!NOTE]
-> This program is still a work in progress and may result in incorrect or incomplete results.
+> This program is a work in progress and may result in incorrect or incomplete results.
 
 ## What is AdvocateGo
 AdvocateGo is an analysis tool for Go programs.
