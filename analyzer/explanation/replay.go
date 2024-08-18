@@ -87,8 +87,6 @@ func getReplayInfo(path string, index int) (string, string, string, error) {
 			line = strings.Split(line, " ")[0]
 			line = strings.TrimSpace(line)
 			linesWithCode = append(linesWithCode, line)
-		} else if strings.HasPrefix(line, prefixPanic) {
-			linesWithCode = append(linesWithCode, line)
 		}
 	}
 

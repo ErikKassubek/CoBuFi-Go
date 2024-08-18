@@ -624,17 +624,55 @@ func foundReplayElement(routine int) {
 	replayData[uint64(routine)] = replayData[uint64(routine)][1:]
 }
 
+/*
+ * Set the replay code
+ * Args:
+ * 	code: the replay code
+ */
 func SetExitCode(code bool) {
 	replayExitCode = code
 }
 
+/*
+ * Set the expected exit code
+ * Args:
+ * 	code: the expected exit code
+ */
 func SetExpectedExitCode(code int) {
 	expectedExitCode = code
 }
 
+/*
+ * Exit the program with the given code.
+ * Args:
+ * 	code: the exit code
+ */
 func ExitReplayWithCode(code int) {
 	if replayExitCode {
 		println("Exit Replay with code ", code, ExitCodeNames[code])
 		exit(int32(code))
 	}
+}
+
+/*
+ * Exit the program with the given code if the program panics.
+ * Args:
+ * 	msg: the panic message
+ */
+func ExitReplayPanic(msg any) {
+	if !replayExitCode {
+		return
+	}
+
+	switch m := msg.(type) {
+	case plainError:
+		if expectedExitCode == ExitCodeSendClose && m.Error() == "send on closed channel" {
+			ExitReplayWithCode(ExitCodeSendClose)
+		}
+	case string:
+		if expectedExitCode == ExitCodeNegativeWG && m == "sync: negative WaitGroup counter" {
+			ExitReplayWithCode(ExitCodeNegativeWG)
+		}
+	}
+	ExitReplayWithCode(ExitCodePanic)
 }
