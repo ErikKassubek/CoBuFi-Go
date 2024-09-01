@@ -1,3 +1,14 @@
+// Copyrigth (c) 2024 Erik Kassubek
+//
+// File: traceElementCond.go
+// Brief: Struct and functions for operations of conditional variables in the trace 
+// 
+// Author: Erik Kassubek <kassubek.erik@gmail.com>
+// Created: 2023-12-25
+// LastChange: 2024-09-01
+//
+// License: BSD-3-Clause
+
 package trace
 
 import (

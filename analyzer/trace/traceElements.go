@@ -1,3 +1,14 @@
+// Copyrigth (c) 2024 Erik Kassubek
+//
+// File: traceElements.go
+// Brief: Interface for all trace element types 
+// 
+// Author: Erik Kassubek <kassubek.erik@gmail.com>
+// Created: 2023-08-08
+// LastChange: 2024-09-01
+//
+// License: BSD-3-Clause
+
 package trace
 
 import "analyzer/clock"

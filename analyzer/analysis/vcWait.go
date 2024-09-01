@@ -1,3 +1,15 @@
+// Copyrigth (c) 2024 Erik Kassubek
+//
+// File: vcWait.go
+// Brief: Update functions of vector groups for wait group operations
+//        Some function start analysis functions
+// 
+// Author: Erik Kassubek <kassubek.erik@gmail.com>
+// Created: 2023-07-25
+// LastChange: 2024-09-01
+//
+// License: BSD-3-Clause
+
 package analysis
 
 import "analyzer/clock"

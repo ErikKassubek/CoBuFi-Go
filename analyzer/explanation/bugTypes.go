@@ -1,3 +1,14 @@
+// Copyrigth (c) 2024 Erik Kassubek
+//
+// File: bugTypes.go
+// Brief: Print informations for all bug types
+// 
+// Author: Erik Kassubek <kassubek.erik@gmail.com>
+// Created: 2024-06-14
+// LastChange: 2024-09-01
+//
+// License: BSD-3-Clause
+
 package explanation
 
 import "fmt"

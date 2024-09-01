@@ -1,3 +1,15 @@
+// Copyrigth (c) 2024 Erik Kassubek
+//
+// File: vcMutex.go
+// Brief: Update functions for vector clocks from mutex operation
+//        Some of the functions start analysis functions
+// 
+// Author: Erik Kassubek <kassubek.erik@gmail.com>
+// Created: 2023-07-25
+// LastChange: 2024-09-01
+//
+// License: BSD-3-Clause
+
 package analysis
 
 import "analyzer/clock"

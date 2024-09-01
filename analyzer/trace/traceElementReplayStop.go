@@ -1,3 +1,14 @@
+// Copyrigth (c) 2024 Erik Kassubek
+//
+// File: traceElementReplayStop.go
+// Brief: Struct and functions for replay controll elements in the trace
+// 
+// Author: Erik Kassubek <kassubek.erik@gmail.com>
+// Created: 2024-04-03
+// LastChange: 2024-09-01
+//
+// License: BSD-3-Clause
+
 package trace
 
 import (

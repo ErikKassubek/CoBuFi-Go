@@ -1,3 +1,14 @@
+// Copyrigth (c) 2024 Erik Kassubek
+//
+// File: analysisUtil.go
+// Brief: Collection of utility functiond for trace analysis
+// 
+// Author: Erik Kassubek <kassubek.erik@gmail.com>
+// Created: 2024-05-29
+// LastChange: 2024-09-01
+//
+// License: BSD-3-Clause
+
 package analysis
 
 import (

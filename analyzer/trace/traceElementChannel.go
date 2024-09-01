@@ -1,3 +1,14 @@
+// Copyrigth (c) 2024 Erik Kassubek
+//
+// File: traceElementChannel.go
+// Brief: Struct and functions for channel operations in the trace 
+// 
+// Author: Erik Kassubek <kassubek.erik@gmail.com>
+// Created: 2023-08-08
+// LastChange: 2024-09-01
+//
+// License: BSD-3-Clause
+
 package trace
 
 import (

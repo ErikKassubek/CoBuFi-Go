@@ -1,3 +1,14 @@
+// Copyrigth (c) 2024 Erik Kassubek
+//
+// File: analysisConcurrentCommunication.go
+// Brief: Trace analysis of concurrent reveice on the same channel 
+// 
+// Author: Erik Kassubek <kassubek.erik@gmail.com>
+// Created: 2024-01-27
+// LastChange: 2024-08-01
+//
+// License: BSD-3-Clause
+
 package analysis
 
 import (

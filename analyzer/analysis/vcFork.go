@@ -1,3 +1,14 @@
+// Copyrigth (c) 2024 Erik Kassubek
+//
+// File: vcFork.go
+// Brief: Update function for vector clocks from forks (creation of new routine)  
+// 
+// Author: Erik Kassubek <kassubek.erik@gmail.com>
+// Created: 2023-07-26
+// LastChange: 2024-09-01
+//
+// License: BSD-3-Clause
+
 package analysis
 
 import "analyzer/clock"

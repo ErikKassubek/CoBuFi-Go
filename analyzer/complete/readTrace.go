@@ -1,3 +1,14 @@
+// Copyrigth (c) 2024 Erik Kassubek
+//
+// File: readTrace.go
+// Brief: Read in a trace 
+// 
+// Author: Erik Kassubek <kassubek.erik@gmail.com>
+// Created: 2024-06-26
+// LastChange: 2024-09-01
+//
+// License: BSD-3-Clause
+
 package complete
 
 import (

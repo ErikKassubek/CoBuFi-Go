@@ -1,3 +1,14 @@
+// Copyrigth (c) 2024 Erik Kassubek
+//
+// File: analysisData.go
+// Brief: Variables and data for the analysis
+// 
+// Author: Erik Kassubek <kassubek.erik@gmail.com>
+// Created: 2024-01-27
+// LastChange: 2024-09-01
+//
+// License: BSD-3-Clause
+
 package analysis
 
 import "analyzer/clock"

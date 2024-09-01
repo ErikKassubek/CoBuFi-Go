@@ -1,3 +1,14 @@
+// Copyrigth (c) 2024 Erik Kassubek
+//
+// File: vcOnce.go
+// Brief: Update functions of vector clocks for once operations 
+// 
+// Author: Erik Kassubek <kassubek.erik@gmail.com>
+// Created: 2023-07-25
+// LastChange: 2024-09-01
+//
+// License: BSD-3-Clause
+
 package analysis
 
 import "analyzer/clock"

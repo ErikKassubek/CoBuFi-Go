@@ -1,3 +1,14 @@
+// Copyrigth (c) 2024 Erik Kassubek
+//
+// File: logging.go
+// Brief: Function for debug logging and for logging found bugs 
+// 
+// Author: Erik Kassubek <kassubek.erik@gmail.com>
+// Created: 2023-08-30
+// LastChange: 2024-09-01
+//
+// License: BSD-3-Clause
+
 package logging
 
 import (

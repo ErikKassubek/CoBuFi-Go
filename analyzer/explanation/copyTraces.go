@@ -1,3 +1,14 @@
+// Copyrigth (c) 2024 Erik Kassubek
+//
+// File: copyTraces.go
+// Brief: Function to copy trace files 
+// 
+// Author: Erik Kassubek <kassubek.erik@gmail.com>
+// Created: 2024-06-18
+// LastChange: 2024-09-01
+//
+// License: BSD-3-Clause
+
 package explanation
 
 import (

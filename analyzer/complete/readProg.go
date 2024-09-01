@@ -1,3 +1,14 @@
+// Copyrigth (c) 2024 Erik Kassubek
+//
+// File: readProg.go
+// Brief: Functions to read in a program an extrace all relevant operations
+// 
+// Author: Erik Kassubek <kassubek.erik@gmail.com>
+// Created: 2024-06-26
+// LastChange: 2024-09-01
+//
+// License: BSD-3-Clause
+
 package complete
 
 import (

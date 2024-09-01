@@ -1,3 +1,14 @@
+// Copyrigth (c) 2024 Erik Kassubek
+//
+// File: waitGroup.go
+// Brief: Rewrite for negative wait group counter 
+// 
+// Author: Erik Kassubek <kassubek.erik@gmail.com>
+// Created: 2024-04-05
+// LastChange: 2024-09-01
+//
+// License: BSD-3-Clause
+
 package rewriter
 
 import (

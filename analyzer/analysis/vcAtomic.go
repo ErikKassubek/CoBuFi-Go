@@ -1,3 +1,14 @@
+// Copyrigth (c) 2024 Erik Kassubek
+//
+// File: vcAtomic.go
+// Brief: Update for vector clocks from atomic operations
+// 
+// Author: Erik Kassubek <kassubek.erik@gmail.com>
+// Created: 2023-07-25
+// LastChange: 2024-09-01
+//
+// License: BSD-3-Clause
+
 package analysis
 
 import (

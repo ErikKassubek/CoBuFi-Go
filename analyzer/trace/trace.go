@@ -1,3 +1,14 @@
+// Copyrigth (c) 2024 Erik Kassubek
+//
+// File: trace.go
+// Brief: Functions and structs for the trace
+// 
+// Author: Erik Kassubek <kassubek.erik@gmail.com>
+// Created: 2024-08-08
+// LastChange: 2024-09-01
+//
+// License: BSD-3-Clause
+
 package trace
 
 import (
