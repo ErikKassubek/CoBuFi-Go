@@ -1,3 +1,6 @@
+#trace files
+trace_*.log
+
 # Binaries for programs and plugins
 *.exe
 *.exe~
