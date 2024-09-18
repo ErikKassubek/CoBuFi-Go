@@ -140,16 +140,34 @@ A more detailed description of how replays work and a list of what bugs are curr
 
 
 ## Tooling
-There are certain scripts that will come in handy when working with AdvocateGo
-### Preamble and Import Management
-There are scripts that automatically add and remove the overhead described in [Step 1](#step-1-add-overhead)
-#### For Main Methods
-[Main overhead inserter](./toolchain/overHeadInserter/inserter.go) takes a single file as an argument.
-It will insert the overhead right at the start of main and manage the imports.
+There is a script that will come in handy when working with AdvocateGo.
+The script can be found [here](./toolchain/toolchain/).
 
-It throws an error if no main method is present.
+The script is able to analyzer both full programs as well as unit tests.
 
-Likewise [main overhead remover](./toolchain/overHeadRemover/remover.go) will remove the overhead
+It will automatically insert and remove the required headers.
+It will run the program or test, analyze it and automatically run rewrites and
+replays is possible. It will then create an overview over the found bugs
+as well as statistics about
+
+- Overview of predicted bugs
+- Overview of expected exit codes (after rewrite)
+- Overview of actual exit codes that appeared after running the reordered programs
+
+After the script is build, it can be run with
+```
+./toolchain main [args]
+```
+to run a full program with a main function or with
+```
+./toolchain tests [args]
+```
+to run the unit tests.
+For the args check the help of the script.
+
+Its result and additional information (rewritten traces, logs, etc) will be written to. `advocateResult`.
+
+<!-- Likewise [main overhead remover](./toolchain/overHeadRemover/remover.go) will remove the overhead
 #### For Unit Tests
 [Unit test overhead inserter]() additionally requires the test name you want to apply the overhead to. Apart from that it works just like with [main method overhead inserter](#for-main-methods)
 
@@ -163,7 +181,7 @@ Its result and additional information (rewritten traces, logs, etc) will be writ
 #### Unit Tests
 [runFullWorkflowOnAllUnitTests.bash](./toolchain/runFullWorkflowOnAllUnitTests/runFullWorkflowOnAllUnitTests.bash) takes an entire project and automatically runs the analysis + replay on all unit tests. After running you will additionally get a csv file that lists all predicted and confirmed bugs. (ongoing)
 
-Its result and additional information (rewritten traces, logs, etc) will be written to. `advocateResult`
+Its result and additional information (rewritten traces, logs, etc) will be written to. `advocateResult` -->
 ### Generate Statistics
 After analyzing you can evaluate your `advocateResult` folder with [generateStatistics.go](./toolchain/generateStatisticsFromAdvocateResult/generateStatistics.go). It will provide following information.
 - Overview of predicted bugs
