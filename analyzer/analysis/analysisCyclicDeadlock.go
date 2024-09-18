@@ -5,7 +5,7 @@
 // 
 // Author: Erik Kassubek <kassubek.erik@gmail.com>
 // Created: 2024-01-04
-// LastChange: 2024-09-01
+// LastChange: 2024-09-03
 //
 // License: BSD-3-Clause
 
@@ -58,11 +58,19 @@ func (node *lockGraphNode) addChild(childID int, tID string, childRw bool, child
 	return node.children[len(node.children)-1]
 }
 
+/*
+ * Print the current lock graph node 
+ */
 func (node *lockGraphNode) print() {
 	result := node.toString()
 	println(result)
 }
 
+/*
+ * Turn a lock graph rooted in node into a string 
+ * Returns:
+ *  string representation of the lockGraphTree rooted in node
+ */
 func (node *lockGraphNode) toString() string {
 	if node == nil {
 		return ""
@@ -75,6 +83,7 @@ func (node *lockGraphNode) toString() string {
 
 	return result
 }
+
 
 func (node *lockGraphNode) toStringTraverse(depth int) string {
 	if node == nil {
@@ -93,6 +102,9 @@ func (node *lockGraphNode) toStringTraverse(depth int) string {
 	return result
 }
 
+/* 
+ * Print all current lock trees
+ */
 func printTrees() {
 	for routine, node := range lockGraphs {
 		println("Routine " + strconv.Itoa(routine))

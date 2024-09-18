@@ -5,7 +5,7 @@
 // 
 // Author: Erik Kassubek <kassubek.erik@gmail.com>
 // Created: 2024-01-04
-// LastChange: 2024-08-01
+// LastChange: 2024-08-03
 //
 // License: BSD-3-Clause
 
@@ -21,8 +21,7 @@ import (
 Check if a send or receive on a closed channel is possible
 It it is possible, print a warning or error
 Args:
-
-	id (int): the id of the channel
+  id (int): the id of the channel
 	pos (string): the position of the close in the program
 */
 func checkForCommunicationOnClosedChannel(id int, pos string) {
@@ -95,7 +94,7 @@ func checkForCommunicationOnClosedChannel(id int, pos string) {
 					logging.Debug(err.Error(), logging.ERROR)
 					return
 				}
-
+    
 				arg1 := logging.TraceElementResult{ // recv
 					RoutineID: routine,
 					ObjID:     id,
@@ -122,6 +121,13 @@ func checkForCommunicationOnClosedChannel(id int, pos string) {
 
 }
 
+/*
+ * Lock a found actual send on closed 
+ * Args: 
+ *  routineID (int): id of the routine where the send happened
+ *  id (int): id of the channel 
+ *  posSend (string): code location of the send
+ */
 func foundSendOnClosedChannel(routineID int, id int, posSend string) {
 	if _, ok := closeData[id]; !ok {
 		return
@@ -167,6 +173,13 @@ func foundSendOnClosedChannel(routineID int, id int, posSend string) {
 
 }
 
+/*
+ * Log the detection of an actual receive on a closed channel
+ * Args:
+ *  routineID (int): routine where the received happened 
+ *  id (int): id of the channel
+ *  posRecv (string): code location where the received happened
+ */
 func foundReceiveOnClosedChannel(routineID int, id int, posRecv string) {
 	if _, ok := closeData[id]; !ok {
 		return
