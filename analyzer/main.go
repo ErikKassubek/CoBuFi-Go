@@ -157,8 +157,6 @@ func modeRun(pathTrace *string, noPrint *bool, noRewrite *bool,
 	noWarning *bool, folderTrace string, newTrace string) {
 	printHeader()
 
-	startTime := time.Now()
-
 	if *pathTrace == "" {
 		fmt.Println("Please provide a path to the trace file. Set with -t [file]")
 		return
@@ -200,22 +198,13 @@ func modeRun(pathTrace *string, noPrint *bool, noRewrite *bool,
 
 	numberOfResults := logging.PrintSummary(*noWarning, *noPrint)
 
-	analysisFinishedTime := time.Now()
-	err = writeTime(folderTrace, "Analysis", analysisFinishedTime.Sub(startTime).Seconds())
-	if err != nil {
-		println("Could not write time to file: ", err.Error())
-	}
-
 	if !*noRewrite {
 		numberRewrittenTrace := 0
 		failedRewrites := 0
 		notNeededRewrites := 0
 		println("\n\nStart rewriting trace files...")
-		var rewriteTime time.Duration
 		originalTrace := trace.CopyCurrentTrace()
 		for resultIndex := 0; resultIndex < numberOfResults; resultIndex++ {
-			rewriteStartTime := time.Now()
-
 			needed, err := rewriteTrace(outMachine,
 				newTrace+"_"+strconv.Itoa(resultIndex+1)+"/", resultIndex, numberOfRoutines)
 
@@ -228,16 +217,10 @@ func modeRun(pathTrace *string, noPrint *bool, noRewrite *bool,
 				trace.SetTrace(originalTrace)
 			} else { // needed && err == nil
 				numberRewrittenTrace++
-				rewriteTime += time.Now().Sub(rewriteStartTime)
 				trace.SetTrace(originalTrace)
 			}
 
 			print("\n\n")
-		}
-
-		err = writeTime(folderTrace, "AvgRewrite", rewriteTime.Seconds()/float64(numberRewrittenTrace))
-		if err != nil {
-			println("Could not write time to file: ", err.Error())
 		}
 
 		println("Finished Rewrite")
@@ -272,69 +255,6 @@ func memorySupervisor() {
 			os.Exit(1)
 		}
 	}
-}
-
-func writeTime(pathTrace string, name string, time float64) error {
-	path := pathTrace
-	if path[len(path)-1] != os.PathSeparator {
-		path += string(os.PathSeparator)
-	}
-	path += "times.log"
-
-	// Datei lesen
-	content, err := os.ReadFile(path)
-	if err != nil {
-		if os.IsNotExist(err) {
-			// create file
-			err = os.WriteFile(path, []byte(""), 0644)
-			if err != nil {
-				return err
-			}
-		}
-	}
-
-	elems := strings.Split(string(content), "\n")
-
-	found := false
-	names := make([]string, 0)
-	values := make([]string, 0)
-	if len(elems) >= 2 {
-
-		names = strings.Split(elems[0], ",")
-		values = strings.Split(elems[1], ",")
-
-		// if name already exists, overwrite the value, if name exists multiple time, delete all and write new
-		remove := make([]int, 0)
-		for i, n := range names {
-			if n == name {
-				if !found {
-					values[i] = strconv.FormatFloat(time, 'f', 6, 64)
-					found = true
-				} else {
-					remove = append(remove, i)
-				}
-			}
-		}
-
-		// remove all duplicates
-		for i := len(remove) - 1; i >= 0; i-- {
-			names = append(names[:remove[i]], names[remove[i]+1:]...)
-			values = append(values[:remove[i]], values[remove[i]+1:]...)
-		}
-	}
-
-	// if name not found, append
-	if !found {
-		names = append(names, name)
-		values = append(values, strconv.FormatFloat(time, 'f', 6, 64))
-	}
-
-	elem1 := strings.Join(names, ",")
-	elem2 := strings.Join(values, ",")
-
-	// Datei schreiben
-	err = os.WriteFile(path, []byte(elem1+"\n"+elem2), 0644)
-	return err
 }
 
 /*
