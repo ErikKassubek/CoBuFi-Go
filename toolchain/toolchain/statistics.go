@@ -29,24 +29,24 @@ func generateStatistics(folderName string) {
 		os.Exit(1)
 	}
 	codes := []string{
-		"A1",
-		"A2",
-		"A3",
-		"A4",
-		"A5",
-		"P1",
-		"P2",
-		"P3",
-		"L1",
-		"L2",
-		"L3",
-		"L4",
-		"L5",
-		"L6",
-		"L7",
-		"L8",
-		"L9",
-		"L0",
+		"A01",
+		"A02",
+		"A03",
+		"A04",
+		"A05",
+		"P01",
+		"P02",
+		"P03",
+		"L01",
+		"L02",
+		"L03",
+		"L04",
+		"L05",
+		"L06",
+		"L07",
+		"L08",
+		"L09",
+		"L10",
 	}
 	caseReports := make([]caseReport, 0)
 	for _, code := range codes {
@@ -109,7 +109,7 @@ func getCaseReportForCode(code string, folder string) caseReport {
 	}
 	for _, file := range filteredFiles {
 		dir := filepath.Dir(file)
-		reorderFiles, err := getFiles(dir, "reorder_output.txt")
+		reorderFiles, err := getFiles(dir, "reorder_output.log")
 		if err != nil {
 			fmt.Println(err)
 			return toRet
@@ -161,24 +161,24 @@ func getBugCodes(filePath string) []string {
 
 func getPredictedBugCounts(folderPath string) (map[string]int, error) {
 	codes := []string{
-		"A1",
-		"A2",
-		"A3",
-		"A4",
-		"A5",
-		"P1",
-		"P2",
-		"P3",
-		"L1",
-		"L2",
-		"L3",
-		"L4",
-		"L5",
-		"L6",
-		"L7",
-		"L8",
-		"L9",
-		"L0",
+		"A01",
+		"A02",
+		"A03",
+		"A04",
+		"A05",
+		"P01",
+		"P02",
+		"P03",
+		"L01",
+		"L02",
+		"L03",
+		"L04",
+		"L05",
+		"L06",
+		"L07",
+		"L08",
+		"L09",
+		"L10",
 	}
 	predictedCodes := make(map[string]int)
 	for _, code := range codes {
@@ -241,7 +241,7 @@ func getActualExitCodes(filePath string) (map[string]int, error) {
 	for _, code := range exitCodes {
 		actualCodes[code] = 0
 	}
-	files, err := getFiles(filePath, "reorder_output.txt")
+	files, err := getFiles(filePath, "reorder_output.log")
 	if err != nil {
 		return nil, err
 	}

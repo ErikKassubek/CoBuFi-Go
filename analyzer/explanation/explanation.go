@@ -1,8 +1,8 @@
 // Copyrigth (c) 2024 Erik Kassubek
 //
 // File: explanation.go
-// Brief: Create an explanation file for a found bug 
-// 
+// Brief: Create an explanation file for a found bug
+//
 // Author: Erik Kassubek <kassubek.erik@gmail.com>
 // Created: 2024-06-14
 // LastChange: 2024-09-01
@@ -53,7 +53,7 @@ func CreateOverview(path string, index int, preventCopyRewrittenTrace bool) erro
 	}
 
 	// fmt.Println(progInfo["importLine"])
-	// fmt.Println(progInfo["overheadLine"])
+	// fmt.Println(progInfo["headerLine"])
 
 	bugType, bugPos, bugElemType, err := readAnalysisResults(path, index, progInfo["file"])
 	if err != nil {
@@ -192,6 +192,7 @@ func writeFile(path string, index int, description map[string]string,
 		res += "- File: unknown" + "\n\n"
 	}
 
+	/*
 	res += "## Commands\n"
 	res += "The following commands can be used to run and record the program:\n\n"
 
@@ -210,6 +211,7 @@ func writeFile(path string, index int, description map[string]string,
 	res += getProgInfo(progInfo, "run") + "\n"
 	res += getProgInfo(progInfo, "remover") + "\n"
 	res += "```\n\n"
+	*/
 
 	// write the code of the bug elements
 	res += "## Bug Elements\n"

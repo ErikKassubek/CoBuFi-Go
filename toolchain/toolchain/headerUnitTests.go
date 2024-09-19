@@ -106,7 +106,7 @@ func testExists(fileName string, testName string) (bool, error) {
 }
 
 /*
- * Add the overhead into the unit tests. Do not call directly.
+ * Add the header into the unit tests. Do not call directly.
  * Call via headerInserterUnit. This functions assumes, that the
  * test exists.
  * Args:
@@ -156,7 +156,7 @@ func addHeaderUnit(fileName string, testName string, replay bool, replayNumber s
   defer advocate.Finish()
   // ======= Preamble End =======`)
 			}
-			fmt.Println("Overhead added at line:", currentLine)
+			fmt.Println("Header added at line:", currentLine)
 		}
 	}
 
@@ -172,7 +172,7 @@ func addHeaderUnit(fileName string, testName string, replay bool, replayNumber s
 }
 
 /*
- * Remove the overhead from the unit test. Do not call directly.
+ * Remove the header from the unit test. Do not call directly.
  * Call via headerRemoverUnit. This functions assumes, that the
  * test exists.
  * Args:

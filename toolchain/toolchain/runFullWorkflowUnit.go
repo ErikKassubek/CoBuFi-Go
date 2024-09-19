@@ -39,9 +39,7 @@ func runWorkflowUnit(pathToAdvocate string, dir string) error {
 		return errors.New("Directory is empty")
 	}
 
-	// Set paths
 	pathToAnalyzer := filepath.Join(pathToAdvocate, "analyzer/analyzer")
-	// pathToFullWorkflowExecutor := filepath.Join(pathToAdvocate, "toolchain/unitTestFullWorkflow/unitTestFullWorkflow.bash")
 
 	// Change to the directory
 	if err := os.Chdir(dir); err != nil {
@@ -49,7 +47,7 @@ func runWorkflowUnit(pathToAdvocate string, dir string) error {
 	}
 	fmt.Printf("In directory: %s\n", dir)
 
-	// Create the advocateResult directory
+	os.RemoveAll("advocateResult")
 	if err := os.MkdirAll("advocateResult", os.ModePerm); err != nil {
 		return fmt.Errorf("Failed to create advocateResult directory: %v", err)
 	}
@@ -82,7 +80,8 @@ func runWorkflowUnit(pathToAdvocate string, dir string) error {
 			fmt.Printf("Running full workflow for test: %s in package: %s in file: %s\n", testFunc, packageName, file)
 
 			adjustedPackagePath := strings.TrimPrefix(packagePath, dir)
-			directoryName := fmt.Sprintf("advocateResult/file(%d)-test(%d)-%s-%s", currentFile, attemptedTests, fileName, testFunc)
+			fileNameWithoutEnding := strings.TrimSuffix(fileName, ".go")
+			directoryName := fmt.Sprintf("advocateResult/file(%d)-test(%d)-%s-%s", currentFile, attemptedTests, fileNameWithoutEnding, testFunc)
 			if err := os.MkdirAll(directoryName, os.ModePerm); err != nil {
 				log.Printf("Failed to create directory %s: %v", directoryName, err)
 				continue
@@ -90,10 +89,9 @@ func runWorkflowUnit(pathToAdvocate string, dir string) error {
 
 			// Execute full workflow
 			err = unitTestFullWorkflow(pathToAdvocate, dir, testFunc,
-				adjustedPackagePath, file, filepath.Join(directoryName, "output.txt"))
-
+				adjustedPackagePath, file, directoryName)
 			if err != nil {
-				fmt.Printf("File %d with Test %d failed, check output.txt for more information. Skipping...\n", currentFile, attemptedTests)
+				fmt.Printf("File %d with Test %d failed, check output.log for more information. Skipping...\n", currentFile, attemptedTests)
 				skippedTests++
 				continue
 			}
@@ -106,11 +104,11 @@ func runWorkflowUnit(pathToAdvocate string, dir string) error {
 
 	// Generate Bug Reports
 	fmt.Println("Generate Bug Reports")
-	generateBugReports(pathToAdvocate, filepath.Join(dir, "advocateResult"))
+	generateBugReports(filepath.Join(dir, "advocateResult"), pathToAdvocate)
 
 	// Check for untriggered selects
 	fmt.Println("Check for untriggered selects")
-	runCommand(pathToAnalyzer, "-o", "-R", filepath.Join(dir, "advocateResult"), "-P", dir)
+	runCommand(pathToAnalyzer, "check", "-R", filepath.Join(dir, "advocateResult"), "-P", dir)
 
 	// Output test summary
 	fmt.Println("Finished full workflow for all tests")
@@ -197,11 +195,6 @@ func moveResults(packagePath, destination string) {
 			log.Printf("Failed to move %s to %s: %v", trace, dest, err)
 		}
 	}
-
-	// Move advocateCommand.log if present
-	if _, err := os.Stat("advocateCommand.log"); err == nil {
-		os.Rename("advocateCommand.log", filepath.Join(destination, "advocateCommand.log"))
-	}
 }
 
 /*
@@ -217,7 +210,9 @@ func moveResults(packagePath, destination string) {
  *    error
  */
 func unitTestFullWorkflow(pathToAdvocate string, dir string,
-	testName string, pkg string, file string, output string) error {
+	testName string, pkg string, file string, outputDir string) error {
+
+	output := filepath.Join(outputDir, "output.log")
 
 	outFile, err := os.OpenFile(output, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
@@ -226,8 +221,16 @@ func unitTestFullWorkflow(pathToAdvocate string, dir string,
 	defer outFile.Close()
 
 	// Redirect stdout and stderr to the file
+	origStdout := os.Stdout
+	origStderr := os.Stderr
+
 	os.Stdout = outFile
 	os.Stderr = outFile
+
+	defer func() {
+		os.Stdout = origStdout
+		os.Stderr = origStderr
+	}()
 
 	// Validate required inputs
 	if pathToAdvocate == "" {
@@ -248,8 +251,6 @@ func unitTestFullWorkflow(pathToAdvocate string, dir string,
 
 	pathToPatchedGoRuntime := filepath.Join(pathToAdvocate, "go-patch/bin/go")
 	pathToGoRoot := filepath.Join(pathToAdvocate, "go-patch")
-	pathToOverheadInserter := filepath.Join(pathToAdvocate, "toolchain/unitTestOverheadInserter/unitTestOverheadInserter")
-	pathToOverheadRemover := filepath.Join(pathToAdvocate, "toolchain/unitTestOverheadRemover/unitTestOverheadRemover")
 	pathToAnalyzer := filepath.Join(pathToAdvocate, "analyzer/analyzer")
 
 	// Change to the directory
@@ -262,69 +263,63 @@ func unitTestFullWorkflow(pathToAdvocate string, dir string,
 	os.Setenv("GOROOT", pathToGoRoot)
 	fmt.Println("GOROOT exported")
 
-	// Create advocateCommand.log
-	logFile, err := os.OpenFile("advocateCommand.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-	if err != nil {
-		return fmt.Errorf("Failed to create advocateCommand.log: %v", err)
-	}
-	defer logFile.Close()
+	fmt.Println("FileName: ", file)
+	fmt.Println("TestName: ", testName)
 
-	writeLog := func(data string) {
-		if _, err := logFile.WriteString(data + "\n"); err != nil {
-			log.Printf("Failed to write to log: %v", err)
-		}
+	// Remove header just in case
+	fmt.Println(fmt.Sprintf("Remove header for %s", file))
+	if err := headerRemoverUnit(file); err != nil {
+		return fmt.Errorf("Failed to remove header: %v", err)
 	}
 
-	writeLog(file)
-	writeLog(testName)
-
-	// Remove overhead just in case
-	writeLog(fmt.Sprintf("%s -f %s -t %s", pathToOverheadRemover, file, testName))
-	if err := runCommand(pathToOverheadRemover, "-f", file, "-t", testName); err != nil {
-		return fmt.Errorf("Failed to remove overhead: %v", err)
-	}
-
-	// Add overhead
-	writeLog(fmt.Sprintf("%s -f %s -t %s", pathToOverheadInserter, file, testName))
-	if err := runCommand(pathToOverheadInserter, "-f", file, "-t", testName); err != nil {
-		return fmt.Errorf("Error in adding overhead: %v", err)
+	// Add header
+	fmt.Println(fmt.Sprintf("Add header for %s: %s", file, testName))
+	if err := headerInserterUnit(file, testName, false, "0"); err != nil {
+		return fmt.Errorf("Error in adding header: %v", err)
 	}
 
 	// Run the test
-	writeLog(fmt.Sprintf("%s test -count=1 -run=%s ./%s", pathToPatchedGoRuntime, testName, pkg))
+	fmt.Println(fmt.Sprintf("%s test -count=1 -run=%s ./%s", pathToPatchedGoRuntime, testName, pkg))
 	err = runCommand(pathToPatchedGoRuntime, "test", "-count=1", "-run="+testName, "./"+pkg)
 
 	if err != nil {
-		log.Println("Test failed, removing overhead and exiting")
-		runCommand(pathToOverheadRemover, "-f", file, "-t", testName)
+		log.Println(err)
+		log.Println("Test failed, removing header and exiting")
+		headerRemoverUnit(file)
 		return errors.New("Error running test")
 	}
 
-	// Remove overhead after the test
-	writeLog(fmt.Sprintf("%s -f %s -t %s", pathToOverheadRemover, file, testName))
-	runCommand(pathToOverheadRemover, "-f", file, "-t", testName)
+	// Remove header after the test
+	fmt.Println(fmt.Sprintf("Remove header for %s", file))
+	headerRemoverUnit(file)
 
 	// Apply analyzer
-	writeLog(fmt.Sprintf("%s -t %s/%s/advocateTrace", pathToAnalyzer, dir, pkg))
-	runCommand(pathToAnalyzer, "-t", filepath.Join(dir, pkg, "advocateTrace"))
+	fmt.Println(fmt.Sprintf("Run the analyzer for %s/%s/advocateTrace", dir, pkg))
+	err = runCommand(pathToAnalyzer, "run", "-t", filepath.Join(dir, pkg, "advocateTrace"))
+	if err != nil {
+		log.Println("Analyzer failed", err)
+	}
 
-	// Apply reorder overhead for rewritten traces
-	rewrittenTraces, _ := filepath.Glob(filepath.Join(pkg, "rewritten_trace*"))
+	pathPkg := filepath.Join(dir, pkg)
+	rewrittenTraces, _ := filepath.Glob(filepath.Join(pathPkg, "rewritten_trace_*"))
+	fmt.Printf("Found %d rewritten traces\n", len(rewrittenTraces))
+
 	for _, trace := range rewrittenTraces {
 		traceNum := extractTraceNumber(trace)
-		writeLog(fmt.Sprintf("%s -f %s -t %s -r true -n %s", pathToOverheadInserter, file, testName, traceNum))
-		runCommand(pathToOverheadInserter, "-f", file, "-t", testName, "-r", "true", "-n", traceNum)
+		fmt.Printf("Insert replay header or %s: %s for trace %s\n", file, testName, traceNum)
+		headerInserterUnit(file, testName, true, traceNum)
 
-		writeLog(fmt.Sprintf("%s test -count=1 -run=%s ./%s", pathToPatchedGoRuntime, testName, pkg))
-		runCommandWithTee(pathToPatchedGoRuntime, filepath.Join(trace, "reorder_output.txt"), "test", "-count=1", "-run="+testName, "./"+pkg)
+		fmt.Printf("%s test -count=1 -run=%s ./%s\n", pathToPatchedGoRuntime, testName, pkg)
+		runCommand(pathToPatchedGoRuntime, "test", "-count=1", "-run="+testName, "./"+pkg)
 
-		// Remove reorder overhead
-		writeLog(fmt.Sprintf("%s -f %s -t %s", pathToOverheadRemover, file, testName))
-		runCommand(pathToOverheadRemover, "-f", file, "-t", testName)
+		// Remove reorder header
+		fmt.Printf("Remove header for %s\n", file)
+		headerRemoverUnit(file)
 	}
 
 	// Unset GOROOT
 	os.Unsetenv("GOROOT")
+	fmt.Println("GOROOT removed")
 
 	return nil
 }
@@ -344,7 +339,7 @@ func runCommandWithTee(name, outputFile string, args ...string) error {
 
 // extractTraceNumber extracts the numeric part from a trace directory name
 func extractTraceNumber(trace string) string {
-	parts := strings.Split(trace, "rewritten_trace")
+	parts := strings.Split(trace, "rewritten_trace_")
 	if len(parts) > 1 {
 		return parts[1]
 	}

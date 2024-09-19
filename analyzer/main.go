@@ -5,7 +5,7 @@
 //
 // Author: Erik Kassubek <kassubek.erik@gmail.com>
 // Created: 2023-08-08
-// LastChange: 2024-09-01
+// LastChange: 2024-09-19
 //
 // License: BSD-3-Clause
 
@@ -40,7 +40,7 @@ func main() {
 	noWarning := flag.Bool("w", false, "Do not print warnings (default false)")
 	noPrint := flag.Bool("p", false, "Do not print the results to the terminal (default false). Automatically set -x to true")
 	resultFolder := flag.String("r", "", "Path to where the result file should be saved.")
-	ignoreAtomics := flag.Bool("a", false, "Ignore atomic operations (default false). Use to reduce memory overhead for large traces.")
+	ignoreAtomics := flag.Bool("a", false, "Ignore atomic operations (default false). Use to reduce memory header for large traces.")
 	explanationIndex := flag.Int("i", 0, "Index of the explanation to create")
 	resultFolderTool := flag.String("R", "", "Path where the advocateResult folder created by the pipeline is located")
 	programPath := flag.String("P", "", "Path to the program folder")
@@ -63,6 +63,16 @@ func main() {
 	// go memorySupervisor() // BUG: does not work properly
 
 	flag.Parse()
+
+	var mode string
+	if len(os.Args) > 2 {
+		mode = os.Args[1]
+		flag.CommandLine.Parse(os.Args[2:])
+	} else {
+		fmt.Printf("No mode selected")
+		fmt.Printf("Select one mode from 'run', 'stats', 'explain' or 'check'")
+		printHelp()
+	}
 
 	if *help {
 		printHelp()
@@ -88,34 +98,22 @@ func main() {
 	outReadable := *resultFolder + "/results_readable.log"
 	newTrace := *resultFolder + "/rewritten_trace"
 
-	if len(os.Args) >= 2 {
-
-		// ===================== Special cases =====================
-
-		switch os.Args[1] {
-		case "stats":
-			modeStats(programPath, pathTrace)
-		case "explain":
-			modeExplain(pathTrace, folderTrace, explanationIndex, preventCopyRewrittenTrace)
-		case "check":
-			modeCheck(resultFolderTool, programPath)
-		case "run":
-			modeRun(pathTrace, noPrint, noRewrite, scenarios, level, outReadable,
-				outMachine, ignoreAtomics, fifo, ignoreCriticalSection,
-				noWarning, folderTrace, newTrace)
-		default:
-			fmt.Printf("Unknown mode %s", os.Args[1])
-			fmt.Printf("Select one mode from 'run', 'stats', 'explain' or 'check'")
-			printHelp()
-		}
-	} else {
-		fmt.Printf("No mode selected")
+	switch mode {
+	case "stats":
+		modeStats(programPath, pathTrace)
+	case "explain":
+		modeExplain(pathTrace, folderTrace, explanationIndex, preventCopyRewrittenTrace)
+	case "check":
+		modeCheck(resultFolderTool, programPath)
+	case "run":
+		modeRun(pathTrace, noPrint, noRewrite, scenarios, level, outReadable,
+			outMachine, ignoreAtomics, fifo, ignoreCriticalSection,
+			noWarning, folderTrace, newTrace)
+	default:
+		fmt.Printf("Unknown mode %s", os.Args[1])
 		fmt.Printf("Select one mode from 'run', 'stats', 'explain' or 'check'")
 		printHelp()
 	}
-
-	// ============== Start the normal program ==============
-
 }
 
 func modeStats(programPath, pathTrace *string) {
@@ -490,7 +488,7 @@ func printHelp() {
 	println("  -w          Do not print warnings (default false)")
 	println("  -p          Do not print the results to the terminal (default false). Automatically set -x to true")
 	println("  -r [folder] Path to where the result file should be saved. (default parallel to -t)")
-	println("  -a          Ignore atomic operations (default false). Use to reduce memory overhead for large traces.")
+	println("  -a          Ignore atomic operations (default false). Use to reduce memory header for large traces.")
 	println("  -s [cases]  Select which analysis scenario to run, e.g. -s srd for the option s, r and d.")
 	println("              If it is not set, all scenarios are run")
 	println("              Options:")
@@ -512,6 +510,7 @@ func printHelp() {
 	println("  -i [index]  Index of the explanation to create (1 based) (required)")
 	println("\n\n")
 	println("3. Check if all concurrency elements of the program have been executed at least once")
+	println("Usage: ./analyzer check [options]")
 	println("This mode checks if all concurrency elements of the program have been executed at least once.")
 	println("It has the following options:")
 	println("  -R [folder] Path where the advocateResult folder created by the pipeline is located (required)")

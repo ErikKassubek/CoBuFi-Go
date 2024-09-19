@@ -6,7 +6,7 @@
 //
 // Author: Erik Kassubek, Mario Occhinegro
 // Created: 2024-09-18
-// Last Changed 2024-09-18
+// Last Changed 2024-09-19
 //
 // License: BSD-3-Clause
 
@@ -59,33 +59,33 @@ func runWorkflowMain(pathToAdvocate string, pathToFile string) error {
 	}
 	fmt.Println("GOROOT exported")
 
-	// Remove overhead
+	// Remove header
 	if err := headerRemoverMain(pathToFile); err != nil {
-		return fmt.Errorf("Error removing overhead: %v", err)
+		return fmt.Errorf("Error removing header: %v", err)
 	}
 
-	// Add overhead
-	fmt.Printf("Add overhead to %s", pathToFile)
+	// Add header
+	fmt.Printf("Add header to %s", pathToFile)
 	if err := headerInserterMain(pathToFile, false, "1"); err != nil {
-		return fmt.Errorf("Error in adding overhead: %v", err)
+		return fmt.Errorf("Error in adding header: %v", err)
 	}
 
-	// Run the test
+	// Run the program
 	fmt.Printf("%s run %s\n", pathToPatchedGoRuntime, pathToFile)
 	if err := runCommand(pathToPatchedGoRuntime, "run", pathToFile); err != nil {
-		log.Println("Error in running test, removing overhead and stopping workflow")
+		log.Println("Error in running program, removing header and stopping workflow")
 		headerRemoverMain(pathToFile)
 		return err
 	}
 
-	// Remove overhead
+	// Remove header
 	if err := headerRemoverMain(pathToFile); err != nil {
-		return fmt.Errorf("Error removing overhead: %v", err)
+		return fmt.Errorf("Error removing header: %v", err)
 	}
 
 	// Apply analyzer
 	analyzerOutput := filepath.Join(dir, "advocateTrace")
-	if err := runCommand(pathToAnalyzer, "-t", analyzerOutput); err != nil {
+	if err := runCommand(pathToAnalyzer, "run", "-t", analyzerOutput); err != nil {
 		return fmt.Errorf("Error applying analyzer: %v", err)
 	}
 
@@ -95,18 +95,18 @@ func runWorkflowMain(pathToAdvocate string, pathToFile string) error {
 		return fmt.Errorf("Error finding rewritten traces: %v", err)
 	}
 
-	// Apply reorder overhead and run tests for each trace
+	// Apply replay header and run tests for each trace
 	for _, trace := range rewrittenTraces {
 		rtraceNum := extractTraceNum(trace)
-		fmt.Printf("Apply reorder overhead for file f %s and trace %s\n", pathToFile, rtraceNum)
+		fmt.Printf("Apply replay header for file f %s and trace %s\n", pathToFile, rtraceNum)
 		if err := headerInserterMain(pathToFile, true, rtraceNum); err != nil {
 			return err
 		}
 
-		outputFile := filepath.Join(trace, "reorder_output.txt")
+		outputFile := filepath.Join(trace, "replay_output.log")
 		runCommandWithOutput(pathToPatchedGoRuntime, outputFile, "run", pathToFile)
 
-		fmt.Printf("Remove reorder overhead from %s\n", pathToFile)
+		fmt.Printf("Remove replay header from %s\n", pathToFile)
 		if err := headerRemoverMain(pathToFile); err != nil {
 			return err
 		}

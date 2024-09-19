@@ -6,7 +6,7 @@
 //
 // Author: Erik Kassubek
 // Created: 2024-09-18
-// Last Changed 2024-09-18
+// Last Changed 2024-09-19
 //
 // License: BSD-3-Clause
 
@@ -16,26 +16,35 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"strings"
 )
 
+var (
+	pathToAdvocate string
+	pathToFile     string
+	help           bool
+)
+
+func init() {
+	flag.BoolVar(&help, "h", false, "Help")
+	flag.StringVar(&pathToAdvocate, "a", "", "path to the ADVOCATE folder")
+	flag.StringVar(&pathToFile, "f", "", "main: path to the main program file, tests: path to the folder with the program and the tests")
+}
+
 func main() {
-	if len(os.Args) < 2 {
-		printHelp()
-		return
-	}
-
-	mode := os.Args[1]
-
-	help := flag.Bool("h", false, "Help")
-	pathToAdvocate := flag.String("a", "", "path to the ADVOCATE folder")
-	pathToFile := flag.String("f", "", "main: path to the main program file, tests: path to the folder with the program and the tests")
 	flag.Parse()
 
-	if *help {
+	var mode string
+	if len(os.Args) > 2 {
+		mode = os.Args[1]
+		flag.CommandLine.Parse(os.Args[2:])
+	}
+
+	if help {
 		switch mode {
 		case "main":
 			printHelpMain()
-		case "tests":
+		case "test", "tests":
 			printHelpUnit()
 		default:
 			printHelp()
@@ -43,22 +52,45 @@ func main() {
 		return
 	}
 
+	// replace ~ in path with home
+	home, _ := os.UserHomeDir()
+	pathToAdvocate = strings.Replace(pathToAdvocate, "~", home, 0)
+	pathToFile = strings.Replace(pathToFile, "~", home, 0)
+	println(pathToAdvocate, pathToFile)
+
+	var err error
 	switch mode {
 	case "main":
-		if *pathToAdvocate == "" {
+		if pathToAdvocate == "" {
 			fmt.Println("Path to advocate required for mode main")
 			printHelpMain()
 			return
 		}
-		if *pathToFile == "" {
-			fmt.Println("Path to file required for mode main")
+		if pathToFile == "" {
+			fmt.Println("Path to file required")
 			printHelpMain()
+			return
 		}
-		runWorkflowMain(*pathToAdvocate, *pathToFile)
-	case "tests":
-		runWorkflowUnit(*pathToAdvocate, *pathToFile)
+		err = runWorkflowMain(pathToAdvocate, pathToFile)
+	case "test", "tests":
+		if pathToAdvocate == "" {
+			fmt.Println("Path to advocate required")
+			printHelpUnit()
+			return
+		}
+		if pathToFile == "" {
+			fmt.Println("Path to test folder required for mode main")
+			printHelpUnit()
+			return
+		}
+		err = runWorkflowUnit(pathToAdvocate, pathToFile)
 	default:
+		fmt.Println("Choose one mode from 'main' or 'test'")
 		printHelp()
+	}
+
+	if err != nil {
+		fmt.Println(err)
 	}
 }
 
@@ -66,8 +98,8 @@ func printHelp() {
 	fmt.Println("Usage: ./toolchain <mode> [options]")
 	fmt.Println("Modes:")
 	fmt.Println("  main:   Run the workflow for a program with a main function")
-	fmt.Println("  tests:  Run the workflow for unit tests")
-	fmt.Println("Use ./toolchain <mode> -h for mor help")
+	fmt.Println("  test:   Run the workflow for unit tests")
+	fmt.Println("Use ./toolchain <mode> -h for more help")
 }
 
 func printHelpMain() {
@@ -78,8 +110,8 @@ func printHelpMain() {
 }
 
 func printHelpUnit() {
-	fmt.Println("Usage: ./toolchain tests [options]")
+	fmt.Println("Usage: ./toolchain test [options]")
 	fmt.Println("Required Flags:")
 	fmt.Println("  -a [path]: path to the ADCOVATE folder")
-	fmt.Println("  -f [path]: path to the folder containing the ")
+	fmt.Println("  -f [path]: path to the folder containing the tests")
 }

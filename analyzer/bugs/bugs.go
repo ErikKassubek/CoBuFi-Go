@@ -2,7 +2,7 @@
 //
 // File: bugs.go
 // Brief: Operations for handeling found bugs
-// 
+//
 // Author: Erik Kassubek <kassubek.erik@gmail.com>
 // Created: 2023-11-30
 // LastChange: 2024-09-01
@@ -23,28 +23,28 @@ const (
 	Empty ResultType = ""
 
 	// actual
-	ASendOnClosed          ResultType = "A1"
-	ARecvOnClosed          ResultType = "A2"
-	ACloseOnClosed         ResultType = "A3"
-	AConcurrentRecv        ResultType = "A4"
-	ASelCaseWithoutPartner ResultType = "A5"
+	ASendOnClosed          ResultType = "A01"
+	ARecvOnClosed          ResultType = "A02"
+	ACloseOnClosed         ResultType = "A03"
+	AConcurrentRecv        ResultType = "A04"
+	ASelCaseWithoutPartner ResultType = "A05"
 
 	// possible
-	PSendOnClosed ResultType = "P1"
-	PRecvOnClosed ResultType = "P2"
-	PNegWG        ResultType = "P3"
+	PSendOnClosed ResultType = "P01"
+	PRecvOnClosed ResultType = "P02"
+	PNegWG        ResultType = "P03"
 
 	// leaks
-	LUnbufferedWith    = "L1"
-	LUnbufferedWithout = "L2"
-	LBufferedWith      = "L3"
-	LBufferedWithout   = "L4"
-	LNilChan           = "L5"
-	LSelectWith        = "L6"
-	LSelectWithout     = "L7"
-	LMutex             = "L8"
-	LWaitGroup         = "L9"
-	LCond              = "L0"
+	LUnbufferedWith    = "L01"
+	LUnbufferedWithout = "L02"
+	LBufferedWith      = "L03"
+	LBufferedWithout   = "L04"
+	LNilChan           = "L05"
+	LSelectWith        = "L06"
+	LSelectWithout     = "L07"
+	LMutex             = "L08"
+	LWaitGroup         = "L09"
+	LCond              = "L10"
 )
 
 type Bug struct {
@@ -198,55 +198,55 @@ func ProcessBug(bugStr string) (bool, Bug, error) {
 	actual := false
 
 	switch bugType {
-	case "A1":
+	case "A01":
 		bug.Type = ASendOnClosed
 		actual = true
-	case "A2":
+	case "A02":
 		bug.Type = ARecvOnClosed
 		actual = true
-	case "A3":
+	case "A03":
 		bug.Type = ACloseOnClosed
 		actual = true
-	case "A4":
+	case "A04":
 		bug.Type = AConcurrentRecv
 		actual = true
-	case "A5":
+	case "A05":
 		bug.Type = ASelCaseWithoutPartner
 		actual = true
-	case "P1":
+	case "P01":
 		bug.Type = PSendOnClosed
-	case "P2":
+	case "P02":
 		bug.Type = PRecvOnClosed
-	case "P3":
+	case "P03":
 		bug.Type = PNegWG
 	// case "P4":
 	// 	bug.Type = CyclicDeadlock
 	// case "P5":
 	// 	bug.Type = MixedDeadlock
-	case "L1":
+	case "L01":
 		bug.Type = LUnbufferedWith
-	case "L2":
+	case "L02":
 		bug.Type = LUnbufferedWithout
 		containsArg2 = false
-	case "L3":
+	case "L03":
 		bug.Type = LBufferedWith
-	case "L4":
+	case "L04":
 		bug.Type = LBufferedWithout
 		containsArg2 = false
-	case "L5":
+	case "L05":
 		bug.Type = LNilChan
 		containsArg2 = false
-	case "L6":
+	case "L06":
 		bug.Type = LSelectWith
-	case "L7":
+	case "L07":
 		bug.Type = LSelectWithout
 		containsArg2 = false
-	case "L8":
+	case "L08":
 		bug.Type = LMutex
-	case "L9":
+	case "L09":
 		bug.Type = LWaitGroup
 		containsArg2 = false
-	case "L0":
+	case "L10":
 		bug.Type = LCond
 		containsArg2 = false
 	default:

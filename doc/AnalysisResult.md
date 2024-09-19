@@ -28,27 +28,27 @@ with
 ```
 The typeIDs have the following meaning:
 
-- A1: Send on closed channel
-- A2: Receive on closed channel
-- A3: Close on closed channel
-- A4: Concurrent recv
-- A5: Select case without partner
-- P1: Possible send on closed channel
-- P2: Possible receive on closed channel
-- P3: Possible negative waitgroup counter
-- L1: Leak on unbuffered channel with possible partner
-- L2: Leak on unbuffered channel without possible partner
-- L3: Leak on buffered channel with possible partner
-- L4: Leak on buffered channel without possible partner
-- L5: Leak on nil channel
-- L6: Leak on select with possible partner
-- L7: Leak on select without possible partner (includes nil channels)
-- L8: Leak on mutex
-- L9: Leak on waitgroup
-- L0: Leak on cond
+- A01: Send on closed channel
+- A02: Receive on closed channel
+- A03: Close on closed channel
+- A04: Concurrent recv
+- A05: Select case without partner
+- P01: Possible send on closed channel
+- P02: Possible receive on closed channel
+- P03: Possible negative waitgroup counter
+- L01: Leak on unbuffered channel with possible partner
+- L02: Leak on unbuffered channel without possible partner
+- L03: Leak on buffered channel with possible partner
+- L04: Leak on buffered channel without possible partner
+- L05: Leak on nil channel
+- L06: Leak on select with possible partner
+- L07: Leak on select without possible partner (includes nil channels)
+- L08: Leak on mutex
+- L09: Leak on waitgroup
+- L10: Leak on cond
 
-<!--P4: Possible cyclic deadlock, disabled-->
-<!--P5: Possible mixed deadlock, disabled-->
+<!--P04: Possible cyclic deadlock, disabled-->
+<!--P05: Possible mixed deadlock, disabled-->
 `[args]` shows the elements involved in the problem. There are either
 one or two, while the args them self can contain multiple trace elements or select cases.\
 The arg in args are separated by a semicolon (;).\
@@ -134,7 +134,7 @@ An example for a send on closed is:
 
 In the machine readable format, the send on closed has the following form:
 ```
-A1,T:1:2:12:CS:example.go:4,T:1:2:10:CC:example.go:3
+A01,T:1:2:12:CS:example.go:4,T:1:2:10:CC:example.go:3
 ```
 In the human readable format, the send on closed has the following form:
 ```
@@ -162,7 +162,7 @@ An example for a receive on closed is:
 
 In the machine readable format, the receive on closed has the following form:
 ```
-A2,T:1:2:12:CR:example.go:4,T:1:2:10:CC:example.go:3
+A02,T:1:2:12:CR:example.go:4,T:1:2:10:CC:example.go:3
 ```
 
 In the human readable format, the receive on closed has the following form:
@@ -191,7 +191,7 @@ An example for a close on closed is:
 
 In the machine readable format, the close on closed has the following form:
 ```
-A3,T:1:2:12:CC:example.go:4,T:1:2:10:CC:example.go:3
+A03,T:1:2:12:CC:example.go:4,T:1:2:10:CC:example.go:3
 ```
 
 In the human readable format, the close on closed has the following form:
@@ -227,7 +227,7 @@ An example for a concurrent recv is:
 
 The machine readable format of the concurrent recv has the following form:
 ```
-A4,T:3:2:20:CR:example.go:9,T:4:2:10:CR:example.go:5
+A04,T:3:2:20:CR:example.go:9,T:4:2:10:CR:example.go:5
 ```
 The human readable format of the concurrent recv has the following form:
 ```
@@ -268,8 +268,8 @@ The following example shows a select case without partner (d) and a nil case (e)
 
 The machine readable format of the select case without partner or nil case has the following form:
 ```
-A5,T:1:5:10:SS:example.go:8,S:3:CR      // select case without partner
-A5,T:1:5:10:SS:example.go:8,S:-1:CS     // nil case
+A05,T:1:5:10:SS:example.go:8,S:3:CR      // select case without partner
+A05,T:1:5:10:SS:example.go:8,S:-1:CS     // nil case
 ```
 
 The human readable format of the select case without partner or nil case has the following form:
@@ -310,7 +310,7 @@ An example for a possible send on closed is:
 
 In the machine readable format, the possible send on closed has the following form:
 ```
-P1,T:2:2:10:CS:example.go:5,T:3:2:30:CC:example.go:30
+P01,T:2:2:10:CS:example.go:5,T:3:2:30:CC:example.go:30
 ```
 
 ```
@@ -346,7 +346,7 @@ An example for a possible recv on closed is:
 
 In the machine readable format, the possible send on closed has the following form:
 ```
-P2,T:3:2:20:CR:example.go:9,T:3:2:30:CC:example.go:30
+P02,T:3:2:20:CR:example.go:9,T:3:2:30:CC:example.go:30
 ```
 
 ```
@@ -384,7 +384,7 @@ An example for a possible negative waitgroup counter is:
 
 The machine readable format of the possible negative waitgroup counter has the following form:
 ```
-P3,T:2:2:10:WA:example.go:5;T:3:2:20:WA:example.go:8,T:4:2:30:WD:example.go:9;T:1:2:40:WD:example.go:12
+P03,T:2:2:10:WA:example.go:5;T:3:2:20:WA:example.go:8,T:4:2:30:WD:example.go:9;T:1:2:40:WD:example.go:12
 ```
 
 The human readable format of the possible negative waitgroup counter has the following form:
@@ -425,7 +425,7 @@ We assume that line 5 send to line 9 and line 13 is leaking.
 
 The machine readable format of the leak on an unbuffered channel with a possible partner has the following form:
 ```
-L1,T:4:2:30:CS:example.go:13,T:3:2:20:CR:example.go:9
+L01,T:4:2:30:CS:example.go:13,T:3:2:20:CR:example.go:9
 ```
 
 The human readable format of the leak on an unbuffered channel with a possible partner has the following form:
@@ -457,7 +457,7 @@ An example for a leak on an unbuffered channel without a possible partner is:
 
 The machine readable format of the leak on an unbuffered channel without a possible partner has the following form:
 ```
-L2,T:2:2:10:CR:example.go:5
+L02,T:2:2:10:CR:example.go:5
 ```
 
 The human readable format of the leak on an unbuffered channel without a possible partner has the following form:
@@ -498,7 +498,7 @@ We assume that line 5 send to line 9 and line 13 is leaking.
 
 The machine readable format of the leak on an buffered channel with a possible partner has the following form:
 ```
-L3,T:4:2:30:CS:example.go:13,T:3:2:20:CR:example.go:9
+L03,T:4:2:30:CS:example.go:13,T:3:2:20:CR:example.go:9
 ```
 
 The human readable format of the leak on an buffered channel with a possible partner has the following form:
@@ -531,7 +531,7 @@ An example for a leak on an unbuffered channel without a possible partner is:
 
 The machine readable format of the leak on an unbuffered channel without a possible partner has the following form:
 ```
-L4,T:2:2:10:CR:example.go:5
+L04,T:2:2:10:CR:example.go:5
 ```
 
 The human readable format of the leak on an unbuffered channel without a possible partner has the following form:
@@ -561,7 +561,7 @@ func main() {
 
 The machine readable format of the leak on a nil channel has the following form:
 ```
-L5,T:2:-1:10:CS:example.go:6
+L05,T:2:-1:10:CS:example.go:6
 ```
 
 The human readable format of the leak on a nil channel has the following form:
@@ -604,7 +604,7 @@ We assume that line 5 send to line 9 and that the select is leaking.
 
 The machine readable format of the leak on an select with a possible partner has the following form:
 ```
-L6,T:4:3:30:SS:example.go:13,T:3:2:20:CR:example.go:9
+L06,T:4:3:30:SS:example.go:13,T:3:2:20:CR:example.go:9
 ```
 
 The human readable format of the leak on an select with a possible partner has the following form:
@@ -635,7 +635,7 @@ The one arg of this case is:
 
 The machine readable format of the leak on an select without a possible partner has the following form:
 ```
-L7,T:2:3:10:SS:example.go:5
+L07,T:2:3:10:SS:example.go:5
 ```
 
 The human readable format of the leak on an select without a possible partner has the following form:
@@ -670,7 +670,7 @@ The Lock operation in line 5 is leaking.
 
 The machine readable format of the leak on a mutex has the following form:
 ```
-L8,T:2:2:20:ML:example.go:5,T:1:2:10:ML:example.go:8
+L08,T:2:2:20:ML:example.go:5,T:1:2:10:ML:example.go:8
 ```
 
 The human readable format of the leak on a mutex has the following form:
@@ -700,7 +700,7 @@ An example for a leak on a waitgroup is:
 
 The machine readable format of the leak on a waitgroup has the following form:
 ```
-L9,T:1:2:10:WW:example.go:6
+L09,T:1:2:10:WW:example.go:6
 ```
 
 The human readable format of the leak on a waitgroup has the following form:
@@ -728,7 +728,7 @@ An example for a leak on a cond is:
 
 The machine readable format of the leak on a cond has the following form:
 ```
-L0,T:1:2:20:NW:example.go:4
+L10,T:1:2:20:NW:example.go:4
 ```
 
 The human readable format of the leak on a cond has the following form:
