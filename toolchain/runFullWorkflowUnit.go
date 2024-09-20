@@ -148,6 +148,10 @@ func runWorkflowUnit(pathToAdvocate string, dir string, measureTime bool) error 
 	fmt.Println("Check for untriggered selects")
 	runCommand(pathToAnalyzer, "check", "-R", filepath.Join(dir, "advocateResult"), "-P", dir)
 
+	// create statistics
+	fmt.Println("Create statistics")
+	runCommand(pathToAnalyzer, "stats", "-R", filepath.Join(dir, "advocateResult"), "-P", dir)
+
 	// Output test summary
 	fmt.Println("Finished full workflow for all tests")
 	fmt.Printf("Attempted tests: %d\n", attemptedTests)
@@ -378,6 +382,7 @@ func unitTestFullWorkflow(pathToAdvocate string, dir string,
 		log.Println("Analyzer failed", err)
 	}
 	timeAnalysis := time.Since(startTime)
+	fmt.Println("Finished Analyzer")
 
 	pathPkg := filepath.Join(dir, pkg)
 	rewrittenTraces, _ := filepath.Glob(filepath.Join(pathPkg, "rewritten_trace_*"))

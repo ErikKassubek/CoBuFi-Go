@@ -118,7 +118,17 @@ func main() {
 
 func modeStats(programPath, pathTrace *string) {
 	// instead of the normal program, create statistics for the trace
-	stats.Create(programPath, pathTrace)
+	if *programPath == "" {
+		fmt.Println("Provide the path to the program. Set with -P [path]")
+		return
+	}
+
+	if *pathTrace == "" {
+		fmt.Println("Provide the path to the trace. Set with -t [path]")
+		return
+	}
+
+	stats.CreateStats(programPath, pathTrace)
 }
 
 func modeExplain(pathTrace *string, folderTrace string, explanationIndex *int,

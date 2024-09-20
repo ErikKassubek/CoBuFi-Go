@@ -83,7 +83,7 @@ func CurrentTraceToString() string {
 	res := ""
 	for i, elem := range currentGoRoutine().Trace {
 		if i != 0 {
-			res += ";"
+			res += "\n"
 		}
 		res += elem
 	}
@@ -109,7 +109,7 @@ func traceToString(trace *[]string, atomics *[]string) string {
 		// merge trace and atomics based on the time
 		for i := 0; i < len(*trace)+len(*atomics); i++ {
 			if i != 0 {
-				res += ";"
+				res += "\n"
 			}
 			if traceIndex < len(*trace) && atomicIndex < len(*atomics) {
 				traceTime := getTpre((*trace)[traceIndex])
@@ -136,7 +136,7 @@ func traceToString(trace *[]string, atomics *[]string) string {
 	// if atomic recording is disabled
 	for i, elem := range *trace {
 		if i != 0 {
-			res += ";"
+			res += "\n"
 		}
 		res += elem
 	}
@@ -228,7 +228,7 @@ func TraceToStringByIDChannel(id int, c chan<- string) {
 			// merge trace and atomics based on the time
 			for i := 0; i < len(routine.Trace)+len(routine.Atomics); i++ {
 				if i != 0 {
-					res += ";"
+					res += "\n"
 				}
 				if traceIndex < len(routine.Trace) && atomicIndex < len(routine.Atomics) {
 					traceTime := getTpre(routine.Trace[traceIndex])
@@ -260,7 +260,7 @@ func TraceToStringByIDChannel(id int, c chan<- string) {
 		// if atomic recording is disabled
 		for i, elem := range routine.Trace {
 			if i != 0 {
-				res += ";"
+				res += "\n"
 			}
 			res += elem
 

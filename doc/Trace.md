@@ -5,7 +5,7 @@ better readable
 explanation for all trace elements in the corresponding files in `traceElements`.
 For the trace of each routine a separate trace file is created
 ```
-L := "" | {E";"}E                                                        (routine local trace)
+L := "" | {E"\n"}* E                                                     (routine local trace)
 E := G | M | W | C | S | O | N | X                                       (trace element)
 G := "G,"tpre","id,","pos                                                (element for creation of new routine)
 A := "A,"tpre","addr","opA                                               (element for atomic operation)
@@ -44,9 +44,9 @@ selIndex := ℕ | -1                                                       (inte
 ec :=ℕ                                                                   (exit code)
 ```
 
-For each trace a separate file is stored.
-The elements in each file are separated by
-semicolons (;). The different fields in each element are seperated by
+For each routine a separate file is stored.
+Each element in a routine is stored in a separate line.
+The different fields in each element are seperated by
 commas (,). The first field always shows the type of the element:
 
 - G: creation of a new routine

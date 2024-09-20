@@ -5,9 +5,6 @@ import (
 	"regexp"
 	"time"
 
-	"advocate"
-	"runtime"
-
 	"github.com/PuerkitoBio/goquery"
 )
 
@@ -35,16 +32,6 @@ func (x *ExampleExtender) Filter(ctx *URLContext, isVisited bool) bool {
 }
 
 func main() {
-	if true {
-		// init tracing
-		advocate.InitTracing(0)
-		defer advocate.Finish()
-	} else {
-		// init replay
-		advocate.EnableReplayWithTimeout()
-		defer runtime.WaitForReplayFinish()
-	}
-
 	// Set custom options
 	opts := NewOptions(new(ExampleExtender))
 

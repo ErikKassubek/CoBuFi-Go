@@ -1,10 +1,9 @@
-
 package main
 
 import (
+	"sync"
 	"testing"
 	"time"
-	"sync"
 )
 
 func Test04(t *testing.T) {

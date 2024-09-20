@@ -68,7 +68,7 @@ func getTraceElements(resultFolderPath string) (map[string][]int, error) {
 				return err
 			}
 
-			elems := strings.Split(string(content), ";")
+			elems := strings.Split(string(content), "\n")
 
 			for _, elem := range elems {
 				field := strings.Split(elem, ",")
