@@ -19,8 +19,8 @@ import "fmt"
  *     pathToProgram (string): path to the program
  *     pathToTrace (string): path to the traces
  */
-func CreateStats(pathToProgram *string, pathToTrace *string) error {
-	if pathToProgram == nil && pathToTrace == nil {
+func CreateStats(pathToProgram *string, pathToResults *string) error {
+	if pathToProgram == nil && pathToResults == nil {
 		panic("Please provide at least one of the following flags: -t [file] or -P [file]")
 	}
 
@@ -29,13 +29,21 @@ func CreateStats(pathToProgram *string, pathToTrace *string) error {
 		return err
 	}
 
-	statsTraces, err := statsTraces(*pathToTrace)
+	statsTraces, err := statsTraces(*pathToResults)
+	if err != nil {
+		return err
+	}
+
+	statsAnalyzer, err := statsAnalyzer(*pathToResults)
 	if err != nil {
 		return err
 	}
 
 	fmt.Println(statsProg)
 	fmt.Println(statsTraces)
+	fmt.Println(statsAnalyzer["detected"])
+	fmt.Println(statsAnalyzer["replayWritten"])
+	fmt.Println(statsAnalyzer["replaySuccessful"])
 
 	return nil
 

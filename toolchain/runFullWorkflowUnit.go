@@ -31,10 +31,12 @@ import (
  *    dir (string): path to the folder containing the unit tests
  *    measureTime (bool): if true, measure the time for all steps. This
  *      also runs the tests once without any recoding/replay to get a base value
+ *    notExecuted (bool): if true, check for never executed operations
+ *    stats (bool): create a stats file
  * Returns:
  *    error
  */
-func runWorkflowUnit(pathToAdvocate string, dir string, measureTime bool) error {
+func runWorkflowUnit(pathToAdvocate string, dir string, measureTime, notExecuted, stats bool) error {
 	// Validate required inputs
 	if pathToAdvocate == "" {
 		return errors.New("Path to advocate is empty")
@@ -136,21 +138,25 @@ func runWorkflowUnit(pathToAdvocate string, dir string, measureTime bool) error 
 
 	resultPath := filepath.Join(dir, "advocateResult")
 
-	if measureTime {
-		generateTimeFile(resultPath, durationRun, durationRecord, durationAnalysis, durationReplay)
-	}
-
 	// Generate Bug Reports
 	fmt.Println("Generate Bug Reports")
 	generateBugReports(resultPath, pathToAdvocate)
 
-	// Check for untriggered selects
-	fmt.Println("Check for untriggered selects")
-	runCommand(pathToAnalyzer, "check", "-R", filepath.Join(dir, "advocateResult"), "-P", dir)
+	if measureTime {
+		generateTimeFile(resultPath, durationRun, durationRecord, durationAnalysis, durationReplay)
+	}
 
-	// create statistics
-	fmt.Println("Create statistics")
-	runCommand(pathToAnalyzer, "stats", "-R", filepath.Join(dir, "advocateResult"), "-P", dir)
+	// Check for untriggered selects
+	if notExecuted {
+		fmt.Println("Check for untriggered selects and not executed progs")
+		runCommand(pathToAnalyzer, "check", "-R", filepath.Join(dir, "advocateResult"), "-P", dir)
+	}
+
+	if stats {
+		// create statistics
+		fmt.Println("Create statistics")
+		runCommand(pathToAnalyzer, "stats", "-R", filepath.Join(dir, "advocateResult"), "-P", dir)
+	}
 
 	// Output test summary
 	fmt.Println("Finished full workflow for all tests")

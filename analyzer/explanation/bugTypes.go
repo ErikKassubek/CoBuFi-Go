@@ -11,7 +11,9 @@
 
 package explanation
 
-import "fmt"
+import (
+	"fmt"
+)
 
 // type (bug / diagnostics)
 var bugCrit = map[string]string{
@@ -57,6 +59,8 @@ var bugNames = map[string]string{
 	"L09": "Leak on sync.WaitGroup",
 	"L10": "Leak on sync.Cond",
 }
+
+var bugCodes = make(map[string]string) // inverse of bugNames, initialized in init
 
 // explanations
 // TODO: add missing bug explainations
@@ -290,7 +294,6 @@ var rewriteType = map[string]string{
 	"L10": "LeakPos",
 }
 
-// TODO: describe exit codes
 var exitCodeExplanation = map[string]string{
 	"0": "The replay finished without ever encountering a replay finished element " +
 		"in the trace. If the given trace was a directly recorded trace, this is the " +
@@ -365,6 +368,26 @@ var objectTypes = map[string]string{
 	"OE": "Once: Done Executed",
 	"ON": "Once: Done Not Executed (because the once was already executed)",
 	"GF": "Routine: Fork",
+}
+
+func init() {
+	for key, value := range bugNames {
+		bugCodes[value] = key
+	}
+}
+
+/*
+ * Get the code key from the description
+ * Args:
+ *     description (string): bug description
+ * Returns:
+ *     string: code if exists, otherwise empty string
+ */
+func GetCodeFromDescription(description string) string {
+	if value, ok := bugCodes[description]; ok {
+		return value
+	}
+	return ""
 }
 
 func getBugTypeDescription(bugType string) map[string]string {

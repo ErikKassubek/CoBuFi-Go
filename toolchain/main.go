@@ -24,6 +24,8 @@ var (
 	pathToFile     string
 	help           bool
 	measureTime    bool
+	notExecuted    bool
+	stats          bool
 )
 
 func init() {
@@ -33,6 +35,8 @@ func init() {
 	flag.BoolVar(&measureTime, "t", false, "set to measure the duration of the"+
 		"different steps. This will also run the program/tests once without any recording"+
 		"to get a base value")
+	flag.BoolVar(&notExecuted, "e", false, "check for not executed operations")
+	flag.BoolVar(&stats, "s", false, "create statistic files")
 }
 
 func main() {
@@ -87,7 +91,7 @@ func main() {
 			printHelpUnit()
 			return
 		}
-		err = runWorkflowUnit(pathToAdvocate, pathToFile, measureTime)
+		err = runWorkflowUnit(pathToAdvocate, pathToFile, measureTime, notExecuted, stats)
 	default:
 		fmt.Println("Choose one mode from 'main' or 'test'")
 		printHelp()

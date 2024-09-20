@@ -117,7 +117,7 @@ AdvocateGo currently supports following bugs
 - L07: Leak on select without possible partner
 - L08: Leak on mutex
 - L09: Leak on waitgroup
-- L00: Leak on cond
+- L10: Leak on cond
 
 ## Replay
 ### How to replay the program and cause the predicted bug

@@ -100,7 +100,7 @@ func main() {
 
 	switch mode {
 	case "stats":
-		modeStats(programPath, pathTrace)
+		modeStats(programPath, resultFolderTool)
 	case "explain":
 		modeExplain(pathTrace, folderTrace, explanationIndex, preventCopyRewrittenTrace)
 	case "check":
@@ -116,19 +116,19 @@ func main() {
 	}
 }
 
-func modeStats(programPath, pathTrace *string) {
+func modeStats(programPath, resultFolder *string) {
 	// instead of the normal program, create statistics for the trace
 	if *programPath == "" {
 		fmt.Println("Provide the path to the program. Set with -P [path]")
 		return
 	}
 
-	if *pathTrace == "" {
-		fmt.Println("Provide the path to the trace. Set with -t [path]")
+	if *resultFolder == "" {
+		fmt.Println("Provide the path to the result folder. Set with -R [path]")
 		return
 	}
 
-	stats.CreateStats(programPath, pathTrace)
+	stats.CreateStats(programPath, resultFolder)
 }
 
 func modeExplain(pathTrace *string, folderTrace string, explanationIndex *int,

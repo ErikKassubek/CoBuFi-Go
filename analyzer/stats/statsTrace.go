@@ -24,7 +24,7 @@ import (
 /*
  * Collect stats about the traces
  * Args:
- *     tracePath (string): path to the traces
+ *     tracePath (string): path to the result folder containing the traces
  * Returns:
  *     map[string]int: map with the stats
  *     error
