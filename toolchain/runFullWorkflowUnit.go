@@ -6,7 +6,7 @@
 //
 // Author: Erik Kassubek, Mario Occhinegro
 // Created: 2024-09-18
-// Last Changed 2024-09-18
+// Last Changed 2024-09-20
 //
 // License: BSD-3-Clause
 
@@ -29,6 +29,7 @@ import (
  * Args:
  *    pathToAdvocate (string): pathToAdvocate
  *    dir (string): path to the folder containing the unit tests
+ *    progName (string): name of the analyzed program
  *    measureTime (bool): if true, measure the time for all steps. This
  *      also runs the tests once without any recoding/replay to get a base value
  *    notExecuted (bool): if true, check for never executed operations
@@ -36,7 +37,8 @@ import (
  * Returns:
  *    error
  */
-func runWorkflowUnit(pathToAdvocate string, dir string, measureTime, notExecuted, stats bool) error {
+func runWorkflowUnit(pathToAdvocate, dir, progName string,
+	measureTime, notExecuted, stats bool) error {
 	// Validate required inputs
 	if pathToAdvocate == "" {
 		return errors.New("Path to advocate is empty")
@@ -155,7 +157,7 @@ func runWorkflowUnit(pathToAdvocate string, dir string, measureTime, notExecuted
 	if stats {
 		// create statistics
 		fmt.Println("Create statistics")
-		runCommand(pathToAnalyzer, "stats", "-R", filepath.Join(dir, "advocateResult"), "-P", dir)
+		runCommand(pathToAnalyzer, "stats", "-R", filepath.Join(dir, "advocateResult"), "-P", dir, "-N", progName)
 	}
 
 	// Output test summary

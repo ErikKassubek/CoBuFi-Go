@@ -1,12 +1,11 @@
 // Copyright (c) 2024 Erik Kassubek, Mario Occhinegro
 //
 // File: headerUnitTests.go
-// Brief: Functions to add and remove the ADVOCATE header into file containing
-//    unit tests
+// Brief: Functions to generate bug reports
 //
 // Author: Erik Kassubek, Mario Occhinegro
 // Created: 2024-09-18
-// Last Changed 2024-09-18
+// Last Changed 2024-09-21
 //
 // License: BSD-3-Clause
 

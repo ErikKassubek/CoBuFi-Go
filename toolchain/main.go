@@ -22,6 +22,7 @@ import (
 var (
 	pathToAdvocate string
 	pathToFile     string
+	progName       string
 	help           bool
 	measureTime    bool
 	notExecuted    bool
@@ -32,6 +33,7 @@ func init() {
 	flag.BoolVar(&help, "h", false, "Help")
 	flag.StringVar(&pathToAdvocate, "a", "", "path to the ADVOCATE folder")
 	flag.StringVar(&pathToFile, "f", "", "main: path to the main program file, tests: path to the folder with the program and the tests")
+	flag.StringVar(&progName, "N", "", "name of the analyzed program. Only required if -s is set")
 	flag.BoolVar(&measureTime, "t", false, "set to measure the duration of the"+
 		"different steps. This will also run the program/tests once without any recording"+
 		"to get a base value")
@@ -79,6 +81,11 @@ func main() {
 			printHelpMain()
 			return
 		}
+		if stats && progName == "" {
+			fmt.Println("If -s is set, -N [name] must be set as well")
+			printHelpMain()
+			return
+		}
 		err = runWorkflowMain(pathToAdvocate, pathToFile)
 	case "test", "tests":
 		if pathToAdvocate == "" {
@@ -91,7 +98,12 @@ func main() {
 			printHelpUnit()
 			return
 		}
-		err = runWorkflowUnit(pathToAdvocate, pathToFile, measureTime, notExecuted, stats)
+		if stats && progName == "" {
+			fmt.Println("If -s is set, -N [name] must be set as well")
+			printHelpUnit()
+			return
+		}
+		err = runWorkflowUnit(pathToAdvocate, pathToFile, progName, measureTime, notExecuted, stats)
 	default:
 		fmt.Println("Choose one mode from 'main' or 'test'")
 		printHelp()
@@ -116,6 +128,9 @@ func printHelpMain() {
 	fmt.Println("  -a [path]: path to the ADCOVATE folder")
 	fmt.Println("  -f [path]: path to the file containing the main function")
 	fmt.Println("  -t       : measure the runtimes")
+	fmt.Println("  -e       : check for never executed operations")
+	fmt.Println("  -s       : create statistics about the analyzed program")
+	fmt.Println("  -N [name]: give a name for the analyzed program. Only required if -s is set")
 }
 
 func printHelpUnit() {
@@ -124,4 +139,7 @@ func printHelpUnit() {
 	fmt.Println("  -a [path]: path to the ADCOVATE folder")
 	fmt.Println("  -f [path]: path to the folder containing the tests")
 	fmt.Println("  -t       : measure the runtimes")
+	fmt.Println("  -e       : check for never executed operations")
+	fmt.Println("  -s       : create statistics about the analyzed program")
+	fmt.Println("  -N [name]: give a name for the analyzed program. Only required if -s is set")
 }

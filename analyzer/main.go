@@ -45,6 +45,7 @@ func main() {
 	resultFolderTool := flag.String("R", "", "Path where the advocateResult folder created by the pipeline is located")
 	programPath := flag.String("P", "", "Path to the program folder")
 	preventCopyRewrittenTrace := flag.Bool("n", false, "Do not copy the rewritten trace in the explanation")
+	progName := flag.String("N", "", "Name of the program")
 
 	scenarios := flag.String("s", "", "Select which analysis scenario to run, e.g. -s srd for the option s, r and d."+
 		"If not set, all scenarios are run.\n"+
@@ -100,7 +101,7 @@ func main() {
 
 	switch mode {
 	case "stats":
-		modeStats(programPath, resultFolderTool)
+		modeStats(programPath, resultFolderTool, progName)
 	case "explain":
 		modeExplain(pathTrace, folderTrace, explanationIndex, preventCopyRewrittenTrace)
 	case "check":
@@ -116,19 +117,24 @@ func main() {
 	}
 }
 
-func modeStats(programPath, resultFolder *string) {
+func modeStats(programPath, resultFolder, progName *string) {
 	// instead of the normal program, create statistics for the trace
-	if *programPath == "" {
+	if programPath == nil || *programPath == "" {
 		fmt.Println("Provide the path to the program. Set with -P [path]")
 		return
 	}
 
-	if *resultFolder == "" {
+	if resultFolder == nil || *resultFolder == "" {
 		fmt.Println("Provide the path to the result folder. Set with -R [path]")
 		return
 	}
 
-	stats.CreateStats(programPath, resultFolder)
+	if progName == nil || *progName == "" {
+		fmt.Println("Provide a name for the analyzed program. Set with -N [name]")
+		return
+	}
+
+	stats.CreateStats(*programPath, *resultFolder, *progName)
 }
 
 func modeExplain(pathTrace *string, folderTrace string, explanationIndex *int,

@@ -55,7 +55,6 @@ func statsAnalyzer(pathToResults string) (map[string]map[string]int, error) {
 		}
 
 		if !info.IsDir() && info.Name() == "bug.md" {
-			println(path)
 			err := processBugFile(path, &res)
 			if err != nil {
 				fmt.Println(err)
@@ -87,11 +86,8 @@ func processBugFile(filePath string, info *map[string]map[string]int) error {
 
 	// read the file
 	scanner := bufio.NewScanner(file)
-	println("\n\n\n\n")
 	for scanner.Scan() {
 		text := strings.TrimSpace(scanner.Text())
-
-		println(text)
 
 		// get detected bug
 		if strings.HasPrefix(text, "# ") {
@@ -108,8 +104,6 @@ func processBugFile(filePath string, info *map[string]map[string]int) error {
 			}
 			(*info)["detected"][bugType]++
 		}
-
-		println("bugType: ", bugType)
 
 		if text == "The rewritten trace can be found in the `rewritten_trace` folder." {
 			(*info)["replayWritten"][bugType]++
