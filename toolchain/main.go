@@ -33,7 +33,7 @@ func init() {
 	flag.BoolVar(&help, "h", false, "Help")
 	flag.StringVar(&pathToAdvocate, "a", "", "path to the ADVOCATE folder")
 	flag.StringVar(&pathToFile, "f", "", "main: path to the main program file, tests: path to the folder with the program and the tests")
-	flag.StringVar(&progName, "N", "", "name of the analyzed program. Only required if -s is set")
+	flag.StringVar(&progName, "N", "", "name of the analyzed program. Only required if -s or -t is set")
 	flag.BoolVar(&measureTime, "t", false, "set to measure the duration of the"+
 		"different steps. This will also run the program/tests once without any recording"+
 		"to get a base value")
