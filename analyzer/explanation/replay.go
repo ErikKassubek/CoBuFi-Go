@@ -1,8 +1,8 @@
 // Copyrigth (c) 2024 Erik Kassubek
 //
 // File: replay.go
-// Brief: Read the info about the rewrite and replay of the bug  
-// 
+// Brief: Read the info about the rewrite and replay of the bug
+//
 // Author: Erik Kassubek <kassubek.erik@gmail.com>
 // Created: 2024-06-18
 // LastChange: 2024-09-01
@@ -60,15 +60,15 @@ func getRewriteInfo(bugType string, path string, index int) map[string]string {
 }
 
 func getReplayInfo(path string, index int) (string, string, string, error) {
-	if _, err := os.Stat(path + "output.txt"); os.IsNotExist(err) {
-		res := "No replay info available. Output.txt does not exist."
+	if _, err := os.Stat(path + "output.log"); os.IsNotExist(err) {
+		res := "No replay info available. Output.log does not exist."
 		return "", res, "false", errors.New(res)
 	}
 
 	// read the output file
-	content, err := os.ReadFile(path + "output.txt")
+	content, err := os.ReadFile(path + "output.log")
 	if err != nil {
-		res := "No replay info available. Could not read output.txt file"
+		res := "No replay info available. Could not read output.log file"
 		return "", res, "false", errors.New(res)
 	}
 
@@ -88,7 +88,7 @@ func getReplayInfo(path string, index int) (string, string, string, error) {
 			line = strings.TrimSpace(line)
 			traceNumber, err := strconv.Atoi(line)
 			if err != nil {
-				res := "Invalid format in output.txt. Could not convert trace number to int"
+				res := "Invalid format in output.log. Could not convert trace number to int"
 				return "", res, "failed", errors.New(res)
 			}
 			traceNumbers = append(traceNumbers, traceNumber)
@@ -102,7 +102,7 @@ func getReplayInfo(path string, index int) (string, string, string, error) {
 	}
 
 	if len(traceNumbers) != len(linesWithCode) {
-		res := fmt.Sprintf("Invalid format in output.txt. Number of trace numbers (%d) does not match number of exit codes (%d).", len(traceNumbers), len(linesWithCode))
+		res := fmt.Sprintf("Invalid format in output.log. Number of trace numbers (%d) does not match number of exit codes (%d).", len(traceNumbers), len(linesWithCode))
 		return "", res, "failed", errors.New(res)
 	}
 
@@ -116,7 +116,7 @@ func getReplayInfo(path string, index int) (string, string, string, error) {
 	}
 
 	if foundIndex == -1 {
-		res := "No replay info available. Could not find trace number in output.txt"
+		res := "No replay info available. Could not find trace number in output.log"
 		return "", res, "failed", errors.New(res)
 	}
 
@@ -125,7 +125,7 @@ func getReplayInfo(path string, index int) (string, string, string, error) {
 	if !strings.HasPrefix(exitCode, prefixPanic) {
 		exitCodeInt, err := strconv.Atoi(exitCode)
 		if err != nil {
-			res := "Invalid format in output.txt. Could not convert exit code to int"
+			res := "Invalid format in output.log. Could not convert exit code to int"
 			return "", res, "failed", errors.New(res)
 		}
 		if exitCodeInt >= 20 || exitCodeInt == 0 {

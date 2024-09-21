@@ -1,8 +1,8 @@
 // Copyrigth (c) 2024 Erik Kassubek
 //
 // File: vc.go
-// Brief: Struct and functions of vector clocks vc 
-// 
+// Brief: Struct and functions of vector clocks vc
+//
 // Author: Erik Kassubek <kassubek.erik@gmail.com>
 // Created: 2023-07-25
 // LastChange: 2024-09-01
@@ -45,6 +45,21 @@ func NewVectorClock(size int) VectorClock {
 	return VectorClock{
 		size:  size,
 		clock: c,
+	}
+}
+
+/*
+ * Create a vector clock from values. Mostly used for testing
+ * Args:
+ *   size (int): The size of the vector clock
+ *   clock (map[int]int): The values of the vector clock
+ * Returns:
+ *   vectorClock: the new vector clock
+ */
+func CreateVectorClock(size int, clock map[int]int) VectorClock {
+	return VectorClock{
+		size:  size,
+		clock: clock,
 	}
 }
 

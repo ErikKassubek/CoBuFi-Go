@@ -1,11 +1,11 @@
 // Copyrigth (c) 2024 Erik Kassubek
 //
 // File: main.go
-// Brief: Main file and starting point for the analyzer 
-// 
+// Brief: Main file and starting point for the analyzer
+//
 // Author: Erik Kassubek <kassubek.erik@gmail.com>
 // Created: 2023-08-08
-// LastChange: 2024-09-01
+// LastChange: 2024-09-19
 //
 // License: BSD-3-Clause
 
@@ -40,16 +40,16 @@ func main() {
 	noWarning := flag.Bool("w", false, "Do not print warnings (default false)")
 	noPrint := flag.Bool("p", false, "Do not print the results to the terminal (default false). Automatically set -x to true")
 	resultFolder := flag.String("r", "", "Path to where the result file should be saved.")
-	ignoreAtomics := flag.Bool("a", false, "Ignore atomic operations (default false). Use to reduce memory overhead for large traces.")
-	explanationFlag := flag.Bool("e", false, "Create the explanation")
+	ignoreAtomics := flag.Bool("a", false, "Ignore atomic operations (default false). Use to reduce memory header for large traces.")
 	explanationIndex := flag.Int("i", 0, "Index of the explanation to create")
-	checkAllElem := flag.Bool("o", false, "Check if all elements concurrency elements in the program have been executed al least once")
 	resultFolderTool := flag.String("R", "", "Path where the advocateResult folder created by the pipeline is located")
 	programPath := flag.String("P", "", "Path to the program folder")
-	createStats := flag.Bool("S", false, "Create statistics for the trace")
 	preventCopyRewrittenTrace := flag.Bool("n", false, "Do not copy the rewritten trace in the explanation")
+	progName := flag.String("N", "", "Name of the program")
 
-	scenarios := flag.String("s", "", "Select which analysis scenario to run, e.g. -s srd for the option s, r and d. Options:\n"+
+	scenarios := flag.String("s", "", "Select which analysis scenario to run, e.g. -s srd for the option s, r and d."+
+		"If not set, all scenarios are run.\n"+
+		"Options:\n"+
 		"\ts: Send on closed channel\n"+
 		"\tr: Receive on closed channel\n"+
 		"\tw: Done before add on waitGroup\n"+
@@ -61,19 +61,22 @@ func main() {
 	// "\tc: Cyclic deadlock\n",
 	// "\tm: Mixed deadlock\n"
 
-	startTime := time.Now()
-
 	// go memorySupervisor() // BUG: does not work properly
 
 	flag.Parse()
 
-	if *help {
+	var mode string
+	if len(os.Args) > 2 {
+		mode = os.Args[1]
+		flag.CommandLine.Parse(os.Args[2:])
+	} else {
+		fmt.Printf("No mode selected")
+		fmt.Printf("Select one mode from 'run', 'stats', 'explain' or 'check'")
 		printHelp()
-		return
 	}
 
-	if *explanationFlag && *checkAllElem {
-		fmt.Println("Please provide only one of the flags -e or -o")
+	if *help {
+		printHelp()
 		return
 	}
 
@@ -96,49 +99,78 @@ func main() {
 	outReadable := *resultFolder + "/results_readable.log"
 	newTrace := *resultFolder + "/rewritten_trace"
 
-	// ===================== Special cases =====================
+	switch mode {
+	case "stats":
+		modeStats(programPath, resultFolderTool, progName)
+	case "explain":
+		modeExplain(pathTrace, folderTrace, explanationIndex, preventCopyRewrittenTrace)
+	case "check":
+		modeCheck(resultFolderTool, programPath)
+	case "run":
+		modeRun(pathTrace, noPrint, noRewrite, scenarios, level, outReadable,
+			outMachine, ignoreAtomics, fifo, ignoreCriticalSection,
+			noWarning, folderTrace, newTrace)
+	default:
+		fmt.Printf("Unknown mode %s", os.Args[1])
+		fmt.Printf("Select one mode from 'run', 'stats', 'explain' or 'check'")
+		printHelp()
+	}
+}
 
+func modeStats(programPath, resultFolder, progName *string) {
 	// instead of the normal program, create statistics for the trace
-	if *createStats {
-		stats.Create(programPath, pathTrace)
+	if programPath == nil || *programPath == "" {
+		fmt.Println("Provide the path to the program. Set with -P [path]")
 		return
 	}
 
-	// instead of the normal program, an explanation for an analyzer program can be created
-	if *explanationFlag {
-		if *pathTrace == "" || *explanationIndex == 0 {
-			fmt.Println("Please provide a path to the trace file and an index (1 based) for the explanation. Set with -t [file] -i [index]")
-			return
-		}
-		err := explanation.CreateOverview(folderTrace, *explanationIndex, *preventCopyRewrittenTrace)
-		if err != nil {
-			fmt.Println("Error creating explanation: ", err.Error())
-		}
+	if resultFolder == nil || *resultFolder == "" {
+		fmt.Println("Provide the path to the result folder. Set with -R [path]")
 		return
 	}
 
-	// instead of the normal program, check if all elements have been executed at least once
-	if *checkAllElem {
-		if *resultFolderTool == "" {
-			fmt.Println("Please provide the path to the advocateResult folder created by the pipeline. Set with -R [folder]")
-			return
-		}
-
-		if *programPath == "" {
-			fmt.Println("Please provide the path to the program folder. Set with -P [folder]")
-			return
-		}
-
-		err := complete.Check(*resultFolderTool, *programPath)
-
-		if err != nil {
-			panic(err.Error())
-		}
+	if progName == nil || *progName == "" {
+		fmt.Println("Provide a name for the analyzed program. Set with -N [name]")
 		return
 	}
 
-	// ============== Start the normal program ==============
+	stats.CreateStats(*programPath, *resultFolder, *progName)
+}
 
+func modeExplain(pathTrace *string, folderTrace string, explanationIndex *int,
+	preventCopyRewrittenTrace *bool) {
+	if *pathTrace == "" || *explanationIndex == 0 {
+		fmt.Println("Please provide a path to the trace file and an index (1 based) for the explanation. Set with -t [file] -i [index]")
+		return
+	}
+	err := explanation.CreateOverview(folderTrace, *explanationIndex, *preventCopyRewrittenTrace)
+	if err != nil {
+		fmt.Println("Error creating explanation: ", err.Error())
+	}
+}
+
+func modeCheck(resultFolderTool, programPath *string) {
+	if *resultFolderTool == "" {
+		fmt.Println("Please provide the path to the advocateResult folder created by the pipeline. Set with -R [folder]")
+		return
+	}
+
+	if *programPath == "" {
+		fmt.Println("Please provide the path to the program folder. Set with -P [folder]")
+		return
+	}
+
+	err := complete.Check(*resultFolderTool, *programPath)
+
+	if err != nil {
+		panic(err.Error())
+	}
+}
+
+func modeRun(pathTrace *string, noPrint *bool, noRewrite *bool,
+	scenarios *string, level *int, outReadable string, outMachine string,
+	ignoreAtomics *bool, fifo *bool, ignoreCriticalSection *bool,
+	noWarning *bool, folderTrace string, newTrace string) {
 	printHeader()
 
 	if *pathTrace == "" {
@@ -182,22 +214,13 @@ func main() {
 
 	numberOfResults := logging.PrintSummary(*noWarning, *noPrint)
 
-	analysisFinishedTime := time.Now()
-	err = writeTime(folderTrace, "Analysis", analysisFinishedTime.Sub(startTime).Seconds())
-	if err != nil {
-		println("Could not write time to file: ", err.Error())
-	}
-
 	if !*noRewrite {
 		numberRewrittenTrace := 0
 		failedRewrites := 0
 		notNeededRewrites := 0
 		println("\n\nStart rewriting trace files...")
-		var rewriteTime time.Duration
 		originalTrace := trace.CopyCurrentTrace()
 		for resultIndex := 0; resultIndex < numberOfResults; resultIndex++ {
-			rewriteStartTime := time.Now()
-
 			needed, err := rewriteTrace(outMachine,
 				newTrace+"_"+strconv.Itoa(resultIndex+1)+"/", resultIndex, numberOfRoutines)
 
@@ -210,16 +233,10 @@ func main() {
 				trace.SetTrace(originalTrace)
 			} else { // needed && err == nil
 				numberRewrittenTrace++
-				rewriteTime += time.Now().Sub(rewriteStartTime)
 				trace.SetTrace(originalTrace)
 			}
 
 			print("\n\n")
-		}
-
-		err = writeTime(folderTrace, "AvgRewrite", rewriteTime.Seconds()/float64(numberRewrittenTrace))
-		if err != nil {
-			println("Could not write time to file: ", err.Error())
 		}
 
 		println("Finished Rewrite")
@@ -254,69 +271,6 @@ func memorySupervisor() {
 			os.Exit(1)
 		}
 	}
-}
-
-func writeTime(pathTrace string, name string, time float64) error {
-	path := pathTrace
-	if path[len(path)-1] != os.PathSeparator {
-		path += string(os.PathSeparator)
-	}
-	path += "times.log"
-
-	// Datei lesen
-	content, err := os.ReadFile(path)
-	if err != nil {
-		if os.IsNotExist(err) {
-			// create file
-			err = os.WriteFile(path, []byte(""), 0644)
-			if err != nil {
-				return err
-			}
-		}
-	}
-
-	elems := strings.Split(string(content), "\n")
-
-	found := false
-	names := make([]string, 0)
-	values := make([]string, 0)
-	if len(elems) >= 2 {
-
-		names = strings.Split(elems[0], ",")
-		values = strings.Split(elems[1], ",")
-
-		// if name already exists, overwrite the value, if name exists multiple time, delete all and write new
-		remove := make([]int, 0)
-		for i, n := range names {
-			if n == name {
-				if !found {
-					values[i] = strconv.FormatFloat(time, 'f', 6, 64)
-					found = true
-				} else {
-					remove = append(remove, i)
-				}
-			}
-		}
-
-		// remove all duplicates
-		for i := len(remove) - 1; i >= 0; i-- {
-			names = append(names[:remove[i]], names[remove[i]+1:]...)
-			values = append(values[:remove[i]], values[remove[i]+1:]...)
-		}
-	}
-
-	// if name not found, append
-	if !found {
-		names = append(names, name)
-		values = append(values, strconv.FormatFloat(time, 'f', 6, 64))
-	}
-
-	elem1 := strings.Join(names, ",")
-	elem2 := strings.Join(values, ",")
-
-	// Datei schreiben
-	err = os.WriteFile(path, []byte(elem1+"\n"+elem2), 0644)
-	return err
 }
 
 /*
@@ -452,13 +406,15 @@ func printHeader() {
 }
 
 func printHelp() {
-	println("Usage: ./analyzer [options\n")
-	println("There are three modes of operation:")
+	println("Usage: ./analyzer [mode] [options]\n")
+	println("There are four modes of operation:")
 	println("1. Analyze a trace file and create a reordered trace file based on the analysis results (Default)")
 	println("2. Create an explanation for a found bug")
-	println("3. Check if all concurrency elements of the program have been executed at least once\n\n")
+	println("3. Check if all concurrency elements of the program have been executed at least once")
+	println("4. Create statistics about a program\n\n")
 	println("1. Analyze a trace file and create a reordered trace file based on the analysis results (Default)")
 	println("This mode is the default mode and analyzes a trace file and creates a reordered trace file based on the analysis results.")
+	println("Usage: ./analyzer run [options]")
 	println("It has the following options:")
 	println("  -t [file]   Path to the trace folder to analyze or rewrite (required)")
 	println("  -d [level]  Debug Level, 0 = silent, 1 = errors, 2 = info, 3 = debug (default 1)")
@@ -468,30 +424,38 @@ func printHelp() {
 	println("  -w          Do not print warnings (default false)")
 	println("  -p          Do not print the results to the terminal (default false). Automatically set -x to true")
 	println("  -r [folder] Path to where the result file should be saved. (default parallel to -t)")
-	println("  -a          Ignore atomic operations (default false). Use to reduce memory overhead for large traces.")
-	println("  -s [cases]  Select which analysis scenario to run, e.g. -s srd for the option s, r and d. Options:")
-	println("              s: Send on closed channel")
-	println("              r: Receive on closed channel")
-	println("              w: Done before add on waitGroup")
-	println("              n: Close of closed channel")
-	println("              b: Concurrent receive on channel")
-	println("              l: Leaking routine")
-	println("              u: Select case without partner")
-	// println("              c: Cyclic deadlock")
-	// println("              m: Mixed deadlock")
+	println("  -a          Ignore atomic operations (default false). Use to reduce memory header for large traces.")
+	println("  -s [cases]  Select which analysis scenario to run, e.g. -s srd for the option s, r and d.")
+	println("              If it is not set, all scenarios are run")
+	println("              Options:")
+	println("                  s: Send on closed channel")
+	println("                  r: Receive on closed channel")
+	println("                  w: Done before add on waitGroup")
+	println("                  n: Close of closed channel")
+	println("                  b: Concurrent receive on channel")
+	println("                  l: Leaking routine")
+	println("                  u: Select case without partner")
+	// println("                  c: Cyclic deadlock")
+	// println("                  m: Mixed deadlock")
 	println("\n\n")
 	println("2. Create an explanation for a found bug")
+	println("Usage: ./analyzer explain [options]")
 	println("This mode creates an explanation for a found bug in the trace file.")
 	println("It has the following options:")
-	println("  -e          Create the explanation")
 	println("  -t [file]   Path to the trace file to create the explanation for (required)")
 	println("  -i [index]  Index of the explanation to create (1 based) (required)")
 	println("\n\n")
 	println("3. Check if all concurrency elements of the program have been executed at least once")
+	println("Usage: ./analyzer check [options]")
 	println("This mode checks if all concurrency elements of the program have been executed at least once.")
 	println("It has the following options:")
-	println("  -o          Check if all elements concurrency elements in the program have been executed al least once")
 	println("  -R [folder] Path where the advocateResult folder created by the pipeline is located (required)")
 	println("  -P [folder] Path to the program folder (required)")
 	println("\n\n")
+	println("4. Create statistics about a program")
+	println("This creates some statistics about the program and the trace")
+	println("Usage: ./analyzer stats [options]")
+	println("  -P [folder] Path to the program folder (required)")
+	println("  -t [file]   Path to the trace folder (required)")
+	println("\n")
 }

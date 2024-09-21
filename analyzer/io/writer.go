@@ -1,8 +1,8 @@
 // Copyrigth (c) 2024 Erik Kassubek
 //
 // File: writer.go
-// Brief: Write the internal trace into files 
-// 
+// Brief: Write the internal trace into files
+//
 // Author: Erik Kassubek <kassubek.erik@gmail.com>
 // Created: 2023-12-01
 // LastChange: 2024-09-01
@@ -100,7 +100,7 @@ func WriteTrace(path string, numberRoutines int) error {
 					panic(err)
 				}
 				if index < len(trace)-1 {
-					if _, err := file.WriteString(";"); err != nil {
+					if _, err := file.WriteString("\n"); err != nil {
 						panic(err)
 					}
 				}

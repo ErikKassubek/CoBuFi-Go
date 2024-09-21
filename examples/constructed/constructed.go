@@ -1093,13 +1093,23 @@ func n56() {
 // leak because of wait group
 func nTest() {
 	c := make(chan int, 0)
+	m := sync.Mutex{}
 
 	go func() {
-		c = nil
-		c <- 1
+		t := m.TryLock()
+		if t {
+			c <- 1
+			println("send")
+			m.Unlock()
+		}
 	}()
 
-	time.Sleep(1000 * time.Millisecond)
+	go func() {
+		<-c
+	}()
+
+	time.Sleep(100 * time.Millisecond)
+	close(c)
 }
 
 func main() {

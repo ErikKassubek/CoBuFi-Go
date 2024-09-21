@@ -5,7 +5,7 @@
 // 
 // Author: Erik Kassubek <kassubek.erik@gmail.com>
 // Created: 2024-01-27
-// LastChange: 2024-08-01
+// LastChange: 2024-08-03
 //
 // License: BSD-3-Clause
 
@@ -16,6 +16,18 @@ import (
 	"analyzer/logging"
 )
 
+/*
+ * Check if there are multiple concurrent receive operations on the same channel.
+ * Such concurrent recv can lead to nondeterministic behaviour.
+ * If such a situation is detected, it is logged.
+ * Call this function on a recv.
+ * Args:
+ *  routine (int): routine of the recv 
+ *  id (int): id of the channel
+ *  tID (int): tID of the recv operation 
+ *  vc (int): vector clock of the recv operation 
+ *  tPost (int): tPost counter of the recv operation
+ */
 func checkForConcurrentRecv(routine int, id int, tID string, vc map[int]clock.VectorClock, tPost int) {
 	for r, elem := range lastRecvRoutine {
 		if r == routine {

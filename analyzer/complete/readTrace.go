@@ -1,8 +1,8 @@
 // Copyrigth (c) 2024 Erik Kassubek
 //
 // File: readTrace.go
-// Brief: Read in a trace 
-// 
+// Brief: Read in a trace
+//
 // Author: Erik Kassubek <kassubek.erik@gmail.com>
 // Created: 2024-06-26
 // LastChange: 2024-09-01
@@ -31,8 +31,8 @@ func getTraceElements(resultFolderPath string) (map[string][]int, error) {
 
 	for _, folder := range subfolder {
 		importLine := -1
-		overheadLine := -1
-		overheadFile := ""
+		headerLine := -1
+		headerFile := ""
 		resLocal := make(map[string][]int)
 
 		err := filepath.Walk(folder, func(path string, info os.FileInfo, err error) error {
@@ -48,8 +48,8 @@ func getTraceElements(resultFolderPath string) (map[string][]int, error) {
 			}
 
 			// read command line
-			if fileName == "advocateCommand.log" {
-				overheadFile, importLine, overheadLine, err = readCommandFile(path)
+			if fileName == "output.log" {
+				headerFile, importLine, headerLine, err = readCommandFile(path)
 				if err != nil {
 					println("Error in reading command: ", filepath.Clean(path))
 					return err
@@ -68,7 +68,7 @@ func getTraceElements(resultFolderPath string) (map[string][]int, error) {
 				return err
 			}
 
-			elems := strings.Split(string(content), ";")
+			elems := strings.Split(string(content), "\n")
 
 			for _, elem := range elems {
 				field := strings.Split(elem, ",")
@@ -109,13 +109,13 @@ func getTraceElements(resultFolderPath string) (map[string][]int, error) {
 			return nil, err
 		}
 
-		// fix lines of trace with overhead
-		for i, line := range resLocal[overheadFile] {
+		// fix lines of trace with header
+		for i, line := range resLocal[headerFile] {
 			if line >= importLine {
-				resLocal[overheadFile][i]--
+				resLocal[headerFile][i]--
 			}
-			if line >= overheadLine {
-				resLocal[overheadFile][i] -= 4
+			if line >= headerLine {
+				resLocal[headerFile][i] -= 4
 			}
 		}
 
@@ -165,44 +165,41 @@ func getSubfolders(path string) ([]string, error) {
 
 func readCommandFile(path string) (string, int, int, error) {
 	importLine := -1
-	overheadLine := -1
-	overheadFile := ""
+	headerLine := -1
+	headerFile := ""
 
 	// read the command file
 	content, err := os.ReadFile(path)
 	if err != nil {
 		println("Error in reading command: ", filepath.Clean(path))
-		return overheadFile, importLine, overheadLine, err
+		return headerFile, importLine, headerLine, err
 	}
 	// find the line starting with Import added at line:
 	lines := strings.Split(string(content), "\n")
-	for i, line := range lines {
-		if i == 0 {
-			overheadFile = line
-			continue
-		}
-
+	for _, line := range lines {
 		if strings.Contains(line, "Import added at line: ") {
 			line := strings.TrimPrefix(line, "Import added at line: ")
 			importLine, err = strconv.Atoi(line)
 			if err != nil {
 				println("Error in converting import line: ", line)
-				return overheadFile, importLine, overheadLine, err
+				return headerFile, importLine, headerLine, err
 			}
-		} else if strings.Contains(line, "Overhead added at line: ") {
-			line := strings.TrimPrefix(line, "Overhead added at line: ")
-			overheadLine, err = strconv.Atoi(line)
+		} else if strings.Contains(line, "Header added at line: ") {
+			line := strings.TrimPrefix(line, "Header added at line: ")
+			headerLine, err = strconv.Atoi(line)
 			if err != nil {
-				println("Error in converting overhead line: ", line)
-				return overheadFile, importLine, overheadLine, err
+				println("Error in converting header line: ", line)
+				return headerFile, importLine, headerLine, err
 			}
+		} else if strings.Contains(line, "FileName: ") {
+			headerFile = strings.TrimSpace(strings.TrimPrefix(line, "FileName: "))
 		}
 	}
 
-	if importLine == -1 || overheadLine == -1 {
-		println("Error in reading import or overhead line")
-		return overheadFile, importLine, overheadLine, errors.New("Error in reading import or overhead line")
+	if importLine == -1 || headerLine == -1 {
+		println("Error in reading import or header line")
+		return headerFile, importLine, headerLine, errors.New("Error in reading import or header line")
 	}
 
-	return overheadFile, importLine, overheadLine, nil
+	return headerFile, importLine, headerLine, nil
 }

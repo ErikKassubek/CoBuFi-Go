@@ -1,8 +1,8 @@
 // Copyrigth (c) 2024 Erik Kassubek
 //
 // File: logging.go
-// Brief: Function for debug logging and for logging found bugs 
-// 
+// Brief: Function for debug logging and for logging found bugs
+//
 // Author: Erik Kassubek <kassubek.erik@gmail.com>
 // Created: 2023-08-30
 // LastChange: 2024-09-01
@@ -49,28 +49,28 @@ const (
 	Empty ResultType = ""
 
 	// actual
-	ASendOnClosed          ResultType = "A1"
-	ARecvOnClosed          ResultType = "A2"
-	ACloseOnClosed         ResultType = "A3"
-	AConcurrentRecv        ResultType = "A4"
-	ASelCaseWithoutPartner ResultType = "A5"
+	ASendOnClosed          ResultType = "A01"
+	ARecvOnClosed          ResultType = "A02"
+	ACloseOnClosed         ResultType = "A03"
+	AConcurrentRecv        ResultType = "A04"
+	ASelCaseWithoutPartner ResultType = "A05"
 
 	// possible
-	PSendOnClosed ResultType = "P1"
-	PRecvOnClosed ResultType = "P2"
-	PNegWG        ResultType = "P3"
+	PSendOnClosed ResultType = "P01"
+	PRecvOnClosed ResultType = "P02"
+	PNegWG        ResultType = "P03"
 
 	// leaks
-	LUnbufferedWith    = "L1"
-	LUnbufferedWithout = "L2"
-	LBufferedWith      = "L3"
-	LBufferedWithout   = "L4"
-	LNilChan           = "L5"
-	LSelectWith        = "L6"
-	LSelectWithout     = "L7"
-	LMutex             = "L8"
-	LWaitGroup         = "L9"
-	LCond              = "L0"
+	LUnbufferedWith    = "L01"
+	LUnbufferedWithout = "L02"
+	LBufferedWith      = "L03"
+	LBufferedWithout   = "L04"
+	LNilChan           = "L05"
+	LSelectWith        = "L06"
+	LSelectWithout     = "L07"
+	LMutex             = "L08"
+	LWaitGroup         = "L09"
+	LCond              = "L10"
 )
 
 var resultTypeMap = map[ResultType]string{

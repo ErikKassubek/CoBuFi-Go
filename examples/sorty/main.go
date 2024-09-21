@@ -6,15 +6,15 @@ import (
 )
 
 func main() {
-	if true {
-		// init tracing
-		advocate.InitTracing(0)
-		defer advocate.Finish()
-	} else {
-		// init replay
-		advocate.EnableReplay()
-		defer advocate.WaitForReplayFinish()
-	}
+	// if true {
+	// init tracing
+	advocate.InitTracing(0)
+	defer advocate.Finish()
+	// } else {
+	// 	// init replay
+	// 	advocate.EnableReplay()
+	// 	defer advocate.WaitForReplayFinish()
+	// }
 
 	l := 10000000
 	input := make([]int, l)

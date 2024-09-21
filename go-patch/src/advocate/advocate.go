@@ -27,21 +27,10 @@ var advocateReplayStartTime time.Time
  * The trace is written in the format of advocate.
  */
 func Finish() {
-	runEndTime := time.Now()
 	runtime.DisableTrace()
 
 	writeToTraceFiles()
 	// deleteEmptyFiles()
-
-	traceEndTime := time.Now()
-
-	progTime := runEndTime.Sub(advocateStartTimer).Seconds()
-	traceTime := traceEndTime.Sub(runEndTime).Seconds()
-	totalTime := traceEndTime.Sub(advocateStartTimer).Seconds()
-
-	writeTime("ExecutionRunime", progTime)
-	writeTime("ExecutionTrace", traceTime)
-	writeTime("ExecutionTotal", totalTime)
 }
 
 /*
@@ -53,10 +42,6 @@ func WaitForReplayFinish() {
 	}
 
 	runtime.WaitForReplayFinish()
-
-	replayRuntime := time.Now().Sub(advocateReplayStartTime).Seconds()
-
-	writeTime("ReplayRuntime", replayRuntime)
 
 	runtime.ExitReplayWithCode(runtime.ExitCodeDefault)
 }
@@ -158,39 +143,6 @@ func writeToTraceFile(routine int, wg *sync.WaitGroup) {
 			panic(err)
 		}
 	}
-}
-
-func writeTime(name string, time float64) error {
-	path := tracePathRecorded + "/times.log"
-
-	// Datei lesen
-	content, err := os.ReadFile(path)
-	if err != nil {
-		if os.IsNotExist(err) {
-			// create file
-			err = os.WriteFile(path, []byte(""), 0644)
-			if err != nil {
-				return err
-			}
-		}
-	}
-
-	elems := strings.Split(string(content), "\n")
-
-	elem1 := ""
-	elem2 := ""
-
-	if len(elems) >= 2 {
-		elem1 = elems[0] + ","
-		elem2 = elems[1] + ","
-	}
-
-	elem1 += name
-	elem2 += strconv.FormatFloat(time, 'f', 6, 64)
-
-	// Datei schreiben
-	err = os.WriteFile(path, []byte(elem1+"\n"+elem2), 0644)
-	return err
 }
 
 /*
@@ -310,6 +262,8 @@ func EnableReplay(index int, exitCode bool) {
 		panic(err)
 	}
 
+	chanWithoutPartner := make(map[string]int)
+
 	for _, file := range files {
 		// if the file is a directory, ignore it
 		if file.IsDir() {
@@ -322,14 +276,10 @@ func EnableReplay(index int, exitCode bool) {
 
 		// if the file is a log file, read the trace
 		if strings.HasSuffix(file.Name(), ".log") && file.Name() != "rewrite_info.log" {
-			routineID, trace := readTraceFile(tracePathRewritten + "/" + file.Name())
+			routineID, trace := readTraceFile(tracePathRewritten+"/"+file.Name(), &chanWithoutPartner)
 			runtime.AddReplayTrace(uint64(routineID), trace)
 		}
 	}
-
-	writeTime("ReplayTrace", time.Now().Sub(advocateStartTimer).Seconds())
-
-	advocateReplayStartTime = time.Now()
 
 	runtime.EnableReplay(timeout)
 }
@@ -358,10 +308,7 @@ func EnableReplayWithTimeout(index int, exitCode bool) {
  * 	The routine id
  * 	The trace for this routine
  */
-func readTraceFile(fileName string) (int, runtime.AdvocateReplayTrace) {
-	mb := 1048576
-	maxTokenSize := 1
-
+func readTraceFile(fileName string, chanWithoutPartner *map[string]int) (int, runtime.AdvocateReplayTrace) {
 	// get the routine id from the file name
 	routineID, err := strconv.Atoi(strings.TrimSuffix(strings.TrimPrefix(fileName, tracePathRewritten+"/trace_"), ".log"))
 	if err != nil {
@@ -369,215 +316,196 @@ func readTraceFile(fileName string) (int, runtime.AdvocateReplayTrace) {
 	}
 
 	replayData := make(runtime.AdvocateReplayTrace, 0)
-	chanWithoutPartner := make(map[string]int)
-	var routine = 0
 
-	for {
-		file, err := os.Open(fileName)
-		if err != nil {
-			panic(err)
+	file, err := os.Open(fileName)
+	if err != nil {
+		panic(err)
+	}
+
+	scanner := bufio.NewScanner(file)
+
+	for scanner.Scan() {
+		elem := scanner.Text()
+		if elem == "" {
+			continue
 		}
 
-		scanner := bufio.NewScanner(file)
-		scanner.Buffer(make([]byte, 0, maxTokenSize*mb), maxTokenSize*mb)
-
-		for scanner.Scan() {
-			routine += 1
-			l := scanner.Text()
-			if l == "" {
-				continue
+		var time int
+		var op runtime.Operation
+		var file string
+		var line int
+		var pFile string
+		var pLine int
+		var blocked = false
+		var suc = true
+		var selIndex int
+		fields := strings.Split(elem, ",")
+		time, _ = strconv.Atoi(fields[1])
+		switch fields[0] {
+		case "X": // disable replay
+			op = runtime.OperationReplayEnd
+			line, _ = strconv.Atoi(fields[2]) // misuse the line for the exit code
+			runtime.SetExpectedExitCode(line)
+		case "G":
+			op = runtime.OperationSpawn
+			// time, _ = strconv.Atoi(fields[1])
+			pos := strings.Split(fields[3], ":")
+			file = pos[0]
+			line, _ = strconv.Atoi(pos[1])
+		case "C":
+			switch fields[4] {
+			case "S":
+				op = runtime.OperationChannelSend
+			case "R":
+				op = runtime.OperationChannelRecv
+			case "C":
+				op = runtime.OperationChannelClose
+			default:
+				panic("Unknown channel operation " + fields[4] + " in line " + elem + " in file " + fileName + ".")
 			}
-			elems := strings.Split(l, ";")
-			for _, elem := range elems {
-				if elem == "" {
-					continue
-				}
-				var time int
-				var op runtime.Operation
-				var file string
-				var line int
-				var pFile string
-				var pLine int
-				var blocked = false
-				var suc = true
-				var selIndex int
-				fields := strings.Split(elem, ",")
-				time, _ = strconv.Atoi(fields[1])
-				switch fields[0] {
-				case "X": // disable replay
-					op = runtime.OperationReplayEnd
-					line, _ = strconv.Atoi(fields[2]) // misuse the line for the exit code
-					runtime.SetExpectedExitCode(line)
-				case "G":
-					op = runtime.OperationSpawn
-					// time, _ = strconv.Atoi(fields[1])
-					pos := strings.Split(fields[3], ":")
-					file = pos[0]
-					line, _ = strconv.Atoi(pos[1])
-				case "C":
-					switch fields[4] {
-					case "S":
-						op = runtime.OperationChannelSend
-					case "R":
-						op = runtime.OperationChannelRecv
-					case "C":
-						op = runtime.OperationChannelClose
-					default:
-						panic("Unknown channel operation " + fields[4] + " in line " + elem + " in file " + fileName + ".")
-					}
-					time, _ = strconv.Atoi(fields[2])
-					if time == 0 {
-						blocked = true
-					}
-					pos := strings.Split(fields[8], ":")
-					file = pos[0]
-					line, _ = strconv.Atoi(pos[1])
-					if op == runtime.OperationChannelSend || op == runtime.OperationChannelRecv {
-						index := findReplayPartner(fields[3], fields[6], len(replayData), chanWithoutPartner)
-						if index != -1 {
-							pFile = replayData[index].File
-							pLine = replayData[index].Line
-							replayData[index].PFile = file
-							replayData[index].PLine = line
-						}
-					}
-				case "M":
-					rw := false
-					if fields[4] == "R" {
-						rw = true
-					}
-					time, _ = strconv.Atoi(fields[2])
-					if fields[6] == "f" {
-						suc = false
-					}
-					pos := strings.Split(fields[7], ":")
-					file = pos[0]
-					line, _ = strconv.Atoi(pos[1])
-					switch fields[5] {
-					case "L":
-						if rw {
-							op = runtime.OperationRWMutexLock
-						} else {
-							op = runtime.OperationMutexLock
-							// time = swapTimerRwMutex("L", time, file, line, &replayData)
-						}
-					case "U":
-						if rw {
-							op = runtime.OperationRWMutexUnlock
-						} else {
-							op = runtime.OperationMutexUnlock
-							// time = swapTimerRwMutex("U", time, file, line, &replayData)
-						}
-					case "T":
-						if rw {
-							op = runtime.OperationRWMutexTryLock
-						} else {
-							op = runtime.OperationMutexTryLock
-							// time = swapTimerRwMutex("T", time, file, line, &replayData)
-						}
-					case "R":
-						op = runtime.OperationRWMutexRLock
-					case "N":
-						op = runtime.OperationRWMutexRUnlock
-					case "Y":
-						op = runtime.OperationRWMutexTryRLock
-					default:
-						panic("Unknown mutex operation")
-					}
-					if fields[2] == "0" {
-						blocked = true
-					}
-
-				case "O":
-					op = runtime.OperationOnce
-					// time, _ = strconv.Atoi(fields[1]) // read tpre to prevent false order
-					if time == 0 {
-						blocked = true
-					}
-					if fields[4] == "f" {
-						suc = false
-					}
-					pos := strings.Split(fields[5], ":")
-					file = pos[0]
-					line, _ = strconv.Atoi(pos[1])
-				case "W":
-					switch fields[4] {
-					case "W":
-						op = runtime.OperationWaitgroupWait
-					case "A":
-						op = runtime.OperationWaitgroupAddDone
-					default:
-						panic("Unknown waitgroup operation")
-					}
-					time, _ = strconv.Atoi(fields[2])
-					if time == 0 {
-						blocked = true
-					}
-					pos := strings.Split(fields[7], ":")
-					file = pos[0]
-					line, _ = strconv.Atoi(pos[1])
-				case "S":
-					cases := strings.Split(fields[4], "~")
-					if cases[len(cases)-1] == "D" {
-						op = runtime.OperationSelectDefault
-					} else {
-						op = runtime.OperationSelectCase
-					}
-					time, _ = strconv.Atoi(fields[2])
-					if time == 0 {
-						blocked = true
-					}
-					selIndex, _ = strconv.Atoi(fields[5])
-					pos := strings.Split(fields[6], ":")
-					file = pos[0]
-					line, _ = strconv.Atoi(pos[1])
-				case "N":
-					switch fields[4] {
-					case "W":
-						op = runtime.OperationCondWait
-					case "S":
-						op = runtime.OperationCondSignal
-					case "B":
-						op = runtime.OperationCondBroadcast
-					default:
-						panic("Unknown cond operation")
-					}
-					pos := strings.Split(fields[5], ":")
-					file = pos[0]
-					line, _ = strconv.Atoi(pos[1])
-					if fields[2] == "0" {
-						blocked = true
-					}
-				case "A":
-					// do nothing
-
-				default:
-					panic("Unknown operation " + fields[0] + " in line " + elem + " in file " + fileName + ".")
-				}
-				if time == 0 {
-					time = math.MaxInt
-				}
-				if op != runtime.OperationNone && !runtime.AdvocateIgnore(op, file, line) {
-					replayData = append(replayData, runtime.ReplayElement{
-						Op: op, Routine: routine, Time: time, File: file, Line: line,
-						Blocked: blocked, Suc: suc, PFile: pFile, PLine: pLine,
-						SelIndex: selIndex})
+			time, _ = strconv.Atoi(fields[2])
+			if time == 0 {
+				blocked = true
+			}
+			pos := strings.Split(fields[8], ":")
+			file = pos[0]
+			line, _ = strconv.Atoi(pos[1])
+			if op == runtime.OperationChannelSend || op == runtime.OperationChannelRecv {
+				index := findReplayPartner(fields[3], fields[6], len(replayData), chanWithoutPartner)
+				if index != -1 {
+					pFile = replayData[index].File
+					pLine = replayData[index].Line
+					replayData[index].PFile = file
+					replayData[index].PLine = line
 				}
 			}
-		}
+		case "M":
+			rw := false
+			if fields[4] == "R" {
+				rw = true
+			}
+			time, _ = strconv.Atoi(fields[2])
+			if fields[6] == "f" {
+				suc = false
+			}
+			pos := strings.Split(fields[7], ":")
+			file = pos[0]
+			line, _ = strconv.Atoi(pos[1])
+			switch fields[5] {
+			case "L":
+				if rw {
+					op = runtime.OperationRWMutexLock
+				} else {
+					op = runtime.OperationMutexLock
+					// time = swapTimerRwMutex("L", time, file, line, &replayData)
+				}
+			case "U":
+				if rw {
+					op = runtime.OperationRWMutexUnlock
+				} else {
+					op = runtime.OperationMutexUnlock
+					// time = swapTimerRwMutex("U", time, file, line, &replayData)
+				}
+			case "T":
+				if rw {
+					op = runtime.OperationRWMutexTryLock
+				} else {
+					op = runtime.OperationMutexTryLock
+					// time = swapTimerRwMutex("T", time, file, line, &replayData)
+				}
+			case "R":
+				op = runtime.OperationRWMutexRLock
+			case "N":
+				op = runtime.OperationRWMutexRUnlock
+			case "Y":
+				op = runtime.OperationRWMutexTryRLock
+			default:
+				panic("Unknown mutex operation")
+			}
+			if fields[2] == "0" {
+				blocked = true
+			}
 
-		if err := scanner.Err(); err != nil {
-			if err == bufio.ErrTooLong {
-				maxTokenSize *= 2 // max buffer was to short, restart
-				println("Increase max token size to " + strconv.Itoa(maxTokenSize) + "MB")
-				replayData = make(runtime.AdvocateReplayTrace, 0)
-				chanWithoutPartner = make(map[string]int)
+		case "O":
+			op = runtime.OperationOnce
+			// time, _ = strconv.Atoi(fields[1]) // read tpre to prevent false order
+			if time == 0 {
+				blocked = true
+			}
+			if fields[4] == "f" {
+				suc = false
+			}
+			pos := strings.Split(fields[5], ":")
+			file = pos[0]
+			line, _ = strconv.Atoi(pos[1])
+		case "W":
+			switch fields[4] {
+			case "W":
+				op = runtime.OperationWaitgroupWait
+			case "A":
+				op = runtime.OperationWaitgroupAddDone
+			default:
+				panic("Unknown waitgroup operation")
+			}
+			time, _ = strconv.Atoi(fields[2])
+			if time == 0 {
+				blocked = true
+			}
+			pos := strings.Split(fields[7], ":")
+			file = pos[0]
+			line, _ = strconv.Atoi(pos[1])
+		case "S":
+			cases := strings.Split(fields[4], "~")
+			if cases[len(cases)-1] == "D" {
+				op = runtime.OperationSelectDefault
 			} else {
-				panic(err)
+				op = runtime.OperationSelectCase
 			}
-		} else {
-			break // read was successful
+			time, _ = strconv.Atoi(fields[2])
+			if time == 0 {
+				blocked = true
+			}
+			selIndex, _ = strconv.Atoi(fields[5])
+			pos := strings.Split(fields[6], ":")
+			file = pos[0]
+			line, _ = strconv.Atoi(pos[1])
+		case "N":
+			switch fields[4] {
+			case "W":
+				op = runtime.OperationCondWait
+			case "S":
+				op = runtime.OperationCondSignal
+			case "B":
+				op = runtime.OperationCondBroadcast
+			default:
+				panic("Unknown cond operation")
+			}
+			pos := strings.Split(fields[5], ":")
+			file = pos[0]
+			line, _ = strconv.Atoi(pos[1])
+			if fields[2] == "0" {
+				blocked = true
+			}
+		case "A":
+			// do nothing
+
+		default:
+			panic("Unknown operation " + fields[0] + " in line " + elem + " in file " + fileName + ".")
 		}
+		if time == 0 {
+			time = math.MaxInt
+		}
+		if op != runtime.OperationNone && !runtime.AdvocateIgnore(op, file, line) {
+			replayData = append(replayData, runtime.ReplayElement{
+				Op: op, Routine: routineID, Time: time, File: file, Line: line,
+				Blocked: blocked, Suc: suc, PFile: pFile, PLine: pLine,
+				SelIndex: selIndex})
+
+		}
+	}
+
+	if err := scanner.Err(); err != nil {
+		panic(err)
 	}
 
 	// sort data by tpre
@@ -623,14 +551,14 @@ func swapTimerRwMutex(op string, time int, file string, line int, replayData *ru
  * The function returns the index of the partner operation.
  * If the partner operation is not found, the function returns -1.
  */
-func findReplayPartner(cID string, oID string, index int, chanWithoutPartner map[string]int) int {
+func findReplayPartner(cID string, oID string, index int, chanWithoutPartner *map[string]int) int {
 	opString := cID + ":" + oID
-	if index, ok := chanWithoutPartner[opString]; ok {
-		delete(chanWithoutPartner, opString)
+	if index, ok := (*chanWithoutPartner)[opString]; ok {
+		delete((*chanWithoutPartner), opString)
 		return index
 	}
 
-	chanWithoutPartner[opString] = index
+	(*chanWithoutPartner)[opString] = index
 	return -1
 
 }

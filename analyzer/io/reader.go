@@ -1,8 +1,8 @@
 // Copyrigth (c) 2024 Erik Kassubek
 //
 // File: reader.go
-// Brief: Read trace files and create the internal trace 
-// 
+// Brief: Read trace files and create the internal trace
+//
 // Author: Erik Kassubek <kassubek.erik@gmail.com>
 // Created: 2023-08-08
 // LastChange: 2024-09-01
@@ -35,7 +35,6 @@ import (
  *   error: An error if the trace could not be created
  */
 func CreateTraceFromFiles(filePath string, ignoreAtomics bool) (int, error) {
-	maxTokenSize := 4
 	numberIds := 0
 
 	println("Read trace from " + filePath + "...")
@@ -61,11 +60,10 @@ func CreateTraceFromFiles(filePath string, ignoreAtomics bool) (int, error) {
 		}
 		numberIds = max(numberIds, routine)
 
-		err = CreateTraceFromFile(filePath+"/"+file.Name(), routine, maxTokenSize, ignoreAtomics)
+		err = CreateTraceFromFile(filePath+"/"+file.Name(), routine, ignoreAtomics)
 		if err != nil {
 			return 0, err
 		}
-
 	}
 
 	trace.Sort()
@@ -78,71 +76,32 @@ func CreateTraceFromFiles(filePath string, ignoreAtomics bool) (int, error) {
  * Args:
  *   filePath (string): The path to the log file
  *   routine (int): The routine id
- *   maxTokenSize (int): The max token size
  *   ignoreAtomics (bool): If atomic operations should be ignored
  * Returns:
  *	 error: An error if the trace could not be created
  */
-func CreateTraceFromFile(filePath string, routine int, maxTokenSize int, ignoreAtomics bool) error {
+func CreateTraceFromFile(filePath string, routine int, ignoreAtomics bool) error {
 	logging.Debug("Create trace from file "+filePath+"...", logging.INFO)
-	kb := 4096 // 4kB
 
-	for {
-		file, err := os.Open(filePath)
-		if err != nil {
-			logging.Debug("Error opening file: "+filePath, logging.ERROR)
-			return err
-		}
-
-		scanner := bufio.NewScanner(file)
-		scanner.Buffer(make([]byte, 0, maxTokenSize*kb), maxTokenSize*kb)
-
-		alreadyRead := false
-		for scanner.Scan() {
-			if alreadyRead {
-				return errors.New("Log file contains more than one line")
-			}
-
-			line := scanner.Text()
-			processLine(line, routine, ignoreAtomics)
-			alreadyRead = true
-		}
-
-		file.Close()
-
-		if err := scanner.Err(); err != nil {
-			if err == bufio.ErrTooLong {
-				maxTokenSize *= 2 // max buffer was to short, restart
-				// println("Increase max file size to " + strconv.Itoa(maxTokenSize) + "MB")
-			} else {
-				return err
-			}
-		} else {
-			break
-		}
+	file, err := os.Open(filePath)
+	if err != nil {
+		logging.Debug("Error opening file: "+filePath, logging.ERROR)
+		return err
 	}
 
-	return nil
-}
+	scanner := bufio.NewScanner(file)
 
-/*
- * Process one line from the log file.
- * Args:
- *   line (string): The line to process
- *   routine (int): The routine id, equal to the line number
- *   ignoreAtomics (bool): If atomic operations should be ignored
- * Returns:
- *   error: An error if the line could not be processed
- */
-func processLine(line string, routine int, ignoreAtomics bool) error {
-	logging.Debug("Read routine "+strconv.Itoa(routine), logging.DEBUG)
-	elements := strings.Split(line, ";")
-	for _, element := range elements {
-		err := processElement(element, routine, ignoreAtomics)
-		if err != nil {
-			return err
-		}
+	for scanner.Scan() {
+		line := scanner.Text()
+		processElement(line, routine, ignoreAtomics)
 	}
+
+	file.Close()
+
+	if err := scanner.Err(); err != nil {
+		return err
+	}
+
 	return nil
 }
 
