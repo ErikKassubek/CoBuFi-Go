@@ -145,7 +145,7 @@ func runWorkflowUnit(pathToAdvocate, dir, progName string,
 	generateBugReports(resultPath, pathToAdvocate)
 
 	if measureTime {
-		generateTimeFile(resultPath, durationRun, durationRecord, durationAnalysis, durationReplay)
+		generateTimeFile(progName, resultPath, durationRun, durationRecord, durationAnalysis, durationReplay)
 	}
 
 	// Check for untriggered selects
@@ -171,16 +171,17 @@ func runWorkflowUnit(pathToAdvocate, dir, progName string,
 /*
  * Function to write the time information to a file
  * Args:
+ *     progName (string): name of the program
  *     folderName (string): path to the destination of the file,
  *     durationRun (time.Duration): time to run all tests
  *     durationRecord (time.Duration): time to record all tests
  *     durationAnalysis (time.Duration): time to analyze all traces
  *     durationReplay (time.Duration): time to run all replays. For each test the avg time is used
  */
-func generateTimeFile(folderName string, durationRun, durationRecord, durationAnalysis,
+func generateTimeFile(progName string, folderName string, durationRun, durationRecord, durationAnalysis,
 	durationReplay time.Duration) {
 	fmt.Println("Generate time file")
-	file, err := os.Create(filepath.Join(folderName, "times.log"))
+	file, err := os.Create(filepath.Join(folderName, "times_"+progName+".log"))
 	if err != nil {
 		fmt.Println("Error creating file:", err)
 		return
@@ -190,7 +191,7 @@ func generateTimeFile(folderName string, durationRun, durationRecord, durationAn
 	writer := bufio.NewWriter(file)
 
 	timeInfo := fmt.Sprintf(
-		"Run: %f\nRecord: %f\nAnalysis: %f\nReplay: %f",
+		"Run: %.2f\nRecord: %.2f\nAnalysis: %.2f\nReplay: %.2f",
 		durationRun.Seconds(), durationRecord.Seconds(),
 		durationAnalysis.Seconds(), durationReplay.Seconds())
 

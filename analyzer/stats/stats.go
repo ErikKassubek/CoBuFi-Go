@@ -58,16 +58,15 @@ func CreateStats(pathToProgram, pathToResults, progName string) error {
 /*
 * Write the collected statistics to a file
 * The file consists of [............] lines.
-* The first line contains the name of the program.
-* The other lines contain the informations always separated by commas
-* The second line contains the stats about the program. This consists of the
+* The lines contain the informations always separated by commas
+* The first line contains the stats about the program. This consists of the
 *   number of files, the number of lines and the number of non empty lines.
-* Lines 3 to 5 contain values about the trace.
-*   In line 3 those values are
+* Lines 2 to 4 contain values about the trace.
+*   In line 2 those values are
 *     number of traces (for a main this should be 1, for tests this should be equal to the number of run tests)
 *     total number of routines
 *     number of non empty routines
-*   Line 4 contains the number of relevant objects, this includes
+*   Line 3 contains the number of relevant objects, this includes
 *     number of atomic variables
 *     number of channels
 *     number of buffered channels
@@ -78,7 +77,7 @@ func CreateStats(pathToProgram, pathToResults, progName string) error {
 *     number of wait groups
 *     number of cond variables
 *     number of once
-*   Line 5 contain the number of operations
+*   Line 4 contain the number of operations
 *     number of total operations in the trace
 *     number of spawns
 *     number of atomic operations
@@ -91,12 +90,12 @@ func CreateStats(pathToProgram, pathToResults, progName string) error {
 *     number of wait group operations
 *     number of cond var operations
 *     number of once operations
-* Line 6 to 8 contain information about the analysis and replay.
+* Line 5 to 7 contain information about the analysis and replay.
 *   For each line it contains the number of bugs actual (A), potential (P)
 *   and leak (L) and after those three values the more precise for each number
-*   Line 6 contains the information about the number of detected bugs
-*   Line 7 contains the number of successful rewrites
-*   Line 8 contains the number of successful replays
+*   Line 5 contains the information about the number of detected bugs
+*   Line 6 contains the number of successful rewrites
+*   Line 7 contains the number of successful replays
 * Args:
 *     path (string): path to where the stats file should be created
 *     progName (string): name of the program
@@ -109,7 +108,7 @@ func CreateStats(pathToProgram, pathToResults, progName string) error {
 func writeStatsToFile(path string, progName string, statsProg, statsTraces map[string]int,
 	statsAnalyzer map[string]map[string]int) error {
 
-	f, err := os.Create(filepath.Join(path, "stats"))
+	f, err := os.Create(filepath.Join(path, "stats_"+progName+".log"))
 	if err != nil {
 		return err
 	}
@@ -200,7 +199,6 @@ func writeStatsToFile(path string, progName string, statsProg, statsTraces map[s
 		totalAmount["replaySuccessful"]["actual"], totalAmount["replaySuccessful"]["potential"],
 		totalAmount["replaySuccessful"]["leak"], dataString["replaySuccessful"])
 
-	f.WriteString(progName + "\n")
 	f.WriteString(statsProgStr)
 	f.WriteString(statsTraceStr1)
 	f.WriteString(statsTraceStr2)

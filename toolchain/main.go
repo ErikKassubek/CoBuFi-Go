@@ -81,8 +81,8 @@ func main() {
 			printHelpMain()
 			return
 		}
-		if stats && progName == "" {
-			fmt.Println("If -s is set, -N [name] must be set as well")
+		if (stats || measureTime) && progName == "" {
+			fmt.Println("If -s or -t is set, -N [name] must be set as well")
 			printHelpMain()
 			return
 		}
@@ -98,8 +98,8 @@ func main() {
 			printHelpUnit()
 			return
 		}
-		if stats && progName == "" {
-			fmt.Println("If -s is set, -N [name] must be set as well")
+		if (stats || measureTime) && progName == "" {
+			fmt.Println("If -s or -t is set, -N [name] must be set as well")
 			printHelpUnit()
 			return
 		}
@@ -130,7 +130,7 @@ func printHelpMain() {
 	fmt.Println("  -t       : measure the runtimes")
 	fmt.Println("  -e       : check for never executed operations")
 	fmt.Println("  -s       : create statistics about the analyzed program")
-	fmt.Println("  -N [name]: give a name for the analyzed program. Only required if -s is set")
+	fmt.Println("  -N [name]: give a name for the analyzed program. Only required if -s or -t is set")
 }
 
 func printHelpUnit() {
@@ -141,5 +141,5 @@ func printHelpUnit() {
 	fmt.Println("  -t       : measure the runtimes")
 	fmt.Println("  -e       : check for never executed operations")
 	fmt.Println("  -s       : create statistics about the analyzed program")
-	fmt.Println("  -N [name]: give a name for the analyzed program. Only required if -s is set")
+	fmt.Println("  -N [name]: give a name for the analyzed program. Only required if -s or -t is set")
 }
