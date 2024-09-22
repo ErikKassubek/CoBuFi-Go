@@ -1,8 +1,8 @@
 // Copyrigth (c) 2024 Erik Kassubek
 //
 // File: analysisWaitGroup.go
-// Brief: Trace analysis for possible negative wait group counter 
-// 
+// Brief: Trace analysis for possible negative wait group counter
+//
 // Author: Erik Kassubek <kassubek.erik@gmail.com>
 // Created: 2023-11-24
 // LastChange: 2024-09-01
@@ -19,46 +19,46 @@ import (
 	"strconv"
 )
 
-func checkForDoneBeforeAddChange(routine int, id int, delta int, pos string, vc clock.VectorClock) {
-	if delta > 0 {
-		checkForDoneBeforeAddAdd(routine, id, pos, vc, delta)
-	} else if delta < 0 {
-		checkForDoneBeforeAddDone(routine, id, pos, vc)
+func checkForDoneBeforeAddChange(wa *TraceElementWait) {
+	if wa.delta > 0 {
+		checkForDoneBeforeAddAdd(wa)
+	} else if wa.delta < 0 {
+		checkForDoneBeforeAddDone(wa)
 	} else {
 		// checkForImpossibleWait(routine, id, pos, vc)
 	}
 }
 
-func checkForDoneBeforeAddAdd(routine int, id int, pos string, vc clock.VectorClock, delta int) {
+func checkForDoneBeforeAddAdd(wa *TraceElementWait) {
 	// if necessary, create maps and lists
-	if _, ok := wgAdd[id]; !ok {
-		wgAdd[id] = make(map[int][]VectorClockTID)
+	if _, ok := wgAdd[wa.id]; !ok {
+		wgAdd[wa.id] = make(map[int][]*TraceElementWait)
 	}
-	if _, ok := wgAdd[id][routine]; !ok {
-		wgAdd[id][routine] = make([]VectorClockTID, 0)
+	if _, ok := wgAdd[wa.id][wa.routine]; !ok {
+		wgAdd[wa.id][wa.routine] = make([]*TraceElementWait, 0)
 	}
 
 	// add the vector clock and position to the list
-	for i := 0; i < delta; i++ {
-		if delta > 1 {
-			pos = pos + "+" + strconv.Itoa(i) // add a unique identifier to the position
+	for i := 0; i < wa.delta; i++ {
+		if wa.delta > 1 {
+			wa.tID = wa.tID + "+" + strconv.Itoa(i) // add a unique identifier to the position
 		}
-		wgAdd[id][routine] = append(wgAdd[id][routine], VectorClockTID{vc.Copy(), pos, routine})
+		wgAdd[wa.id][wa.routine] = append(wgAdd[wa.id][wa.routine], wa)
 	}
 }
 
-func checkForDoneBeforeAddDone(routine int, id int, pos string, vc clock.VectorClock) {
+func checkForDoneBeforeAddDone(wa *TraceElementWait) {
 	// if necessary, create maps and lists
-	if _, ok := wgDone[id]; !ok {
-		wgDone[id] = make(map[int][]VectorClockTID)
+	if _, ok := wgDone[wa.id]; !ok {
+		wgDone[wa.id] = make(map[int][]*TraceElementWait)
 
 	}
-	if _, ok := wgDone[id][routine]; !ok {
-		wgDone[id][routine] = make([]VectorClockTID, 0)
+	if _, ok := wgDone[wa.id][wa.routine]; !ok {
+		wgDone[wa.id][wa.routine] = make([]*TraceElementWait, 0)
 	}
 
 	// add the vector clock and position to the list
-	wgDone[id][routine] = append(wgDone[id][routine], VectorClockTID{vc.Copy(), pos, routine})
+	wgDone[wa.id][wa.routine] = append(wgDone[wa.id][wa.routine], wa)
 }
 
 /*
@@ -70,12 +70,12 @@ func checkForDoneBeforeAddDone(routine int, id int, pos string, vc clock.VectorC
  * - edges from all add operations to t
  * - edges from done to add if the add happens before the done
  * Args:
- *   adds (map[int][]VectorClockTID): The add operations
- *   dones (map[int][]VectorClockTID): The done operations
+ *   adds (map[int][]|*TraceElementWait): The add operations
+ *   dones (map[int][]|*TraceElementWait): The done operations
  * Returns:
  *   []Edge: The graph
  */
-func buildResidualGraph(adds map[int][]VectorClockTID, dones map[int][]VectorClockTID) map[string][]string {
+func buildResidualGraph(adds map[int][]*TraceElementWait, dones map[int][]*TraceElementWait) map[string][]string {
 	graph := make(map[string][]string, 0)
 	graph["s"] = []string{}
 	graph["t"] = []string{}
@@ -83,15 +83,15 @@ func buildResidualGraph(adds map[int][]VectorClockTID, dones map[int][]VectorClo
 	// add edges from s to all done operations
 	for _, done := range dones {
 		for _, vc := range done {
-			graph[vc.TID] = []string{}
-			graph["s"] = append(graph["s"], vc.TID)
+			graph[vc.tID] = []string{}
+			graph["s"] = append(graph["s"], vc.tID)
 		}
 	}
 
 	// add edges from all add operations to t
 	for _, add := range adds {
 		for _, vc := range add {
-			graph[vc.TID] = []string{"t"}
+			graph[vc.tID] = []string{"t"}
 		}
 	}
 
@@ -100,8 +100,8 @@ func buildResidualGraph(adds map[int][]VectorClockTID, dones map[int][]VectorClo
 		for _, vcDone := range done {
 			for _, add := range adds {
 				for _, vcAdd := range add {
-					if clock.GetHappensBefore(vcAdd.Vc, vcDone.Vc) == clock.Before {
-						graph[vcDone.TID] = append(graph[vcDone.TID], vcAdd.TID)
+					if clock.GetHappensBefore(vcAdd.vc, vcDone.vc) == clock.Before {
+						graph[vcDone.tID] = append(graph[vcDone.tID], vcAdd.tID)
 
 					}
 				}
@@ -217,8 +217,8 @@ func CheckForDoneBeforeAdd() {
 		maxFlow, graph := calculateMaxFlow(graph)
 		nrDone := numberDone(id)
 
-		addsVcTIDs := []VectorClockTID{}
-		donesVcTIDs := []VectorClockTID{}
+		addsVcTIDs := []*TraceElementWait{}
+		donesVcTIDs := []*TraceElementWait{}
 
 		if maxFlow < nrDone {
 			// sort the adds and dones, that do not have a partner is such a way,
@@ -227,13 +227,13 @@ func CheckForDoneBeforeAdd() {
 
 			for _, adds := range wgAdd[id] {
 				for _, add := range adds {
-					if !utils.Contains(graph["t"], add.TID) {
+					if !utils.Contains(graph["t"], add.tID) {
 						addsVcTIDs = append(addsVcTIDs, add)
 					}
 				}
 			}
 			for _, dones := range graph["s"] {
-				doneVcTID, err := getDoneVcTIDFromTID(id, dones)
+				doneVcTID, err := getDoneElemFromTID(id, dones)
 				if err != nil {
 					logging.Debug(err.Error(), logging.ERROR)
 				} else {
@@ -241,12 +241,12 @@ func CheckForDoneBeforeAdd() {
 				}
 			}
 
-			addsVcTIDSorted := make([]VectorClockTID, 0)
-			donesVcTIDSorted := make([]VectorClockTID, 0)
+			addsVcTIDSorted := make([]*TraceElementWait, 0)
+			donesVcTIDSorted := make([]*TraceElementWait, 0)
 
 			for i := 0; i < len(addsVcTIDs); i++ {
 				for j := 0; j < len(donesVcTIDs); j++ {
-					if clock.GetHappensBefore(addsVcTIDs[i].Vc, addsVcTIDs[j].Vc) == clock.Concurrent {
+					if clock.GetHappensBefore(addsVcTIDs[i].vc, addsVcTIDs[j].vc) == clock.Concurrent {
 						addsVcTIDSorted = append(addsVcTIDSorted, addsVcTIDs[i])
 						donesVcTIDSorted = append(donesVcTIDSorted, donesVcTIDs[j])
 						// remove the element from the list
@@ -263,17 +263,17 @@ func CheckForDoneBeforeAdd() {
 			args2 := []logging.ResultElem{} // dones
 
 			for _, add := range addsVcTIDSorted {
-				if add.TID == "\n" {
+				if add.tID == "\n" {
 					continue
 				}
-				file, line, tPre, err := infoFromTID(add.TID)
+				file, line, tPre, err := infoFromTID(add.tID)
 				if err != nil {
 					logging.Debug(err.Error(), logging.ERROR)
 					return
 				}
 
 				args1 = append(args1, logging.TraceElementResult{
-					RoutineID: add.Routine,
+					RoutineID: add.routine,
 					ObjID:     id,
 					TPre:      tPre,
 					ObjType:   "WA",
@@ -284,17 +284,17 @@ func CheckForDoneBeforeAdd() {
 			}
 
 			for _, done := range donesVcTIDSorted {
-				if done.TID == "\n" {
+				if done.tID == "\n" {
 					continue
 				}
-				file, line, tPre, err := infoFromTID(done.TID)
+				file, line, tPre, err := infoFromTID(done.tID)
 				if err != nil {
 					logging.Debug(err.Error(), logging.ERROR)
 					return
 				}
 
 				args2 = append(args2, logging.TraceElementResult{
-					RoutineID: done.Routine,
+					RoutineID: done.routine,
 					ObjID:     id,
 					TPre:      tPre,
 					ObjType:   "WD",
@@ -309,13 +309,13 @@ func CheckForDoneBeforeAdd() {
 	}
 }
 
-func getDoneVcTIDFromTID(id int, tID string) (VectorClockTID, error) {
+func getDoneElemFromTID(id int, tID string) (*TraceElementWait, error) {
 	for _, dones := range wgDone[id] {
 		for _, done := range dones {
-			if done.TID == tID {
+			if done.tID == tID {
 				return done, nil
 			}
 		}
 	}
-	return VectorClockTID{}, errors.New("Could not find done operation with tID " + tID)
+	return nil, errors.New("Could not find done operation with tID " + tID)
 }

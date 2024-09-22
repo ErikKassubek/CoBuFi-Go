@@ -1,8 +1,8 @@
 // Copyrigth (c) 2024 Erik Kassubek
 //
 // File: vcOnce.go
-// Brief: Update functions of vector clocks for once operations 
-// 
+// Brief: Update functions of vector clocks for once operations
+//
 // Author: Erik Kassubek <kassubek.erik@gmail.com>
 // Created: 2023-07-25
 // LastChange: 2024-09-01
@@ -31,25 +31,23 @@ func newOSuc(index int, nRout int) {
 /*
  * Update and calculate the vector clocks given a successful do operation
  * Args:
- *   routine (int): The routine id
- *   id (int): The id of the atomic variable
+ *   on (*TraceElementOnce): The trace element
  *   vc (map[int]VectorClock): The current vector clocks
  */
-func DoSuc(routine int, id int, vc map[int]clock.VectorClock) {
-	newOSuc(id, vc[id].GetSize())
-	oSuc[id] = vc[routine]
-	vc[routine] = vc[routine].Inc(routine)
+func DoSuc(on *TraceElementOnce, vc map[int]clock.VectorClock) {
+	newOSuc(on.id, vc[on.id].GetSize())
+	oSuc[on.id] = vc[on.routine]
+	vc[on.routine] = vc[on.routine].Inc(on.routine)
 }
 
 /*
  * Update and calculate the vector clocks given a unsuccessful do operation
  * Args:
- *   routine (int): The routine id
- *   id (int): The id of the atomic variable
+ *   on (*TraceElementOnce): The trace element
  *   vc (map[int]VectorClock): The current vector clocks
  */
-func DoFail(routine int, id int, vc map[int]clock.VectorClock) {
-	newOSuc(id, vc[id].GetSize())
-	vc[routine] = vc[routine].Sync(oSuc[id])
-	vc[routine] = vc[routine].Inc(routine)
+func DoFail(on *TraceElementOnce, vc map[int]clock.VectorClock) {
+	newOSuc(on.id, vc[on.id].GetSize())
+	vc[on.routine] = vc[on.routine].Sync(oSuc[on.id])
+	vc[on.routine] = vc[on.routine].Inc(on.routine)
 }

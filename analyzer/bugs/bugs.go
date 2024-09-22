@@ -12,7 +12,7 @@
 package bugs
 
 import (
-	"analyzer/trace"
+	"analyzer/analysis"
 	"errors"
 	"strings"
 )
@@ -49,8 +49,8 @@ const (
 
 type Bug struct {
 	Type          ResultType
-	TraceElement1 []*trace.TraceElement
-	TraceElement2 []*trace.TraceElement
+	TraceElement1 []*analysis.TraceElement
+	TraceElement2 []*analysis.TraceElement
 }
 
 /*
@@ -259,14 +259,14 @@ func ProcessBug(bugStr string) (bool, Bug, error) {
 		bugArg2 = bugSplit[2]
 	}
 
-	bug.TraceElement1 = make([]*trace.TraceElement, 0)
+	bug.TraceElement1 = make([]*analysis.TraceElement, 0)
 
 	for _, bugArg := range strings.Split(bugArg1, ";") {
 		if strings.TrimSpace(bugArg) == "" {
 			continue
 		}
 
-		elem, err := trace.GetTraceElementFromBugArg(bugArg)
+		elem, err := analysis.GetTraceElementFromBugArg(bugArg)
 		if err != nil {
 			println("Could not find: " + bugArg + " in trace")
 			return actual, bug, err
@@ -274,7 +274,7 @@ func ProcessBug(bugStr string) (bool, Bug, error) {
 		bug.TraceElement1 = append(bug.TraceElement1, elem)
 	}
 
-	bug.TraceElement2 = make([]*trace.TraceElement, 0)
+	bug.TraceElement2 = make([]*analysis.TraceElement, 0)
 
 	if !containsArg2 {
 		return actual, bug, nil
@@ -286,7 +286,7 @@ func ProcessBug(bugStr string) (bool, Bug, error) {
 		}
 
 		if bugArg[0] == 'T' {
-			elem, err := trace.GetTraceElementFromBugArg(bugArg)
+			elem, err := analysis.GetTraceElementFromBugArg(bugArg)
 			if err != nil {
 				return actual, bug, err
 			}

@@ -1,8 +1,8 @@
 // Copyrigth (c) 2024 Erik Kassubek
 //
 // File: rewriter.go
-// Brief: Main functions to rewrite the trace 
-// 
+// Brief: Main functions to rewrite the trace
+//
 // Author: Erik Kassubek <kassubek.erik@gmail.com>
 // Created: 2023-11-30
 // LastChange: 2024-09-01
@@ -13,8 +13,8 @@
 package rewriter
 
 import (
+	"analyzer/analysis"
 	"analyzer/bugs"
-	"analyzer/trace"
 	"errors"
 )
 
@@ -94,9 +94,9 @@ func RewriteTrace(bug bugs.Bug) (rewriteNeeded bool, code int, err error) {
 		code = exitCodeLeakUnbuf
 		rewriteNeeded = true
 		switch b := (*bug.TraceElement2[0]).(type) {
-		case *trace.TraceElementSelect:
+		case *analysis.TraceElementSelect:
 			err = rewriteUnbufChanLeak(bug)
-		case *trace.TraceElementChannel:
+		case *analysis.TraceElementChannel:
 			if b.IsBuffered() {
 				err = rewriteBufChanLeak(bug)
 			} else {

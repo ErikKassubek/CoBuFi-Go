@@ -2,7 +2,7 @@
 //
 // File: analysisData.go
 // Brief: Variables and data for the analysis
-// 
+//
 // Author: Erik Kassubek <kassubek.erik@gmail.com>
 // Created: 2024-01-27
 // LastChange: 2024-09-01
@@ -52,7 +52,7 @@ var (
 	analysisCases = make(map[string]bool)
 
 	// vc of close on channel
-	closeData = make(map[int]VectorClockTID3) // id -> vcTID3 val = objID
+	closeData = make(map[int]*TraceElementChannel) // id -> vcTID3 val = ch.id
 
 	// last receive for each routine and each channel
 	lastRecvRoutine = make(map[int]map[int]VectorClockTID) // routine -> id -> vcTID
@@ -72,10 +72,10 @@ var (
 	bufferedVCsCount = make(map[int]int)
 
 	// add on waitGroup
-	wgAdd = make(map[int]map[int][]VectorClockTID) // id -> routine -> []vcTID
+	wgAdd = make(map[int]map[int][]*TraceElementWait) // id -> routine -> []vcTID
 
 	// done on waitGroup
-	wgDone = make(map[int]map[int][]VectorClockTID) // id -> routine -> []vcTID
+	wgDone = make(map[int]map[int][]*TraceElementWait) // id -> routine -> []vcTID
 
 	// wait on waitGroup
 	// wgWait = make(map[int]map[int][]VectorClockTID) // id -> routine -> []vcTID

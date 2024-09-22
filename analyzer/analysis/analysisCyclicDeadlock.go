@@ -1,8 +1,8 @@
 // Copyrigth (c) 2024 Erik Kassubek
 //
 // File: analysisCyclicDeadlock.go
-// Brief: Trace analysis for cyclic mutex deadlocks 
-// 
+// Brief: Trace analysis for cyclic mutex deadlocks
+//
 // Author: Erik Kassubek <kassubek.erik@gmail.com>
 // Created: 2024-01-04
 // LastChange: 2024-09-03
@@ -59,7 +59,7 @@ func (node *lockGraphNode) addChild(childID int, tID string, childRw bool, child
 }
 
 /*
- * Print the current lock graph node 
+ * Print the current lock graph node
  */
 func (node *lockGraphNode) print() {
 	result := node.toString()
@@ -67,7 +67,7 @@ func (node *lockGraphNode) print() {
 }
 
 /*
- * Turn a lock graph rooted in node into a string 
+ * Turn a lock graph rooted in node into a string
  * Returns:
  *  string representation of the lockGraphTree rooted in node
  */
@@ -83,7 +83,6 @@ func (node *lockGraphNode) toString() string {
 
 	return result
 }
-
 
 func (node *lockGraphNode) toStringTraverse(depth int) string {
 	if node == nil {
@@ -102,7 +101,7 @@ func (node *lockGraphNode) toStringTraverse(depth int) string {
 	return result
 }
 
-/* 
+/*
  * Print all current lock trees
  */
 func printTrees() {
@@ -124,54 +123,49 @@ var nodesPerID = make(map[int]map[int][]*lockGraphNode) // id -> routine -> []*l
  * Add the lock to the currently hold locks
  * Add the node to the lock tree
  * Args:
- *   id (int): The id of the lock
- *   routine (int): The id of the routine
- *   rw (bool): True if the lock is a read-write lock
+ *   mu (*TraceElementMutex): The trace element
  *   rLock (bool): True if the lock is a read lock
  *   vc (VectorClock): The vector clock of the lock event
- *   tPre (int): The timestamp at the end of the event
  */
-func AnalysisCyclickDeadlockMutexLock(id int, tID string, routine int, rw bool, rLock bool, vc clock.VectorClock, tPost int) {
-	if tPost == 0 {
+func CyclicDeadlockMutexLock(mu *TraceElementMutex, rLock bool, vc clock.VectorClock) {
+	if mu.tPost == 0 {
 		return
 	}
 
 	// create new lock tree if it does not exist yet
-	if _, ok := lockGraphs[routine]; !ok {
-		lockGraphs[routine] = newLockGraph(routine)
-		currentNode[routine] = []*lockGraphNode{lockGraphs[routine]}
+	if _, ok := lockGraphs[mu.routine]; !ok {
+		lockGraphs[mu.routine] = newLockGraph(mu.routine)
+		currentNode[mu.routine] = []*lockGraphNode{lockGraphs[mu.routine]}
 	}
 
 	// create empty map for nodesPerID if it does not exist yet
-	if _, ok := nodesPerID[id]; !ok {
-		nodesPerID[id] = make(map[int][]*lockGraphNode)
+	if _, ok := nodesPerID[mu.id]; !ok {
+		nodesPerID[mu.id] = make(map[int][]*lockGraphNode)
 	}
-	if _, ok := nodesPerID[id][routine]; !ok {
-		nodesPerID[id][routine] = []*lockGraphNode{}
+	if _, ok := nodesPerID[mu.id][mu.routine]; !ok {
+		nodesPerID[mu.id][mu.routine] = []*lockGraphNode{}
 	}
 
 	// add the lock element to the lock tree
 	// update the current lock
-	node := currentNode[routine][len(currentNode[routine])-1].addChild(id, tID, rw, rLock, vc.Copy(), getCurrentLockSet(routine))
-	currentNode[routine] = append(currentNode[routine], node)
-	nodesPerID[id][routine] = append(nodesPerID[id][routine], node)
+	node := currentNode[mu.routine][len(currentNode[mu.routine])-1].addChild(mu.id, mu.tID, mu.rw, rLock, vc.Copy(), getCurrentLockSet(mu.routine))
+	currentNode[mu.routine] = append(currentNode[mu.routine], node)
+	nodesPerID[mu.id][mu.routine] = append(nodesPerID[mu.id][mu.routine], node)
 }
 
 /*
  * Remove the lock from the currently hold locks
  * Args:
- *   id (int): The id of the lock
- *   routine (int): The id of the routine
- *   tPost (int): The timestamp at the end of the event
+ *   mu (*TraceElementMutex): The trace element
  */
-func AnalysisCyclicDeadlockMutexUnLock(id int, routine int, tPost int) {
-	if tPost == 0 {
+func CyclicDeadlockMutexUnLock(mu *TraceElementMutex) {
+	if mu.tPost == 0 {
 		return
 	}
 
-	for i := len(currentNode[routine]) - 1; i >= 0; i-- {
-		if currentNode[routine][i].id == id {
-			currentNode[routine] = currentNode[routine][:i]
+	for i := len(currentNode[mu.routine]) - 1; i >= 0; i-- {
+		if currentNode[mu.routine][i].id == mu.id {
+			currentNode[mu.routine] = currentNode[mu.routine][:i]
 			return
 		}
 	}

@@ -21,13 +21,13 @@ import (
 	"syscall"
 	"time"
 
+	"analyzer/analysis"
 	"analyzer/complete"
 	"analyzer/explanation"
 	"analyzer/io"
 	"analyzer/logging"
 	"analyzer/rewriter"
 	"analyzer/stats"
-	"analyzer/trace"
 )
 
 func main() {
@@ -195,7 +195,7 @@ func modeRun(pathTrace *string, noPrint *bool, noRewrite *bool,
 	if err != nil {
 		panic(err)
 	}
-	trace.SetNumberOfRoutines(numberOfRoutines)
+	analysis.SetNumberOfRoutines(numberOfRoutines)
 
 	if analysisCases["all"] {
 		fmt.Println("Start Analysis for all scenarios")
@@ -208,7 +208,7 @@ func modeRun(pathTrace *string, noPrint *bool, noRewrite *bool,
 		}
 	}
 
-	trace.RunAnalysis(*fifo, *ignoreCriticalSection, analysisCases)
+	analysis.RunAnalysis(*fifo, *ignoreCriticalSection, analysisCases)
 
 	fmt.Print("Analysis finished\n\n")
 
@@ -219,7 +219,7 @@ func modeRun(pathTrace *string, noPrint *bool, noRewrite *bool,
 		failedRewrites := 0
 		notNeededRewrites := 0
 		println("\n\nStart rewriting trace files...")
-		originalTrace := trace.CopyCurrentTrace()
+		originalTrace := analysis.CopyCurrentTrace()
 		for resultIndex := 0; resultIndex < numberOfResults; resultIndex++ {
 			needed, err := rewriteTrace(outMachine,
 				newTrace+"_"+strconv.Itoa(resultIndex+1)+"/", resultIndex, numberOfRoutines)
@@ -230,10 +230,10 @@ func modeRun(pathTrace *string, noPrint *bool, noRewrite *bool,
 			} else if err != nil {
 				println("Failed to rewrite trace: ", err.Error())
 				failedRewrites++
-				trace.SetTrace(originalTrace)
+				analysis.SetTrace(originalTrace)
 			} else { // needed && err == nil
 				numberRewrittenTrace++
-				trace.SetTrace(originalTrace)
+				analysis.SetTrace(originalTrace)
 			}
 
 			print("\n\n")
