@@ -258,11 +258,17 @@ func GetAdvocateRoutineID() uint64 {
  */
 func GetAdvocateObjectID() uint64 {
 	routine := currentGoRoutine()
+
+	if routine == nil {
+		getg().goInfo = newAdvocateRoutine(getg())
+		routine = currentGoRoutine()
+	}
+
 	routine.maxObjectId++
 	if routine.maxObjectId > 99999999999 {
 		panic("Overflow Error: Tow many objects in one routine. Max: 99999999999")
 	}
-	id := routine.id * 100000000000 + routine.maxObjectId
+	id := routine.id*100000000000 + routine.maxObjectId
 	return id
 }
 
