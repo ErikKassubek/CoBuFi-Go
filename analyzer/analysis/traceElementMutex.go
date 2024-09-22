@@ -335,36 +335,36 @@ func (mu *TraceElementMutex) updateVectorClock() {
 	case LockOp:
 		Lock(mu, currentVCHb, currentVCWmhb)
 		if analysisCases["cyclicDeadlock"] {
-			AnalysisCyclickDeadlockMutexLock(mu.id, mu.tID, mu.routine, mu.rw, false, currentVCWmhb[mu.routine], mu.tPost)
+			CyclicDeadlockMutexLock(mu, false, currentVCWmhb[mu.routine])
 		}
 	case RLockOp:
 		RLock(mu, currentVCHb, currentVCWmhb)
 		if analysisCases["cyclicDeadlock"] {
-			AnalysisCyclickDeadlockMutexLock(mu.id, mu.tID, mu.routine, mu.rw, true, currentVCWmhb[mu.routine], mu.tPost)
+			CyclicDeadlockMutexLock(mu, true, currentVCWmhb[mu.routine])
 		}
 	case TryLockOp:
 		if mu.suc {
 			Lock(mu, currentVCHb, currentVCWmhb)
 			if analysisCases["cyclicDeadlock"] {
-				AnalysisCyclickDeadlockMutexLock(mu.id, mu.tID, mu.routine, mu.rw, false, currentVCWmhb[mu.routine], mu.tPost)
+				CyclicDeadlockMutexLock(mu, false, currentVCWmhb[mu.routine])
 			}
 		}
 	case TryRLockOp:
 		if mu.suc {
 			RLock(mu, currentVCHb, currentVCWmhb)
 			if analysisCases["cyclicDeadlock"] {
-				AnalysisCyclickDeadlockMutexLock(mu.id, mu.tID, mu.routine, mu.rw, true, currentVCWmhb[mu.routine], mu.tPost)
+				CyclicDeadlockMutexLock(mu, true, currentVCWmhb[mu.routine])
 			}
 		}
 	case UnlockOp:
 		Unlock(mu, currentVCHb)
 		if analysisCases["cyclicDeadlock"] {
-			AnalysisCyclicDeadlockMutexUnLock(mu.id, mu.routine, mu.tPost)
+			CyclicDeadlockMutexUnLock(mu)
 		}
 	case RUnlockOp:
 		RUnlock(mu, currentVCHb)
 		if analysisCases["cyclicDeadlock"] {
-			AnalysisCyclicDeadlockMutexUnLock(mu.id, mu.routine, mu.tPost)
+			CyclicDeadlockMutexUnLock(mu)
 		}
 	default:
 		err := "Unknown mutex operation: " + mu.ToString()

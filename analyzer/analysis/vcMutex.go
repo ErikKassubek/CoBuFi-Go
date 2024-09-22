@@ -48,7 +48,7 @@ func Lock(mu *TraceElementMutex, vc map[int]clock.VectorClock, wVc map[int]clock
 	vc[mu.routine] = vc[mu.routine].Inc(mu.routine)
 
 	if analysisCases["leak"] {
-		addMostRecentAcquireTotal(mu.routine, mu.id, mu.tID, vc[mu.routine], 0)
+		addMostRecentAcquireTotal(mu, vc[mu.routine], 0)
 	}
 
 	if analysisCases["mixedDeadlock"] {
@@ -97,7 +97,7 @@ func RLock(mu *TraceElementMutex, vc map[int]clock.VectorClock, wVc map[int]cloc
 	vc[mu.routine] = vc[mu.routine].Inc(mu.routine)
 
 	if analysisCases["leak"] {
-		addMostRecentAcquireTotal(mu.routine, mu.id, mu.tID, vc[mu.routine], 1)
+		addMostRecentAcquireTotal(mu, vc[mu.routine], 1)
 	}
 
 	if analysisCases["mixedDeadlock"] {

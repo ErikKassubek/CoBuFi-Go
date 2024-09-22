@@ -396,9 +396,9 @@ func RunAnalysis(assumeFifo bool, ignoreCriticalSections bool, analysisCasesMap 
 						currentVCHb[e.routine], elem.GetTID(), 1, e.qSize != 0)
 				}
 			case *TraceElementMutex:
-				CheckForLeakMutex(elem.GetRoutine(), elem.GetID(), elem.GetTID(), int(e.opM))
+				CheckForLeakMutex(e)
 			case *TraceElementWait:
-				CheckForLeakWait(elem.GetRoutine(), elem.GetID(), elem.GetTID())
+				CheckForLeakWait(e)
 			case *TraceElementSelect:
 				cases := e.GetCases()
 				ids := make([]int, 0)
@@ -416,9 +416,9 @@ func RunAnalysis(assumeFifo bool, ignoreCriticalSections bool, analysisCasesMap 
 						buffered = append(buffered, c.IsBuffered())
 					}
 				}
-				CheckForLeakSelectStuck(elem.GetRoutine(), ids, buffered, currentVCHb[e.routine], e.tID, opTypes, e.tPre, e.id)
+				CheckForLeakSelectStuck(e, ids, buffered, currentVCHb[e.routine], opTypes)
 			case *TraceElementCond:
-				CheckForLeakCond(elem.GetRoutine(), elem.GetID(), elem.GetTID())
+				CheckForLeakCond(e)
 			}
 		}
 

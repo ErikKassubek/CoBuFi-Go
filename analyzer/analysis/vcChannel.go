@@ -41,7 +41,7 @@ type bufferedVC struct {
 func Unbuffered(ch *TraceElementChannel, routSend int, routRecv int, tIDSend string,
 	tIDRecv string, vc map[int]clock.VectorClock) {
 	if analysisCases["concurrentRecv"] {
-		checkForConcurrentRecv(routRecv, ch.id, tIDRecv, vc, ch.tPost)
+		checkForConcurrentRecv(ch, routRecv, tIDRecv, vc)
 	}
 
 	if ch.tPost != 0 {
@@ -189,7 +189,7 @@ func Send(ch *TraceElementChannel, vc map[int]clock.VectorClock, fifo bool) {
 func Recv(ch *TraceElementChannel, vc map[int]clock.VectorClock, fifo bool) {
 
 	if analysisCases["concurrentRecv"] {
-		checkForConcurrentRecv(ch.routine, ch.id, ch.tID, vc, ch.tPost)
+		checkForConcurrentRecv(ch, ch.routine, ch.tID, vc)
 	}
 
 	if ch.tPost == 0 {
@@ -286,7 +286,7 @@ func Close(ch *TraceElementChannel, vc map[int]clock.VectorClock) {
 	}
 
 	if analysisCases["closeOnClosed"] {
-		checkForClosedOnClosed(ch.routine, ch.id, ch.tID) // must be called before closePos is updated
+		checkForClosedOnClosed(ch) // must be called before closePos is updated
 	}
 
 	vc[ch.routine] = vc[ch.routine].Inc(ch.routine)
@@ -294,7 +294,7 @@ func Close(ch *TraceElementChannel, vc map[int]clock.VectorClock) {
 	closeData[ch.id] = VectorClockTID3{Routine: ch.routine, TID: ch.tID, Vc: vc[ch.routine].Copy(), Val: ch.id}
 
 	if analysisCases["sendOnClosed"] || analysisCases["receiveOnClosed"] {
-		checkForCommunicationOnClosedChannel(ch.id, ch.tID)
+		checkForCommunicationOnClosedChannel(ch)
 	}
 
 	if analysisCases["selectWithoutPartner"] {
@@ -325,7 +325,7 @@ func RecvC(ch *TraceElementChannel, vc map[int]clock.VectorClock, buffered bool)
 	}
 
 	if analysisCases["receiveOnClosed"] {
-		foundReceiveOnClosedChannel(ch.routine, ch.id, ch.tID)
+		foundReceiveOnClosedChannel(ch)
 	}
 
 	vc[ch.routine] = vc[ch.routine].Sync(closeData[ch.id].Vc)

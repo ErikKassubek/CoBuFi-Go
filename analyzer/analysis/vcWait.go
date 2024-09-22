@@ -41,7 +41,7 @@ func Change(wa *TraceElementWait, vc map[int]clock.VectorClock) {
 	vc[wa.routine] = vc[wa.routine].Inc(wa.routine)
 
 	if analysisCases["doneBeforeAdd"] {
-		checkForDoneBeforeAddChange(wa.routine, wa.id, wa.delta, wa.tID, vc[wa.routine])
+		checkForDoneBeforeAddChange(wa, vc[wa.routine])
 	}
 }
 

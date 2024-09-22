@@ -1,8 +1,8 @@
 // Copyrigth (c) 2024 Erik Kassubek
 //
 // File: analysisSelectPartner.go
-// Brief: Trace analysis for detection of select cases without any possible partners 
-// 
+// Brief: Trace analysis for detection of select cases without any possible partners
+//
 // Author: Erik Kassubek <kassubek.erik@gmail.com>
 // Created: 2024-03-04
 // LastChange: 2024-09-01
@@ -123,23 +123,22 @@ func CheckForSelectCaseWithoutPartner() {
 * CheckForSelectCaseWithoutPartnerSelect checks for select cases without a valid
 * partner. Call whenever a select is processed.
 * Args:
-*   routine (int): The routine id
-*   selectID (int): The id of the select
+*   se (*TraceElementSelect): The trace element
 *   ids ([]int): The ids of the channels
 *   bufferedInfo ([]bool): The buffer status of the channels
 *   sendInfo ([]bool): The send status of the channels
 *   vc (VectorClock): The vector clock
-*   tID (string): The position of the select in the program
  */
-func CheckForSelectCaseWithoutPartnerSelect(routine int, selectID int, caseChanIds []int, bufferedInfo []bool,
-	sendInfo []bool, vc clock.VectorClock, tID string, chosenIndex int) {
+//  func CheckForSelectCaseWithoutPartnerSelect(routine int, selectID int, caseChanIds []int, bufferedInfo []bool,
+func CheckForSelectCaseWithoutPartnerSelect(se *TraceElementSelect, caseChanIds []int, bufferedInfo []bool,
+	sendInfo []bool, vc clock.VectorClock) {
 	for i, id := range caseChanIds {
 		buffered := bufferedInfo[i]
 		send := sendInfo[i]
 
 		found := false
 
-		if i == chosenIndex {
+		if i == se.chosenIndex {
 			// no need to check if the channel is the chosen case
 			found = true
 		} else {
@@ -172,7 +171,7 @@ func CheckForSelectCaseWithoutPartnerSelect(routine int, selectID int, caseChanI
 		}
 
 		selectCases = append(selectCases,
-			allSelectCase{selectID, id, VectorClockTID{vc, tID, routine}, send, buffered, found})
+			allSelectCase{se.id, id, VectorClockTID{vc, se.tID, se.routine}, send, buffered, found})
 
 	}
 }

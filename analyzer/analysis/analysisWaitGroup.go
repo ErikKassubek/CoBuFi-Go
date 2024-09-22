@@ -1,8 +1,8 @@
 // Copyrigth (c) 2024 Erik Kassubek
 //
 // File: analysisWaitGroup.go
-// Brief: Trace analysis for possible negative wait group counter 
-// 
+// Brief: Trace analysis for possible negative wait group counter
+//
 // Author: Erik Kassubek <kassubek.erik@gmail.com>
 // Created: 2023-11-24
 // LastChange: 2024-09-01
@@ -19,46 +19,46 @@ import (
 	"strconv"
 )
 
-func checkForDoneBeforeAddChange(routine int, id int, delta int, pos string, vc clock.VectorClock) {
-	if delta > 0 {
-		checkForDoneBeforeAddAdd(routine, id, pos, vc, delta)
-	} else if delta < 0 {
-		checkForDoneBeforeAddDone(routine, id, pos, vc)
+func checkForDoneBeforeAddChange(wa *TraceElementWait, vc clock.VectorClock) {
+	if wa.delta > 0 {
+		checkForDoneBeforeAddAdd(wa, vc)
+	} else if wa.delta < 0 {
+		checkForDoneBeforeAddDone(wa, vc)
 	} else {
 		// checkForImpossibleWait(routine, id, pos, vc)
 	}
 }
 
-func checkForDoneBeforeAddAdd(routine int, id int, pos string, vc clock.VectorClock, delta int) {
+func checkForDoneBeforeAddAdd(wa *TraceElementWait, vc clock.VectorClock) {
 	// if necessary, create maps and lists
-	if _, ok := wgAdd[id]; !ok {
-		wgAdd[id] = make(map[int][]VectorClockTID)
+	if _, ok := wgAdd[wa.id]; !ok {
+		wgAdd[wa.id] = make(map[int][]VectorClockTID)
 	}
-	if _, ok := wgAdd[id][routine]; !ok {
-		wgAdd[id][routine] = make([]VectorClockTID, 0)
+	if _, ok := wgAdd[wa.id][wa.routine]; !ok {
+		wgAdd[wa.id][wa.routine] = make([]VectorClockTID, 0)
 	}
 
 	// add the vector clock and position to the list
-	for i := 0; i < delta; i++ {
-		if delta > 1 {
-			pos = pos + "+" + strconv.Itoa(i) // add a unique identifier to the position
+	for i := 0; i < wa.delta; i++ {
+		if wa.delta > 1 {
+			wa.tID = wa.tID + "+" + strconv.Itoa(i) // add a unique identifier to the position
 		}
-		wgAdd[id][routine] = append(wgAdd[id][routine], VectorClockTID{vc.Copy(), pos, routine})
+		wgAdd[wa.id][wa.routine] = append(wgAdd[wa.id][wa.routine], VectorClockTID{vc.Copy(), wa.tID, wa.routine})
 	}
 }
 
-func checkForDoneBeforeAddDone(routine int, id int, pos string, vc clock.VectorClock) {
+func checkForDoneBeforeAddDone(wa *TraceElementWait, vc clock.VectorClock) {
 	// if necessary, create maps and lists
-	if _, ok := wgDone[id]; !ok {
-		wgDone[id] = make(map[int][]VectorClockTID)
+	if _, ok := wgDone[wa.id]; !ok {
+		wgDone[wa.id] = make(map[int][]VectorClockTID)
 
 	}
-	if _, ok := wgDone[id][routine]; !ok {
-		wgDone[id][routine] = make([]VectorClockTID, 0)
+	if _, ok := wgDone[wa.id][wa.routine]; !ok {
+		wgDone[wa.id][wa.routine] = make([]VectorClockTID, 0)
 	}
 
 	// add the vector clock and position to the list
-	wgDone[id][routine] = append(wgDone[id][routine], VectorClockTID{vc.Copy(), pos, routine})
+	wgDone[wa.id][wa.routine] = append(wgDone[wa.id][wa.routine], VectorClockTID{vc.Copy(), wa.tID, wa.routine})
 }
 
 /*
