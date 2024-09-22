@@ -387,14 +387,7 @@ func RunAnalysis(assumeFifo bool, ignoreCriticalSections bool, analysisCasesMap 
 		if analysisCases["leak"] && elem.getTpost() == 0 {
 			switch e := elem.(type) {
 			case *TraceElementChannel:
-				switch e.opC {
-				case SendOp:
-					CheckForLeakChannelStuck(elem.GetRoutine(), elem.GetID(),
-						currentVCHb[e.routine], elem.GetTID(), 0, e.qSize != 0)
-				case RecvOp:
-					CheckForLeakChannelStuck(elem.GetRoutine(), elem.GetID(),
-						currentVCHb[e.routine], elem.GetTID(), 1, e.qSize != 0)
-				}
+				CheckForLeakChannelStuck(e, currentVCHb[e.routine])
 			case *TraceElementMutex:
 				CheckForLeakMutex(e)
 			case *TraceElementWait:

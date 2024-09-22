@@ -30,10 +30,10 @@ func checkForCommunicationOnClosedChannel(ch *TraceElementChannel) {
 		for routine, mrs := range mostRecentSend {
 			logging.Debug("Check for possible send on closed channel "+
 				strconv.Itoa(ch.id)+" with "+
-				mrs[ch.id].Vc.ToString()+" and "+closeData[ch.id].Vc.ToString(),
+				mrs[ch.id].Vc.ToString()+" and "+closeData[ch.id].vc.ToString(),
 				logging.DEBUG)
 
-			happensBefore := clock.GetHappensBefore(closeData[ch.id].Vc, mrs[ch.id].Vc)
+			happensBefore := clock.GetHappensBefore(closeData[ch.id].vc, mrs[ch.id].Vc)
 			if mrs[ch.id].TID != "" && happensBefore == clock.Concurrent {
 
 				file1, line1, tPre1, err := infoFromTID(mrs[ch.id].TID) // send
@@ -58,7 +58,7 @@ func checkForCommunicationOnClosedChannel(ch *TraceElementChannel) {
 				}
 
 				arg2 := logging.TraceElementResult{ // close
-					RoutineID: closeData[ch.id].Routine,
+					RoutineID: closeData[ch.id].routine,
 					ObjID:     ch.id,
 					TPre:      tPre2,
 					ObjType:   "CC",
@@ -76,10 +76,10 @@ func checkForCommunicationOnClosedChannel(ch *TraceElementChannel) {
 		for routine, mrr := range mostRecentReceive {
 			logging.Debug("Check for possible receive on closed channel "+
 				strconv.Itoa(ch.id)+" with "+
-				mrr[ch.id].Vc.ToString()+" and "+closeData[ch.id].Vc.ToString(),
+				mrr[ch.id].Vc.ToString()+" and "+closeData[ch.id].vc.ToString(),
 				logging.DEBUG)
 
-			happensBefore := clock.GetHappensBefore(closeData[ch.id].Vc, mrr[ch.id].Vc)
+			happensBefore := clock.GetHappensBefore(closeData[ch.id].vc, mrr[ch.id].Vc)
 			if mrr[ch.id].TID != "" && (happensBefore == clock.Concurrent || happensBefore == clock.Before) {
 
 				file1, line1, tPre1, err := infoFromTID(mrr[ch.id].TID) // recv
@@ -104,7 +104,7 @@ func checkForCommunicationOnClosedChannel(ch *TraceElementChannel) {
 				}
 
 				arg2 := logging.TraceElementResult{ // close
-					RoutineID: closeData[ch.id].Routine,
+					RoutineID: closeData[ch.id].routine,
 					ObjID:     ch.id,
 					TPre:      tPre2,
 					ObjType:   "CC",
@@ -132,7 +132,7 @@ func foundSendOnClosedChannel(routineID int, id int, posSend string) {
 		return
 	}
 
-	posClose := closeData[id].TID
+	posClose := closeData[id].tID
 	if posClose == "" || posSend == "" || posClose == "\n" || posSend == "\n" {
 		return
 	}
@@ -159,7 +159,7 @@ func foundSendOnClosedChannel(routineID int, id int, posSend string) {
 	}
 
 	arg2 := logging.TraceElementResult{ // close
-		RoutineID: closeData[id].Routine,
+		RoutineID: closeData[id].routine,
 		ObjID:     id,
 		TPre:      tPre2,
 		ObjType:   "CC",
@@ -182,7 +182,7 @@ func foundReceiveOnClosedChannel(ch *TraceElementChannel) {
 		return
 	}
 
-	posClose := closeData[ch.id].TID
+	posClose := closeData[ch.id].tID
 	if posClose == "" || ch.tID == "" || posClose == "\n" || ch.tID == "\n" {
 		return
 	}
@@ -209,7 +209,7 @@ func foundReceiveOnClosedChannel(ch *TraceElementChannel) {
 	}
 
 	arg2 := logging.TraceElementResult{ // close
-		RoutineID: closeData[ch.id].Routine,
+		RoutineID: closeData[ch.id].routine,
 		ObjID:     ch.id,
 		TPre:      tPre2,
 		ObjType:   "CC",
@@ -229,17 +229,17 @@ func foundReceiveOnClosedChannel(ch *TraceElementChannel) {
  */
 func checkForClosedOnClosed(ch *TraceElementChannel) {
 	if oldClose, ok := closeData[ch.id]; ok {
-		if oldClose.TID == "" || oldClose.TID == "\n" || ch.tID == "" || ch.tID == "\n" {
+		if oldClose.tID == "" || oldClose.tID == "\n" || ch.tID == "" || ch.tID == "\n" {
 			return
 		}
 
-		file1, line1, tPre1, err := infoFromTID(oldClose.TID)
+		file1, line1, tPre1, err := infoFromTID(oldClose.tID)
 		if err != nil {
 			logging.Debug(err.Error(), logging.ERROR)
 			return
 		}
 
-		file2, line2, tPre2, err := infoFromTID(oldClose.TID)
+		file2, line2, tPre2, err := infoFromTID(oldClose.tID)
 		if err != nil {
 			logging.Debug(err.Error(), logging.ERROR)
 			return
@@ -255,7 +255,7 @@ func checkForClosedOnClosed(ch *TraceElementChannel) {
 		}
 
 		arg2 := logging.TraceElementResult{
-			RoutineID: oldClose.Routine,
+			RoutineID: oldClose.routine,
 			ObjID:     ch.id,
 			TPre:      tPre2,
 			ObjType:   "CC",

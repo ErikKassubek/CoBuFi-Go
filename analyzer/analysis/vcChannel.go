@@ -291,7 +291,7 @@ func Close(ch *TraceElementChannel, vc map[int]clock.VectorClock) {
 
 	vc[ch.routine] = vc[ch.routine].Inc(ch.routine)
 
-	closeData[ch.id] = VectorClockTID3{Routine: ch.routine, TID: ch.tID, Vc: vc[ch.routine].Copy(), Val: ch.id}
+	closeData[ch.id] = ch
 
 	if analysisCases["sendOnClosed"] || analysisCases["receiveOnClosed"] {
 		checkForCommunicationOnClosedChannel(ch)
@@ -328,7 +328,7 @@ func RecvC(ch *TraceElementChannel, vc map[int]clock.VectorClock, buffered bool)
 		foundReceiveOnClosedChannel(ch)
 	}
 
-	vc[ch.routine] = vc[ch.routine].Sync(closeData[ch.id].Vc)
+	vc[ch.routine] = vc[ch.routine].Sync(closeData[ch.id].vc)
 	vc[ch.routine] = vc[ch.routine].Inc(ch.routine)
 
 	if analysisCases["selectWithoutPartner"] {
@@ -336,7 +336,7 @@ func RecvC(ch *TraceElementChannel, vc map[int]clock.VectorClock, buffered bool)
 	}
 
 	if analysisCases["mixedDeadlock"] {
-		checkForMixedDeadlock(closeData[ch.id].Routine, ch.routine, closeData[ch.id].TID, ch.tID)
+		checkForMixedDeadlock(closeData[ch.id].routine, ch.routine, closeData[ch.id].tID, ch.tID)
 	}
 	if analysisCases["leak"] {
 		CheckForLeakChannelRun(ch.routine, ch.id, VectorClockTID{vc[ch.routine].Copy(), ch.tID, ch.routine}, 1, buffered)
