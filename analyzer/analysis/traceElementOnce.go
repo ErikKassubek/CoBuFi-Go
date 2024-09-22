@@ -243,9 +243,9 @@ func (on *TraceElementOnce) updateVectorClock() {
 	on.vc = currentVCHb[on.routine].Copy()
 
 	if on.suc {
-		DoSuc(on.routine, on.id, currentVCHb)
+		DoSuc(on, currentVCHb)
 	} else {
-		DoFail(on.routine, on.id, currentVCHb)
+		DoFail(on, currentVCHb)
 	}
 
 }

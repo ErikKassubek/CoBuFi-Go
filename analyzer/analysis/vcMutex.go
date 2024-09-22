@@ -3,7 +3,7 @@
 // File: vcMutex.go
 // Brief: Update functions for vector clocks from mutex operation
 //        Some of the functions start analysis functions
-// 
+//
 // Author: Erik Kassubek <kassubek.erik@gmail.com>
 // Created: 2023-07-25
 // LastChange: 2024-09-01
@@ -32,106 +32,96 @@ func newRel(index int, nRout int) {
 /*
  * Update and calculate the vector clocks given a lock operation
  * Args:
- *   routine (int): The routine id
- *   id (int): The id of the mutex
+ *   mu (*TraceElementMutex): The trace element
  *   vc (map[int]VectorClock): The current vector clocks
  *   wVc (map[int]VectorClock): The current weak vector clocks
- *   tID (string): The trace id of the lock operation
- *   tPost (int): The timestamp at the end of the event
  */
-func Lock(routine int, id int, vc map[int]clock.VectorClock, wVc map[int]clock.VectorClock, tID string, tPost int) {
-	if tPost == 0 {
-		vc[routine] = vc[routine].Inc(routine)
+func Lock(mu *TraceElementMutex, vc map[int]clock.VectorClock, wVc map[int]clock.VectorClock) {
+	if mu.tPost == 0 {
+		vc[mu.routine] = vc[mu.routine].Inc(mu.routine)
 		return
 	}
 
-	newRel(id, vc[routine].GetSize())
-	vc[routine] = vc[routine].Sync(relW[id])
-	vc[routine] = vc[routine].Sync(relR[id])
-	vc[routine] = vc[routine].Inc(routine)
+	newRel(mu.id, vc[mu.routine].GetSize())
+	vc[mu.routine] = vc[mu.routine].Sync(relW[mu.id])
+	vc[mu.routine] = vc[mu.routine].Sync(relR[mu.id])
+	vc[mu.routine] = vc[mu.routine].Inc(mu.routine)
 
 	if analysisCases["leak"] {
-		addMostRecentAcquireTotal(routine, id, tID, vc[routine], 0)
+		addMostRecentAcquireTotal(mu.routine, mu.id, mu.tID, vc[mu.routine], 0)
 	}
 
 	if analysisCases["mixedDeadlock"] {
-		lockSetAddLock(routine, id, tID, wVc[routine])
+		lockSetAddLock(mu.routine, mu.id, mu.tID, wVc[mu.routine])
 	}
 }
 
 /*
  * Update and calculate the vector clocks given a unlock operation
  * Args:
- *   routine (int): The routine id
- *   id (int): The id of the mutex
+ *   mu (*TraceElementMutex): The trace element
  *   vc (map[int]VectorClock): The current vector clocks
  */
-func Unlock(routine int, id int, vc map[int]clock.VectorClock, tPost int) {
-	if tPost == 0 {
+func Unlock(mu *TraceElementMutex, vc map[int]clock.VectorClock) {
+	if mu.tPost == 0 {
 		return
 	}
 
-	newRel(id, vc[routine].GetSize())
-	relW[id] = vc[routine].Copy()
-	relR[id] = vc[routine].Copy()
-	vc[routine] = vc[routine].Inc(routine)
+	newRel(mu.id, vc[mu.routine].GetSize())
+	relW[mu.id] = vc[mu.routine].Copy()
+	relR[mu.id] = vc[mu.routine].Copy()
+	vc[mu.routine] = vc[mu.routine].Inc(mu.routine)
 
 	if analysisCases["mixedDeadlock"] {
-		lockSetRemoveLock(routine, id)
+		lockSetRemoveLock(mu.routine, mu.id)
 	}
 }
 
 /*
  * Update and calculate the vector clocks given a rlock operation
  * Args:
- *   routine (int): The routine id
- *   id (int): The id of the mutex
+ *   mu (*TraceElementMutex): The trace element
  *   vc (map[int]VectorClock): The current vector clocks
  *   wVc (map[int]VectorClock): The current weak vector clocks
- *   tID (string): The trace id of the lock operation
  * Returns:
  *   (vectorClock): The new vector clock
  */
-func RLock(routine int, id int, vc map[int]clock.VectorClock, wVc map[int]clock.VectorClock,
-	tID string, tPost int) {
-
-	if tPost == 0 {
-		vc[routine] = vc[routine].Inc(routine)
+func RLock(mu *TraceElementMutex, vc map[int]clock.VectorClock, wVc map[int]clock.VectorClock) {
+	if mu.tPost == 0 {
+		vc[mu.routine] = vc[mu.routine].Inc(mu.routine)
 		return
 	}
 
-	newRel(id, vc[routine].GetSize())
-	vc[routine] = vc[routine].Sync(relW[id])
-	vc[routine] = vc[routine].Inc(routine)
+	newRel(mu.id, vc[mu.routine].GetSize())
+	vc[mu.routine] = vc[mu.routine].Sync(relW[mu.id])
+	vc[mu.routine] = vc[mu.routine].Inc(mu.routine)
 
 	if analysisCases["leak"] {
-		addMostRecentAcquireTotal(routine, id, tID, vc[routine], 1)
+		addMostRecentAcquireTotal(mu.routine, mu.id, mu.tID, vc[mu.routine], 1)
 	}
 
 	if analysisCases["mixedDeadlock"] {
-		lockSetAddLock(routine, id, tID, wVc[routine])
+		lockSetAddLock(mu.routine, mu.id, mu.tID, wVc[mu.routine])
 	}
 }
 
 /*
  * Update and calculate the vector clocks given a runlock operation
  * Args:
- *   routine (int): The routine id
- *   id (int): The id of the mutex
+ *   mu (*TraceElementMutex): The trace element
  *   vc (map[int]VectorClock): The current vector clocks
- *   tPost (int): The timestamp at the end of the event
  */
-func RUnlock(routine int, id int, vc map[int]clock.VectorClock, tPost int) {
-	if tPost == 0 {
-		vc[routine] = vc[routine].Inc(routine)
+func RUnlock(mu *TraceElementMutex, vc map[int]clock.VectorClock) {
+	if mu.tPost == 0 {
+		vc[mu.routine] = vc[mu.routine].Inc(mu.routine)
 		return
 	}
 
-	newRel(id, vc[routine].GetSize())
-	relR[id] = relR[id].Sync(vc[routine])
-	vc[routine] = vc[routine].Inc(routine)
+	newRel(mu.id, vc[mu.routine].GetSize())
+	relR[mu.id] = relR[mu.id].Sync(vc[mu.routine])
+	vc[mu.routine] = vc[mu.routine].Inc(mu.routine)
 
 	if analysisCases["mixedDeadlock"] {
-		lockSetRemoveLock(routine, id)
+		lockSetRemoveLock(mu.routine, mu.id)
 	}
 }

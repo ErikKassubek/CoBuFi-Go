@@ -327,11 +327,11 @@ func (co *TraceElementCond) updateVectorClock() {
 
 	switch co.opC {
 	case WaitCondOp:
-		CondWait(co.id, co.routine, currentVCHb, co.tPost == 0)
+		CondWait(co, currentVCHb)
 	case SignalOp:
-		CondSignal(co.id, co.routine, currentVCHb)
+		CondSignal(co, currentVCHb)
 	case BroadcastOp:
-		CondBroadcast(co.id, co.routine, currentVCHb)
+		CondBroadcast(co, currentVCHb)
 	}
 
 }

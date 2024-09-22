@@ -3,7 +3,7 @@
 // File: vcWait.go
 // Brief: Update functions of vector groups for wait group operations
 //        Some function start analysis functions
-// 
+//
 // Author: Erik Kassubek <kassubek.erik@gmail.com>
 // Created: 2023-07-25
 // LastChange: 2024-09-01
@@ -32,34 +32,29 @@ func newWg(index int, nRout int) {
 /*
  * Calculate the new vector clock for a add or done operation and update cv
  * Args:
- *   routine (int): The routine id
- *   id (int): The id of the wait group
- *   delta (int): The delta of the wait group
- *   tID (string): The id of the trace element, contains the position and the tpre
+ *   wa (*TraceElementWait): The trace element
  *   vc (map[int]VectorClock): The vector clocks
  */
-func Change(routine int, id int, delta int, tID string, vc map[int]clock.VectorClock) {
-	newWg(id, vc[id].GetSize())
-	wg[id] = wg[id].Sync(vc[routine])
-	vc[routine] = vc[routine].Inc(routine)
+func Change(wa *TraceElementWait, vc map[int]clock.VectorClock) {
+	newWg(wa.id, vc[wa.id].GetSize())
+	wg[wa.id] = wg[wa.id].Sync(vc[wa.routine])
+	vc[wa.routine] = vc[wa.routine].Inc(wa.routine)
 
 	if analysisCases["doneBeforeAdd"] {
-		checkForDoneBeforeAddChange(routine, id, delta, tID, vc[routine])
+		checkForDoneBeforeAddChange(wa.routine, wa.id, wa.delta, wa.tID, vc[wa.routine])
 	}
 }
 
 /*
  * Calculate the new vector clock for a wait operation and update cv
  * Args:
- *   routine (int): The routine id
- *   id (int): The id of the wait group
+ *   wa (*TraceElementWait): The trace element
  *   vc (*map[int]VectorClock): The vector clocks
- *   notLeak (bool): If the wait group is not leaked (tpost = 0)
  */
-func Wait(routine int, id int, tID string, vc map[int]clock.VectorClock, notLeak bool) {
-	newWg(id, vc[id].GetSize())
-	if notLeak {
-		vc[routine] = vc[routine].Sync(wg[id])
-		vc[routine] = vc[routine].Inc(routine)
+func Wait(wa *TraceElementWait, vc map[int]clock.VectorClock) {
+	newWg(wa.id, vc[wa.id].GetSize())
+	if wa.tPost != 0 {
+		vc[wa.routine] = vc[wa.routine].Sync(wg[wa.id])
+		vc[wa.routine] = vc[wa.routine].Inc(wa.routine)
 	}
 }

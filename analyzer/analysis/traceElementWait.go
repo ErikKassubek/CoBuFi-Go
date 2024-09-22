@@ -285,9 +285,9 @@ func (wa *TraceElementWait) updateVectorClock() {
 
 	switch wa.opW {
 	case ChangeOp:
-		Change(wa.routine, wa.id, wa.delta, wa.tID, currentVCHb)
+		Change(wa, currentVCHb)
 	case WaitOp:
-		Wait(wa.routine, wa.id, wa.tID, currentVCHb, wa.getTpost() != 0)
+		Wait(wa, currentVCHb)
 	default:
 		err := "Unknown operation on wait group: " + wa.ToString()
 		logging.Debug(err, logging.ERROR)
