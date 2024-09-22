@@ -1,8 +1,8 @@
 // Copyrigth (c) 2024 Erik Kassubek
 //
 // File: waitGroup.go
-// Brief: Rewrite for negative wait group counter 
-// 
+// Brief: Rewrite for negative wait group counter
+//
 // Author: Erik Kassubek <kassubek.erik@gmail.com>
 // Created: 2024-04-05
 // LastChange: 2024-09-01
@@ -12,8 +12,8 @@
 package rewriter
 
 import (
+	"analyzer/analysis"
 	"analyzer/bugs"
-	"analyzer/trace"
 )
 
 /*
@@ -30,7 +30,7 @@ func rewriteWaitGroup(bug bugs.Bug) error {
 	for i := range bug.TraceElement1 {
 		elem2 := bug.TraceElement2[i] // done
 
-		trace.ShiftConcurrentOrAfterToAfter(elem2)
+		analysis.ShiftConcurrentOrAfterToAfter(elem2)
 
 		if minTime == -1 || (*elem2).GetTPre() < minTime {
 			minTime = (*elem2).GetTPre()
@@ -43,7 +43,7 @@ func rewriteWaitGroup(bug bugs.Bug) error {
 
 	// add start and end
 	if !(minTime == -1 && maxTime == -1) {
-		trace.AddTraceElementReplay(maxTime+1, exitNegativeWG)
+		analysis.AddTraceElementReplay(maxTime+1, exitNegativeWG)
 	}
 
 	return nil

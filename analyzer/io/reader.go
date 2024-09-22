@@ -21,8 +21,8 @@ import (
 	"strconv"
 	"strings"
 
+	"analyzer/analysis"
 	"analyzer/logging"
-	"analyzer/trace"
 )
 
 /*
@@ -66,7 +66,7 @@ func CreateTraceFromFiles(filePath string, ignoreAtomics bool) (int, error) {
 		}
 	}
 
-	trace.Sort()
+	analysis.Sort()
 
 	return numberIds, nil
 }
@@ -126,26 +126,26 @@ func processElement(element string, routine int, ignoreAtomics bool) error {
 		if ignoreAtomics {
 			return nil
 		}
-		err = trace.AddTraceElementAtomic(routine, fields[1], fields[2], fields[3])
+		err = analysis.AddTraceElementAtomic(routine, fields[1], fields[2], fields[3])
 	case "C":
-		err = trace.AddTraceElementChannel(routine, fields[1], fields[2],
+		err = analysis.AddTraceElementChannel(routine, fields[1], fields[2],
 			fields[3], fields[4], fields[5], fields[6], fields[7], fields[8])
 	case "M":
-		err = trace.AddTraceElementMutex(routine, fields[1], fields[2],
+		err = analysis.AddTraceElementMutex(routine, fields[1], fields[2],
 			fields[3], fields[4], fields[5], fields[6], fields[7])
 	case "G":
-		err = trace.AddTraceElementFork(routine, fields[1], fields[2], fields[3])
+		err = analysis.AddTraceElementFork(routine, fields[1], fields[2], fields[3])
 	case "S":
-		err = trace.AddTraceElementSelect(routine, fields[1], fields[2], fields[3],
+		err = analysis.AddTraceElementSelect(routine, fields[1], fields[2], fields[3],
 			fields[4], fields[5], fields[6])
 	case "W":
-		err = trace.AddTraceElementWait(routine, fields[1], fields[2], fields[3],
+		err = analysis.AddTraceElementWait(routine, fields[1], fields[2], fields[3],
 			fields[4], fields[5], fields[6], fields[7])
 	case "O":
-		err = trace.AddTraceElementOnce(routine, fields[1], fields[2], fields[3],
+		err = analysis.AddTraceElementOnce(routine, fields[1], fields[2], fields[3],
 			fields[4], fields[5])
 	case "N":
-		err = trace.AddTraceElementCond(routine, fields[1], fields[2], fields[3],
+		err = analysis.AddTraceElementCond(routine, fields[1], fields[2], fields[3],
 			fields[4], fields[5])
 	default:
 		return errors.New("Unknown element type in: " + element)

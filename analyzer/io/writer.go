@@ -12,7 +12,7 @@
 package io
 
 import (
-	"analyzer/trace"
+	"analyzer/analysis"
 	"io"
 	"os"
 	"sort"
@@ -87,7 +87,7 @@ func WriteTrace(path string, numberRoutines int) error {
 
 			// write trace
 			// println("Write trace to " + fileName + "...")
-			trace := trace.GetTraceFromId(i)
+			trace := analysis.GetTraceFromId(i)
 
 			// sort trace by tPre
 			sort.Slice(trace, func(i, j int) bool {

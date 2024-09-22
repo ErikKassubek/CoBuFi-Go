@@ -2,7 +2,7 @@
 //
 // File: closed.go
 // Brief: Rewrite traces for send and receive on closed channel
-// 
+//
 // Author: Erik Kassubek <kassubek.erik@gmail.com>
 // Created: 2024-04-05
 // LastChange: 2024-09-01
@@ -12,8 +12,8 @@
 package rewriter
 
 import (
+	"analyzer/analysis"
 	"analyzer/bugs"
-	"analyzer/trace"
 	"errors"
 )
 
@@ -71,18 +71,18 @@ func rewriteClosedChannel(bug bugs.Bug, exitCode int) error {
 	}
 
 	// remove T3 -> T1 ++ [a] ++ T2 ++ [c]
-	trace.ShortenTrace(t2, true)
+	analysis.ShortenTrace(t2, true)
 
 	// transform T2 to T2' -> T1 ++ T2' ++ [c, a]
 	// This is done by removing all elements in T2, that are concurrent to c (including a)
 	// and then adding a after c
-	trace.RemoveConcurrent(bug.TraceElement2[0], t1)
+	analysis.RemoveConcurrent(bug.TraceElement2[0], t1)
 	(*bug.TraceElement1[0]).SetT(t2 + 1)
 
-	trace.AddElementToTrace(*bug.TraceElement1[0])
+	analysis.AddElementToTrace(*bug.TraceElement1[0])
 
 	// add a stop marker -> T1 ++ T2' ++ [c, a, X']
-	trace.AddTraceElementReplay(t2+2, exitCode)
+	analysis.AddTraceElementReplay(t2+2, exitCode)
 
 	return nil
 }

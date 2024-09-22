@@ -1,8 +1,8 @@
 // Copyrigth (c) 2024 Erik Kassubek
 //
 // File: cyclicDeadlock.go
-// Brief: Rewrite trace for cyclic deadlocks 
-// 
+// Brief: Rewrite trace for cyclic deadlocks
+//
 // Author: Erik Kassubek <kassubek.erik@gmail.com>
 // Created: 2024-04-05
 // LastChange: 2024-09-01
@@ -12,8 +12,8 @@
 package rewriter
 
 import (
+	"analyzer/analysis"
 	"analyzer/bugs"
-	"analyzer/trace"
 	"errors"
 )
 
@@ -83,7 +83,7 @@ func rewriteCyclicDeadlock(bug bugs.Bug) error {
 	}
 
 	// remove tail after lastTime
-	trace.ShortenTrace(lastTime, true)
+	analysis.ShortenTrace(lastTime, true)
 
 	routinesInCycle := make(map[int]struct{})
 
@@ -104,7 +104,7 @@ func rewriteCyclicDeadlock(bug bugs.Bug) error {
 			}
 
 			// shift the routine of elem1 so that elem 2 is before elem1
-			res := trace.ShiftRoutine((*elem1).GetRoutine(), (*elem1).GetTPre(), (*elem2).GetTPre()-(*elem1).GetTPre()+1)
+			res := analysis.ShiftRoutine((*elem1).GetRoutine(), (*elem1).GetTPre(), (*elem2).GetTPre()-(*elem1).GetTPre()+1)
 
 			if res {
 				found = true
@@ -116,7 +116,7 @@ func rewriteCyclicDeadlock(bug bugs.Bug) error {
 		}
 	}
 
-	currentTrace := trace.GetTraces()
+	currentTrace := analysis.GetTraces()
 	lastTime = -1
 
 	for routine := range routinesInCycle {
@@ -124,9 +124,9 @@ func rewriteCyclicDeadlock(bug bugs.Bug) error {
 		for i := len((*currentTrace)[routine]) - 1; i >= 0; i-- {
 			elem := (*currentTrace)[routine][i]
 			switch elem := elem.(type) {
-			case *trace.TraceElementMutex:
+			case *analysis.TraceElementMutex:
 				if (*elem).IsLock() {
-					trace.ShortenRoutineIndex(routine, i, true)
+					analysis.ShortenRoutineIndex(routine, i, true)
 					if lastTime == -1 || (*elem).GetTSort() > lastTime {
 						lastTime = (*elem).GetTSort()
 					}
@@ -140,7 +140,7 @@ func rewriteCyclicDeadlock(bug bugs.Bug) error {
 	}
 
 	// add start and end signal
-	trace.AddTraceElementReplay(lastTime+1, exitCodeCyclic)
+	analysis.AddTraceElementReplay(lastTime+1, exitCodeCyclic)
 
 	return nil
 }
