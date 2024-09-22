@@ -45,12 +45,6 @@ func CreateStats(pathToProgram, pathToResults, progName string) error {
 		return err
 	}
 
-	fmt.Println(statsProg)
-	fmt.Println(statsTraces)
-	fmt.Println(statsAnalyzer["detected"])
-	fmt.Println(statsAnalyzer["replayWritten"])
-	fmt.Println(statsAnalyzer["replaySuccessful"])
-
 	return nil
 
 }

@@ -59,11 +59,13 @@ If you use the toolchain script, this will be done automatically.
 There is a script that will come in handy when working with AdvocateGo.
 The script can be found [here](./toolchain/toolchain/).
 
-Currently the script only works for analyzing program using its unit tests.
+<!-- Currently the script only works for analyzing program using its unit tests.
 To analyze programs when running its main function, the steps have to be
-performed manually. For this see below in section Manual Analysis.
+performed manually. For this see below in section Manual Analysis. -->
 
-<!-- The script is able to analyzer both full programs as well as unit tests. -->
+The script is able to analyzer both full programs as well as unit tests.
+To automatically run it with full programs, the program must be buildable
+with `go build`
 
 It will automatically insert and remove the required headers.
 It will run the program or test, analyze it and automatically run rewrites and
@@ -75,10 +77,10 @@ as well as statistics about
 - Overview of actual exit codes that appeared after running the reordered programs
 
 The script can be run with
-<!-- ```
+```
 ./toolchain main [args]
 ```
-to run a full program with a main function or with -->
+to run a full program with a main function or with
 ```
 ./toolchain tests [args]
 ```
@@ -88,10 +90,14 @@ The following args are required:
 - `-a [path]`: path to the ADVOCATE directory
 - `-f [path]`: path to the program containing the test files
 
+For main, the following arg is also required
+
+- `-E [name]`: only for main, name of the executable of the program
+
 The following arguments can be set:
 
 - `-t`: if set, the toolchain will measure the runtime of the runs and analysis. It will also run the tests/the program without any recording or replay to measure a base time
-- `-e`: if set, the toolchain check if there are relevant operations in the program, that have never been executed in the runs
+- `-m`: if set, the toolchain check if there are relevant operations in the program, that have never been executed in the runs
 - `-s`: create a file containing statistics about the program runs
 
 If either `-t` or `-s` is set, the following arg must be set:

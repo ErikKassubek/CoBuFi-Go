@@ -13,6 +13,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -84,4 +85,35 @@ func getFiles(folderPath string, fileName string) ([]string, error) {
 		return nil, err
 	}
 	return files, nil
+}
+
+/*
+ * Function to move results files from the package directory to the destination directory
+ * Args:
+ *    packagePath (string): path to the package directory
+ *    destination (string): path to the destination directory
+ */
+func moveResults(packagePath, destination string) {
+	filesToMove := []string{
+		"advocateTrace",
+		"results_machine.log",
+		"results_readable.log",
+	}
+
+	for _, file := range filesToMove {
+		src := filepath.Join(packagePath, file)
+		dest := filepath.Join(destination, file)
+		if err := os.Rename(src, dest); err != nil {
+			log.Printf("Failed to move %s to %s: %v", src, dest, err)
+		}
+	}
+
+	// Move any rewritten_trace directories
+	rewrittenTraces, _ := filepath.Glob(filepath.Join(packagePath, "rewritten_trace*"))
+	for _, trace := range rewrittenTraces {
+		dest := filepath.Join(destination, filepath.Base(trace))
+		if err := os.Rename(trace, dest); err != nil {
+			log.Printf("Failed to move %s to %s: %v", trace, dest, err)
+		}
+	}
 }
