@@ -3,9 +3,8 @@
 // File: writer.go
 // Brief: Write the internal trace into files
 //
-// Author: Erik Kassubek <kassubek.erik@gmail.com>
+// Author: Erik Kassubek
 // Created: 2023-12-01
-// LastChange: 2024-09-01
 //
 // License: BSD-3-Clause
 

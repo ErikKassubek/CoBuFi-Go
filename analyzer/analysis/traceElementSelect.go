@@ -3,9 +3,8 @@
 // File: traceElementSelect.go
 // Brief: Struct and functions for select operations in the trace
 //
-// Author: Erik Kassubek <kassubek.erik@gmail.com>
+// Author: Erik Kassubek
 // Created: 2023-08-08
-// LastChange: 2024-09-01
 //
 // License: BSD-3-Clause
 
@@ -299,6 +298,13 @@ func (se *TraceElementSelect) GetPartner() *TraceElementChannel {
 		return se.chosenCase.partner
 	}
 	return nil
+}
+
+/*
+ * Get the string representation of the object type
+ */
+func (se *TraceElementSelect) GetObjType() string {
+	return "SS"
 }
 
 // MARK: Setter

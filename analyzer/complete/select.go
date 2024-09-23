@@ -1,11 +1,10 @@
 // Copyrigth (c) 2024 Erik Kassubek
 //
 // File: select.go
-// Brief: Read all select cases in the program 
-// 
-// Author: Erik Kassubek <kassubek.erik@gmail.com>
+// Brief: Read all select cases in the program
+//
+// Author: Erik Kassubek
 // Created: 2024-06-30
-// LastChange: 2024-09-01
 //
 // License: BSD-3-Clause
 

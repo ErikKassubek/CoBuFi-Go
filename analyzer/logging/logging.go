@@ -3,9 +3,8 @@
 // File: logging.go
 // Brief: Function for debug logging and for logging found bugs
 //
-// Author: Erik Kassubek <kassubek.erik@gmail.com>
+// Author: Erik Kassubek
 // Created: 2023-08-30
-// LastChange: 2024-09-01
 //
 // License: BSD-3-Clause
 
@@ -56,9 +55,10 @@ const (
 	ASelCaseWithoutPartner ResultType = "A05"
 
 	// possible
-	PSendOnClosed ResultType = "P01"
-	PRecvOnClosed ResultType = "P02"
-	PNegWG        ResultType = "P03"
+	PSendOnClosed     ResultType = "P01"
+	PRecvOnClosed     ResultType = "P02"
+	PNegWG            ResultType = "P03"
+	PUnlockBeforeLock ResultType = "P04"
 
 	// leaks
 	LUnbufferedWith    = "L01"
@@ -80,9 +80,10 @@ var resultTypeMap = map[ResultType]string{
 	AConcurrentRecv:        "Found concurrent Recv on same channel:",
 	ASelCaseWithoutPartner: "Found select case without partner or nil case",
 
-	PSendOnClosed: "Possible send on closed channel:",
-	PRecvOnClosed: "Possible receive on closed channel:",
-	PNegWG:        "Possible negative waitgroup counter:",
+	PSendOnClosed:     "Possible send on closed channel:",
+	PRecvOnClosed:     "Possible receive on closed channel:",
+	PNegWG:            "Possible negative waitgroup counter:",
+	PUnlockBeforeLock: "Possible unlock of a not locked mutex:",
 
 	LUnbufferedWith:    "Leak on unbuffered channel with possible partner:",
 	LUnbufferedWithout: "Leak on unbuffered channel without possible partner:",

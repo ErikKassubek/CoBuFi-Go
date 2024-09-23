@@ -3,9 +3,8 @@
 // File: traceElementWait.go
 // Brief: Struct and functions for wait group operations in the trace
 //
-// Author: Erik Kassubek <kassubek.erik@gmail.com>
+// Author: Erik Kassubek
 // Created: 2023-08-08
-// LastChange: 2024-09-01
 //
 // License: BSD-3-Clause
 
@@ -205,6 +204,18 @@ func (wa *TraceElementWait) GetDelta() int {
  */
 func (wa *TraceElementWait) GetVC() clock.VectorClock {
 	return wa.vc
+}
+
+/*
+ * Get the string representation of the object type
+ */
+func (wa *TraceElementWait) GetObjType() string {
+	if wa.delta > 0 {
+		return "WA"
+	} else if wa.delta < 0 {
+		return "WD"
+	}
+	return "WW"
 }
 
 // MARK: Setter

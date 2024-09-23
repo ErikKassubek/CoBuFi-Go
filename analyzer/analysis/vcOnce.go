@@ -3,9 +3,8 @@
 // File: vcOnce.go
 // Brief: Update functions of vector clocks for once operations
 //
-// Author: Erik Kassubek <kassubek.erik@gmail.com>
+// Author: Erik Kassubek
 // Created: 2023-07-25
-// LastChange: 2024-09-01
 //
 // License: BSD-3-Clause
 

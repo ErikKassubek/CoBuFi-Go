@@ -3,9 +3,8 @@
 // File: analysisSelectPartner.go
 // Brief: Trace analysis for detection of select cases without any possible partners
 //
-// Author: Erik Kassubek <kassubek.erik@gmail.com>
+// Author: Erik Kassubek
 // Created: 2024-03-04
-// LastChange: 2024-09-01
 //
 // License: BSD-3-Clause
 

@@ -2,10 +2,9 @@
 //
 // File: results.go
 // Brief: Read the analysis result file and analyze its content
-// 
-// Author: Erik Kassubek <kassubek.erik@gmail.com>
+//
+// Author: Erik Kassubek
 // Created: 2023-11-30
-// LastChange: 2024-09-01
 //
 // License: BSD-3-Clause
 

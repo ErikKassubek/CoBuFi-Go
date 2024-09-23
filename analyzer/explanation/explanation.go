@@ -3,9 +3,8 @@
 // File: explanation.go
 // Brief: Create an explanation file for a found bug
 //
-// Author: Erik Kassubek <kassubek.erik@gmail.com>
+// Author: Erik Kassubek
 // Created: 2024-06-14
-// LastChange: 2024-09-01
 //
 // License: BSD-3-Clause
 

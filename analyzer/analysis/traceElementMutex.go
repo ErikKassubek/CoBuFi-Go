@@ -3,9 +3,8 @@
 // File: traceElementMutex.go
 // Brief: Struct and functions for mutex operations in the trace
 //
-// Author: Erik Kassubek <kassubek.erik@gmail.com>
+// Author: Erik Kassubek
 // Created: 2023-08-08
-// LastChange: 2024-09-01
 //
 // License: BSD-3-Clause
 
@@ -233,6 +232,27 @@ func (mu *TraceElementMutex) GetVC() clock.VectorClock {
 	return mu.vc
 }
 
+/*
+ * Get the string representation of the object type
+ */
+func (mu *TraceElementMutex) GetObjType() string {
+	switch mu.opM {
+	case LockOp:
+		return "ML"
+	case RLockOp:
+		return "MR"
+	case TryLockOp:
+		return "MT"
+	case TryRLockOp:
+		return "MY"
+	case UnlockOp:
+		return "MU"
+	case RUnlockOp:
+		return "MN"
+	}
+	return "M"
+}
+
 // MARK: Setter
 
 /*
@@ -334,15 +354,27 @@ func (mu *TraceElementMutex) updateVectorClock() {
 	switch mu.opM {
 	case LockOp:
 		Lock(mu, currentVCHb, currentVCWmhb)
+		if analysisCases["unlockBeforeLock"] {
+			checkForUnlockBeforeLockLock(mu)
+		}
 		if analysisCases["cyclicDeadlock"] {
 			CyclicDeadlockMutexLock(mu, false, currentVCWmhb[mu.routine])
 		}
 	case RLockOp:
 		RLock(mu, currentVCHb, currentVCWmhb)
+		if analysisCases["unlockBeforeLock"] {
+			checkForUnlockBeforeLockLock(mu)
+		}
 		if analysisCases["cyclicDeadlock"] {
 			CyclicDeadlockMutexLock(mu, true, currentVCWmhb[mu.routine])
 		}
 	case TryLockOp:
+		if analysisCases["unlockBeforeLock"] {
+			checkForUnlockBeforeLockLock(mu)
+		}
+		if analysisCases["unlockBeforeLock"] {
+			checkForUnlockBeforeLockLock(mu)
+		}
 		if mu.suc {
 			Lock(mu, currentVCHb, currentVCWmhb)
 			if analysisCases["cyclicDeadlock"] {
@@ -352,16 +384,25 @@ func (mu *TraceElementMutex) updateVectorClock() {
 	case TryRLockOp:
 		if mu.suc {
 			RLock(mu, currentVCHb, currentVCWmhb)
+			if analysisCases["unlockBeforeLock"] {
+				checkForUnlockBeforeLockLock(mu)
+			}
 			if analysisCases["cyclicDeadlock"] {
 				CyclicDeadlockMutexLock(mu, true, currentVCWmhb[mu.routine])
 			}
 		}
 	case UnlockOp:
 		Unlock(mu, currentVCHb)
+		if analysisCases["unlockBeforeLock"] {
+			checkForUnlockBeforeLockLock(mu)
+		}
 		if analysisCases["cyclicDeadlock"] {
 			CyclicDeadlockMutexUnLock(mu)
 		}
 	case RUnlockOp:
+		if analysisCases["unlockBeforeLock"] {
+			checkForUnlockBeforeLockLock(mu)
+		}
 		RUnlock(mu, currentVCHb)
 		if analysisCases["cyclicDeadlock"] {
 			CyclicDeadlockMutexUnLock(mu)

@@ -4,9 +4,8 @@
 // Brief: Update functions for vector clocks from channel operations
 //        Some of the update function also start analysis functions
 //
-// Author: Erik Kassubek <kassubek.erik@gmail.com>
+// Author: Erik Kassubek
 // Created: 2023-07-27
-// LastChange: 2024-09-01
 //
 // License: BSD-3-Clause
 

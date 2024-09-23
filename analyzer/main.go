@@ -3,9 +3,8 @@
 // File: main.go
 // Brief: Main file and starting point for the analyzer
 //
-// Author: Erik Kassubek <kassubek.erik@gmail.com>
+// Author: Erik Kassubek
 // Created: 2023-08-08
-// LastChange: 2024-09-19
 //
 // License: BSD-3-Clause
 

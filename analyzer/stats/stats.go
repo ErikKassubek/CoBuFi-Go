@@ -3,9 +3,8 @@
 // File: stats.go
 // Brief: Create statistics about programs and traces
 //
-// Author: Erik Kassubek <kassubek.erik@gmail.com>
+// Author: Erik Kassubek
 // Created: 2023-07-13
-// LastChange: 2024-09-21
 //
 // License: BSD-3-Clause
 

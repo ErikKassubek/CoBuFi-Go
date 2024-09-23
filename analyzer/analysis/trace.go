@@ -3,9 +3,8 @@
 // File: trace.go
 // Brief: Functions and structs for the trace
 //
-// Author: Erik Kassubek <kassubek.erik@gmail.com>
+// Author: Erik Kassubek
 // Created: 2024-08-08
-// LastChange: 2024-09-01
 //
 // License: BSD-3-Clause
 
@@ -423,15 +422,19 @@ func RunAnalysis(assumeFifo bool, ignoreCriticalSections bool, analysisCasesMap 
 	}
 
 	if analysisCases["leak"] {
-		CheckForLeak()
+		checkForLeak()
 	}
 
 	if analysisCases["doneBeforeAdd"] {
-		CheckForDoneBeforeAdd()
+		checkForDoneBeforeAdd()
+	}
+
+	if analysisCases["unlockBeforeLock"] {
+		checkForUnlockBeforeLock()
 	}
 
 	if analysisCases["cyclicDeadlock"] {
-		CheckForCyclicDeadlock()
+		checkForCyclicDeadlock()
 	}
 
 	logging.Debug("Analysis completed", logging.INFO)
