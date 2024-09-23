@@ -123,29 +123,8 @@ func checkForDoneBeforeAdd() {
 				}
 			}
 
-			args1 := []logging.ResultElem{} // adds
-			args2 := []logging.ResultElem{} // dones
-
-			for _, add := range addsNegWgSorted {
-				if add.GetTID() == "\n" {
-					continue
-				}
-				file, line, tPre, err := infoFromTID(add.GetTID())
-				if err != nil {
-					logging.Debug(err.Error(), logging.ERROR)
-					continue
-				}
-
-				args1 = append(args1, logging.TraceElementResult{
-					RoutineID: add.GetRoutine(),
-					ObjID:     id,
-					TPre:      tPre,
-					ObjType:   "WA",
-					File:      file,
-					Line:      line,
-				})
-
-			}
+			args1 := []logging.ResultElem{} // dones
+			args2 := []logging.ResultElem{} // adds
 
 			for _, done := range donesNEgWgSorted {
 				if done.GetTID() == "\n" {
@@ -157,7 +136,7 @@ func checkForDoneBeforeAdd() {
 					return
 				}
 
-				args2 = append(args2, logging.TraceElementResult{
+				args1 = append(args1, logging.TraceElementResult{
 					RoutineID: done.GetRoutine(),
 					ObjID:     id,
 					TPre:      tPre,
@@ -167,8 +146,29 @@ func checkForDoneBeforeAdd() {
 				})
 			}
 
+			for _, add := range addsNegWgSorted {
+				if add.GetTID() == "\n" {
+					continue
+				}
+				file, line, tPre, err := infoFromTID(add.GetTID())
+				if err != nil {
+					logging.Debug(err.Error(), logging.ERROR)
+					continue
+				}
+
+				args2 = append(args2, logging.TraceElementResult{
+					RoutineID: add.GetRoutine(),
+					ObjID:     id,
+					TPre:      tPre,
+					ObjType:   "WA",
+					File:      file,
+					Line:      line,
+				})
+
+			}
+
 			logging.Result(logging.CRITICAL, logging.PNegWG,
-				"add", args1, "done", args2)
+				"done", args1, "add", args2)
 		}
 	}
 }

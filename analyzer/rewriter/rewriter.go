@@ -31,6 +31,7 @@ const (
 	exitSendClose          = 30
 	exitRecvClose          = 31
 	exitNegativeWG         = 32
+	exitUnlockBeforeLock   = 33
 	exitCodeCyclic         = 41
 )
 
@@ -68,7 +69,11 @@ func RewriteTrace(bug bugs.Bug) (rewriteNeeded bool, code int, err error) {
 	case bugs.PNegWG:
 		code = exitNegativeWG
 		rewriteNeeded = true
-		err = rewriteWaitGroup(bug)
+		err = rewriteGraph(bug)
+	case bugs.PUnlockBeforeLock:
+		code = exitUnlockBeforeLock
+		rewriteNeeded = true
+		err = rewriteGraph(bug)
 	// case bugs.MixedDeadlock:
 	// 	err = errors.New("Rewriting trace for mixed deadlock is not implemented yet")
 	// case bugs.CyclicDeadlock:

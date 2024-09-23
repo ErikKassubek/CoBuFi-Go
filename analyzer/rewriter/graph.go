@@ -20,22 +20,26 @@ import (
  * Args:
  *   bug (Bug): The bug to create a trace for
  */
-func rewriteWaitGroup(bug bugs.Bug) error {
-	println("Start rewriting trace for negative waitgroup counter...")
+func rewriteGraph(bug bugs.Bug) error {
+	if bug.Type == bugs.PNegWG {
+		println("Start rewriting trace for negative waitgroup counter...")
+	} else if bug.Type == bugs.PUnlockBeforeLock {
+		println("Start rewriting trace for unlock before lock...")
+	}
 
 	minTime := -1
 	maxTime := -1
 
-	for i := range bug.TraceElement1 {
-		elem2 := bug.TraceElement2[i] // done
+	for i := range bug.TraceElement2 {
+		elem1 := bug.TraceElement1[i] // done/unlock
 
-		analysis.ShiftConcurrentOrAfterToAfter(elem2)
+		analysis.ShiftConcurrentOrAfterToAfter(elem1)
 
-		if minTime == -1 || (*elem2).GetTPre() < minTime {
-			minTime = (*elem2).GetTPre()
+		if minTime == -1 || (*elem1).GetTPre() < minTime {
+			minTime = (*elem1).GetTPre()
 		}
-		if maxTime == -1 || (*elem2).GetTPre() > maxTime {
-			maxTime = (*elem2).GetTPre()
+		if maxTime == -1 || (*elem1).GetTPre() > maxTime {
+			maxTime = (*elem1).GetTPre()
 		}
 
 	}

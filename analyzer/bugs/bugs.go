@@ -94,13 +94,12 @@ func (b Bug) ToString() string {
 		arg2Str = "close: "
 	case PNegWG:
 		typeStr = "Possible negative waitgroup counter:"
-		arg1Str = "add: "
-		arg2Str = "done: "
+		arg1Str = "done: "
+		arg2Str = "add: "
 	case PUnlockBeforeLock:
 		typeStr = "Possible unlock of a not locked mutex:"
 		arg1Str = "unlocks: "
 		arg2Str = "locks: "
-
 	case LUnbufferedWith:
 		typeStr = "Leak on unbuffered channel with possible partner:"
 		arg1Str = "channel: "
