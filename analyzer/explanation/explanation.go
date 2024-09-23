@@ -225,7 +225,7 @@ func writeFile(path string, index int, description map[string]string,
 
 		for j, pos := range positions[key] {
 			code := code[key][j]
-			res += "- " + pos + "\n"
+			res += "-> " + pos + "\n"
 			res += code + "\n\n"
 		}
 	}
