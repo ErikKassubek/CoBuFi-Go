@@ -18,6 +18,7 @@ AdvocateGo tries to detect the following situations:
 - P01: Possible send on closed channel
 - P02: Possible receive on closed channel
 - P03: Possible negative waitgroup counter
+- P04: Possible unlock of not locked mutex
 - L: Leaking routines
 
 A more in detail explanation of how it works can be found [here](./doc/Analysis.md).
@@ -188,6 +189,7 @@ AdvocateGo currently supports following bugs
 - P01: Possible send on closed channel
 - P02: Possible receive on closed channel
 - P03: Possible negative waitgroup counter
+- P04: Possible unlock of not locked mutex
 - L01: Leak on unbuffered channel with possible partner
 - L02: Leak on unbuffered channel without possible partner
 - L03: Leak on buffered channel with possible partner
