@@ -1,21 +1,22 @@
 package runtime
 
 const (
-	ExitCodeDefault        = 0
-	ExitCodePanic          = 3
-	ExitCodeStuckFinish    = 10
-	ExitCodeStuckWaitElem  = 11
-	ExitCodeStuckNoElem    = 12
-	ExitCodeElemEmptyTrace = 13
-	ExitCodeLeakUnbuf      = 20
-	ExitCodeLeakBuf        = 21
-	ExitCodeLeakMutex      = 22
-	ExitCodeLeakCond       = 23
-	ExitCodeLeakWG         = 24
-	ExitCodeSendClose      = 30
-	ExitCodeRecvClose      = 31
-	ExitCodeNegativeWG     = 32
-	ExitCodeCyclic         = 41
+	ExitCodeDefault          = 0
+	ExitCodePanic            = 3
+	ExitCodeStuckFinish      = 10
+	ExitCodeStuckWaitElem    = 11
+	ExitCodeStuckNoElem      = 12
+	ExitCodeElemEmptyTrace   = 13
+	ExitCodeLeakUnbuf        = 20
+	ExitCodeLeakBuf          = 21
+	ExitCodeLeakMutex        = 22
+	ExitCodeLeakCond         = 23
+	ExitCodeLeakWG           = 24
+	ExitCodeSendClose        = 30
+	ExitCodeRecvClose        = 31
+	ExitCodeNegativeWG       = 32
+	ExitCodeUnlockBeforeLock = 33
+	ExitCodeCyclic           = 41
 )
 
 var ExitCodeNames = map[int]string{
@@ -33,6 +34,7 @@ var ExitCodeNames = map[int]string{
 	30: "Send on close",
 	31: "Receive on close",
 	32: "Negative WaitGroup counter",
+	33: "Unlock of unlocked mutex",
 }
 
 /*
@@ -672,7 +674,14 @@ func ExitReplayPanic(msg any) {
 	case string:
 		if expectedExitCode == ExitCodeNegativeWG && m == "sync: negative WaitGroup counter" {
 			ExitReplayWithCode(ExitCodeNegativeWG)
+		} else if expectedExitCode == ExitCodeUnlockBeforeLock {
+			if m == "sync: RUnlock of unlocked RWMutex" ||
+				m == "sync: Unlock of unlocked RWMutex" ||
+				m == "sync: unlock of unlocked mutex" {
+				ExitReplayWithCode(ExitCodeUnlockBeforeLock)
+			}
 		}
+
 	}
 	ExitReplayWithCode(ExitCodePanic)
 }

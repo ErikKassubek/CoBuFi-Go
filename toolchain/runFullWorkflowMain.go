@@ -51,6 +51,26 @@ func runWorkflowMain(pathToAdvocate string, pathToFile string, executableName st
 		return fmt.Errorf("Failed to create advocateResult directory: %v", err)
 	}
 
+	fmt.Println("Run program and analysis...")
+
+	output := filepath.Join(dir, "output.log")
+	outFile, err := os.OpenFile(output, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		return fmt.Errorf("Failed to open log file: %v", err)
+	}
+	defer outFile.Close()
+
+	origStdout := os.Stdout
+	origStderr := os.Stderr
+
+	os.Stdout = outFile
+	os.Stderr = outFile
+
+	defer func() {
+		os.Stdout = origStdout
+		os.Stderr = origStderr
+	}()
+
 	// Set GOROOT environment variable
 	if err := os.Setenv("GOROOT", pathToGoRoot); err != nil {
 		return fmt.Errorf("Failed to set GOROOT: %v", err)

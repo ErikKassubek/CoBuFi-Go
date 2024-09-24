@@ -394,14 +394,14 @@ func (mu *TraceElementMutex) updateVectorClock() {
 	case UnlockOp:
 		Unlock(mu, currentVCHb)
 		if analysisCases["unlockBeforeLock"] {
-			checkForUnlockBeforeLockLock(mu)
+			checkForUnlockBeforeLockUnlock(mu)
 		}
 		if analysisCases["cyclicDeadlock"] {
 			CyclicDeadlockMutexUnLock(mu)
 		}
 	case RUnlockOp:
 		if analysisCases["unlockBeforeLock"] {
-			checkForUnlockBeforeLockLock(mu)
+			checkForUnlockBeforeLockUnlock(mu)
 		}
 		RUnlock(mu, currentVCHb)
 		if analysisCases["cyclicDeadlock"] {

@@ -69,11 +69,11 @@ func RewriteTrace(bug bugs.Bug) (rewriteNeeded bool, code int, err error) {
 	case bugs.PNegWG:
 		code = exitNegativeWG
 		rewriteNeeded = true
-		err = rewriteGraph(bug)
+		err = rewriteGraph(bug, code)
 	case bugs.PUnlockBeforeLock:
 		code = exitUnlockBeforeLock
 		rewriteNeeded = true
-		err = rewriteGraph(bug)
+		err = rewriteGraph(bug, code)
 	// case bugs.MixedDeadlock:
 	// 	err = errors.New("Rewriting trace for mixed deadlock is not implemented yet")
 	// case bugs.CyclicDeadlock:

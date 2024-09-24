@@ -177,6 +177,10 @@ func (s SelectCaseResult) isInvalid() bool {
  *	message: message to print
  */
 func Result(level resultLevel, resType ResultType, argType1 string, arg1 []ResultElem, argType2 string, arg2 []ResultElem) {
+	if len(arg1) == 0 {
+		return
+	}
+
 	if arg1[0].isInvalid() {
 		return
 	}

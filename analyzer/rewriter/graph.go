@@ -19,8 +19,9 @@ import (
  * Create a new trace for a negative wait group counter (done before add)
  * Args:
  *   bug (Bug): The bug to create a trace for
+ *   expectedErrorCode (int): For wg exitNegativeWG, for unlock before lock: exitUnlockBeforeLock
  */
-func rewriteGraph(bug bugs.Bug) error {
+func rewriteGraph(bug bugs.Bug, expectedErrorCode int) error {
 	if bug.Type == bugs.PNegWG {
 		println("Start rewriting trace for negative waitgroup counter...")
 	} else if bug.Type == bugs.PUnlockBeforeLock {
@@ -46,7 +47,7 @@ func rewriteGraph(bug bugs.Bug) error {
 
 	// add start and end
 	if !(minTime == -1 && maxTime == -1) {
-		analysis.AddTraceElementReplay(maxTime+1, exitNegativeWG)
+		analysis.AddTraceElementReplay(maxTime+1, expectedErrorCode)
 	}
 
 	return nil

@@ -98,12 +98,13 @@ func moveResults(packagePath, destination string) {
 		"advocateTrace",
 		"results_machine.log",
 		"results_readable.log",
+		"output.log",
 	}
 
 	for _, file := range filesToMove {
 		src := filepath.Join(packagePath, file)
 		dest := filepath.Join(destination, file)
-		if err := os.Rename(src, dest); err != nil {
+		if err := os.Rename(src, dest); err != nil && file != "output.log" {
 			log.Printf("Failed to move %s to %s: %v", src, dest, err)
 		}
 	}

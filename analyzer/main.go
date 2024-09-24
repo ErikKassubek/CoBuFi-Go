@@ -55,7 +55,8 @@ func main() {
 		"\tn: Close of closed channel\n"+
 		"\tb: Concurrent receive on channel\n"+
 		"\tl: Leaking routine\n"+
-		"\tu: Select case without partner\n",
+		"\tp: Select case without partner\n"+
+		"\tu: Unlock of unlocked mutex\n",
 	)
 	// "\tc: Cyclic deadlock\n",
 	// "\tm: Mixed deadlock\n"
@@ -345,6 +346,7 @@ func parseAnalysisCases(cases string) (map[string]bool, error) {
 		analysisCases["concurrentRecv"] = true
 		analysisCases["leak"] = true
 		analysisCases["selectWithoutPartner"] = true
+		analysisCases["unlockBeforeLock"] = true
 		// analysisCases["cyclicDeadlock"] = true
 		// analysisCases["mixedDeadlock"] = true
 
@@ -365,8 +367,10 @@ func parseAnalysisCases(cases string) (map[string]bool, error) {
 			analysisCases["concurrentRecv"] = true
 		case 'l':
 			analysisCases["leak"] = true
-		case 'u':
+		case 'p':
 			analysisCases["selectWithoutPartner"] = true
+		case 'u':
+			analysisCases["unlockBeforeLock"] = true
 		// case 'c':
 		// 	analysisCases["cyclicDeadlock"] = true
 		// case 'm':

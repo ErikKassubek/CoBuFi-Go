@@ -260,7 +260,7 @@ func ProcessBug(bugStr string) (bool, Bug, error) {
 
 	bugArg1 := bugSplit[1]
 	bugArg2 := ""
-	if containsArg2 {
+	if containsArg2 && len(bugSplit) == 3 {
 		bugArg2 = bugSplit[2]
 	}
 
