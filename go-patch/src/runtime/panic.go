@@ -1042,6 +1042,10 @@ func fatal(s string) {
 		print("fatal error: ", s, "\n")
 	})
 
+	// ADVOCATE-CHANGE-START
+	ExitReplayPanic(s)
+	// ADVOCATE-CHANGE-END
+
 	fatalthrow(throwTypeUser)
 }
 
@@ -1189,6 +1193,10 @@ func fatalthrow(t throwType) {
 	if gp.m.throwing == throwTypeNone {
 		gp.m.throwing = t
 	}
+
+	// ADVOCATE-CHANGE-START
+	ExitReplayPanic(t)
+	// ADVOCATE-CHANGE-END
 
 	// Switch to the system stack to avoid any stack growth, which may make
 	// things worse if the runtime is in a bad state.

@@ -3,9 +3,8 @@
 // File: reader.go
 // Brief: Read trace files and create the internal trace
 //
-// Author: Erik Kassubek <kassubek.erik@gmail.com>
+// Author: Erik Kassubek
 // Created: 2023-08-08
-// LastChange: 2024-09-01
 //
 // License: BSD-3-Clause
 

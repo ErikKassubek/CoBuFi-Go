@@ -3,9 +3,8 @@
 // File: analysisData.go
 // Brief: Variables and data for the analysis
 //
-// Author: Erik Kassubek <kassubek.erik@gmail.com>
+// Author: Erik Kassubek
 // Created: 2024-01-27
-// LastChange: 2024-09-01
 //
 // License: BSD-3-Clause
 
@@ -71,18 +70,19 @@ var (
 	// the current buffer position
 	bufferedVCsCount = make(map[int]int)
 
-	// add on waitGroup
-	wgAdd = make(map[int]map[int][]*TraceElementWait) // id -> routine -> []vcTID
-
-	// done on waitGroup
-	wgDone = make(map[int]map[int][]*TraceElementWait) // id -> routine -> []vcTID
-
+	// add/dones on waitGroup
+	wgAdd  = make(map[int][]TraceElement) // id  -> []TraceElement
+	wgDone = make(map[int][]TraceElement) // id -> []TraceElement
 	// wait on waitGroup
 	// wgWait = make(map[int]map[int][]VectorClockTID) // id -> routine -> []vcTID
 
-	// last acquire on mutex for each routine
+	// lock/unlocks on mutexes
+	allLocks   = make(map[int][]TraceElement)
+	allUnlocks = make(map[int][]TraceElement) // id -> []TraceElement
+
+	// last acquire on mutex for each routine TODO: check if we need to store this
 	lockSet                = make(map[int]map[int]string)         // routine -> id -> string
-	mostRecentAcquire      = make(map[int]map[int]VectorClockTID) // routine -> id -> vcTID  // TODO: do we need to store the operation?
+	mostRecentAcquire      = make(map[int]map[int]VectorClockTID) // routine -> id -> vcTID
 	mostRecentAcquireTotal = make(map[int]VectorClockTID3)        // id -> vcTID
 
 	// vector clocks for last release times

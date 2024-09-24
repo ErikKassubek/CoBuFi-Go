@@ -8,9 +8,6 @@ import "fmt"
 */
 
 import (
-	"advocate"
-	"flag"
-	"os"
 	"sync"
 	"time"
 )
@@ -1088,6 +1085,52 @@ func n56() {
 	time.Sleep(200 * time.Millisecond)
 }
 
+// =============== lock before unlock ==============
+func n57() {
+	var m sync.Mutex
+
+	go func() {
+		m.Lock()
+	}()
+
+	time.Sleep(100 * time.Millisecond)
+	m.Unlock()
+
+	time.Sleep(200 * time.Millisecond)
+}
+
+// no possible unlock before lock
+func n58() {
+	var m sync.Mutex
+
+	m.Lock()
+	m.Unlock()
+}
+
+// possible unlock of locked
+func n59() {
+	var m sync.RWMutex
+
+	go func() {
+		m.RLock()
+	}()
+
+	go func() {
+		m.RLock()
+	}()
+
+	go func() {
+		time.Sleep(100 * time.Millisecond)
+		m.RUnlock()
+	}()
+
+	time.Sleep(100 * time.Millisecond)
+	m.RUnlock()
+
+	time.Sleep(200 * time.Millisecond)
+
+}
+
 // =============== use for testing ===============
 // MARK: FOR TESTING
 // leak because of wait group
@@ -1113,14 +1156,13 @@ func nTest() {
 }
 
 func main() {
+	// list := flag.Bool("l", false, "List tests. Do not run any test.")
+	// testCase := flag.Int("c", -1, "Test to run. If not set, all are run.")
+	// timeout := flag.Int("t", 0, "Timeout")
+	// replay := flag.Bool("r", false, "Replay")
+	// flag.Parse()
 
-	list := flag.Bool("l", false, "List tests. Do not run any test.")
-	testCase := flag.Int("c", -1, "Test to run. If not set, all are run.")
-	timeout := flag.Int("t", 0, "Timeout")
-	replay := flag.Bool("r", false, "Replay")
-	flag.Parse()
-
-	const n = 57
+	const n = 60
 	testNames := [n]string{
 		"Test NN: For testing purposes only.",
 		"Test 01: N - Synchronous channel",
@@ -1180,50 +1222,54 @@ func main() {
 		"Test 54: P - Leak because of select without possible partner",
 		"Test 55: P - Leak because of wait group",
 		"Test 56: P - Leak because of conditional variable",
+		"Test 57: P - Possible unlock of unlocked mutex",
+		"Test 58: P - No possible unlock of unlocked mutex",
+		"Test 59: P - Possible unlock of unlocked mutex",
 	}
 	testFuncs := [n]func(){nTest, n01, n02, n03, n04, n05, n06, n07, n08, n09, n10,
 		n11, n12, n13, n14, n15, n16, n17, n18, n19, n20,
 		n21, n22, n23, n24, n25, n26, n27, n28, n29, n30, n31, n32, n33, n34, n35,
 		n36, n37, n38, n39, n40, n41, n42, n43, n44, n45, n46, n47, n48, n49, n50,
-		n51, n52, n53, n54, n55, n56}
+		n51, n52, n53, n54, n55, n56, n57, n58, n59}
 
-	if list != nil && *list {
-		for i := 1; i <= n; i++ {
-			println(testNames[i])
-		}
-		return
-	}
+	// if list != nil && *list {
+	// 	for i := 1; i <= n; i++ {
+	// 		println(testNames[i])
+	// 	}
+	// 	return
+	// }
 
-	if replay == nil || !*replay {
-		// init tracing
-		advocate.InitTracing(0)
-		defer advocate.Finish()
-	} else {
-		// init replay
-		advocate.EnableReplayWithTimeout(1, true)
-		defer advocate.WaitForReplayFinish()
-	}
+	// if replay == nil || !*replay {
+	// 	// init tracing
+	// 	advocate.InitTracing(0)
+	// 	defer advocate.Finish()
+	// } else {
+	// 	// init replay
+	// 	advocate.EnableReplayWithTimeout(1, true)
+	// 	defer advocate.WaitForReplayFinish()
+	// }
 
 	// cancel test if time has run out
-	go func() {
-		if timeout != nil && *timeout != 0 {
-			time.Sleep(time.Duration(*timeout) * time.Second)
-			advocate.Finish()
-			os.Exit(42)
-		}
-	}()
+	// go func() {
+	// 	if timeout != nil && *timeout != 0 {
+	// 		time.Sleep(time.Duration(*timeout) * time.Second)
+	// 		advocate.Finish()
+	// 		os.Exit(42)
+	// 	}
+	// }()
 
-	if testCase != nil && *testCase != -1 {
-		println(testNames[*testCase])
-		testFuncs[*testCase]()
-	} else {
-		for i := 1; i <= n; i++ {
-			println(testNames[i])
-			testFuncs[i]()
-			println("Done: ", i+1, " of ", n)
-			time.Sleep(1 * time.Second)
-		}
-	}
+	// if testCase != nil && *testCase != -1 {
+	t := 59
+	println(testNames[t])
+	testFuncs[t]()
+	// } else {
+	// 	for i := 1; i <= n; i++ {
+	// 		println(testNames[i])
+	// 		testFuncs[i]()
+	// 		println("Done: ", i+1, " of ", n)
+	// 		time.Sleep(1 * time.Second)
+	// 	}
+	// }
 
 	time.Sleep(1 * time.Second)
 }

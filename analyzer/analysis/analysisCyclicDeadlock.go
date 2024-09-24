@@ -3,9 +3,8 @@
 // File: analysisCyclicDeadlock.go
 // Brief: Trace analysis for cyclic mutex deadlocks
 //
-// Author: Erik Kassubek <kassubek.erik@gmail.com>
+// Author: Erik Kassubek
 // Created: 2024-01-04
-// LastChange: 2024-09-03
 //
 // License: BSD-3-Clause
 
@@ -175,7 +174,7 @@ func CyclicDeadlockMutexUnLock(mu *TraceElementMutex) {
  * Check if the lock graph created by connecting all lock trees is cyclic
  * If there are cycles, log the results
  */
-func CheckForCyclicDeadlock() {
+func checkForCyclicDeadlock() {
 	findOutsideConnections()
 	found, cycles := findCycles() // find all cycles in the lock graph
 

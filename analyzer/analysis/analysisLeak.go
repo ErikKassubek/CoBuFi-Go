@@ -3,9 +3,8 @@
 // File: analysisLeak.go
 // Brief: Trace analysis for routine leaks
 //
-// Author: Erik Kassubek <kassubek.erik@gmail.com>
+// Author: Erik Kassubek
 // Created: 2024-01-28
-// LastChange: 2024-09-01
 //
 // License: BSD-3-Clause
 
@@ -261,7 +260,7 @@ func CheckForLeakChannelRun(routineID int, objID int, vcTID VectorClockTID, opTy
  * After all operations have been analyzed, check if there are still leaking
  * operations without a possible partner.
  */
-func CheckForLeak() {
+func checkForLeak() {
 	// channel
 	for _, vcTIDs := range leakingChannels {
 		buffered := false

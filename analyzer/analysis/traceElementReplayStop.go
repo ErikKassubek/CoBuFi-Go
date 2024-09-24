@@ -3,9 +3,8 @@
 // File: traceElementReplayStop.go
 // Brief: Struct and functions for replay controll elements in the trace
 //
-// Author: Erik Kassubek <kassubek.erik@gmail.com>
+// Author: Erik Kassubek
 // Created: 2024-04-03
-// LastChange: 2024-09-01
 //
 // License: BSD-3-Clause
 
@@ -114,6 +113,13 @@ func (at *TraceElementReplay) GetTID() string {
  */
 func (at *TraceElementReplay) GetVC() clock.VectorClock {
 	return clock.VectorClock{}
+}
+
+/*
+ * Get the string representation of the object type
+ */
+func (at *TraceElementReplay) GetObjType() string {
+	return "RR"
 }
 
 // MARK: Setter

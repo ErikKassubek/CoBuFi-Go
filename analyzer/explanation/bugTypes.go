@@ -3,9 +3,8 @@
 // File: bugTypes.go
 // Brief: Print informations for all bug types
 //
-// Author: Erik Kassubek <kassubek.erik@gmail.com>
+// Author: Erik Kassubek
 // Created: 2024-06-14
-// LastChange: 2024-09-01
 //
 // License: BSD-3-Clause
 
@@ -24,7 +23,8 @@ var bugCrit = map[string]string{
 	"A05": "Diagnostics",
 	"P01": "Bug",
 	"P02": "Diagnostic",
-	"P03": "Leak",
+	"P03": "Bug",
+	"P04": "Bug",
 	"L01": "Leak",
 	"L02": "Leak",
 	"L03": "Leak",
@@ -47,6 +47,7 @@ var bugNames = map[string]string{
 	"P01": "Possible Send on Closed Channel",
 	"P02": "Possible Receive on Closed Channel",
 	"P03": "Possible Negative WaitGroup cCounter",
+	"P04": "Possible unlock of not locked mutex",
 
 	"L01": "Leak of unbuffered Channel with possible partner",
 	"L02": "Leak on unbuffered Channel without possible partner",
@@ -89,6 +90,10 @@ var bugExplanations = map[string]string{
 		"Although the negative counter did not occur during the recording, " +
 		"it is possible that it will occur, based on the happens before relation.\n" +
 		"A negative counter will lead to a panic.",
+	"P04": "The analyzer detected a possible unlock on a not locked mutex.\n" +
+		"Although the unlock of a not locked mutex did not occur during the recording, " +
+		"it is possible that it will occur, based on the happens before relation.\n" +
+		"A unlock of a not locked mutex will result in a panic.",
 	"L01": "The analyzer detected a leak of an unbuffered channel with a possible partner.\n" +
 		"A leak of an unbuffered channel is a situation, where a unbuffered channel is " +
 		"still blocking at the end of the program.\n" +
@@ -192,6 +197,14 @@ var bugExamples map[string]string = map[string]string{
 		"        wg.Done()       // <-------\n" +
 		"    }()\n\n" +
 		"    wg.Wait()\n}",
+	"P04": "func main() {\n" +
+		"    var m sync.Mutex\n\n" +
+		"    go func() {\n" +
+		"        m.Lock()       // <-------\n" +
+		"    }()\n\n" +
+		"    go func() {\n" +
+		"        m.Unlock()     // <-------\n" +
+		"    }()\n\n}",
 	"L01": "func main() {\n" +
 		"    c := make(chan int)\n\n" +
 		"    go func() {\n" +
@@ -282,6 +295,7 @@ var rewriteType = map[string]string{
 	"P01": "Possible",
 	"P02": "Possible",
 	"P03": "Possible",
+	"P04": "Possible",
 	"L01": "LeakPos",
 	"L02": "Leak",
 	"L03": "LeakPos",
@@ -345,10 +359,17 @@ var exitCodeExplanation = map[string]string{
 		"The replay was therefore able to confirm, that the receive on closed can actually occur.",
 	"32": "The replay resulted in an expected negative wait group triggering a panic. The bug was triggered. " +
 		"The replay was therefore able to confirm, that the negative wait group can actually occur.",
+	"33": "The replay resulted in an expected lock of an unlocked mutex triggering a panic. The bug was triggered. " +
+		"The replay was therefore able to confirm, that the unlock of a not locked mutex can actually occur.",
 	// "41": "cyclic",
 }
 
 var objectTypes = map[string]string{
+	"AL": "Atomic Load",
+	"AS": "Atomic Store",
+	"AA": "Atomic Add",
+	"AW": "Atomic Swap",
+	"AC": "Atomic CompSwap",
 	"CS": "Channel: Send",
 	"CR": "Channel: Receive",
 	"CC": "Channel: Close",

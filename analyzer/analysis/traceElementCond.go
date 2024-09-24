@@ -3,9 +3,8 @@
 // File: traceElementCond.go
 // Brief: Struct and functions for operations of conditional variables in the trace
 //
-// Author: Erik Kassubek <kassubek.erik@gmail.com>
+// Author: Erik Kassubek
 // Created: 2023-12-25
-// LastChange: 2024-09-01
 //
 // License: BSD-3-Clause
 
@@ -237,6 +236,21 @@ func GetConcurrentWaitgroups(element *TraceElement) map[string][]*TraceElement {
 		}
 	}
 	return res
+}
+
+/*
+ * Get the string representation of the object type
+ */
+func (co *TraceElementCond) GetObjType() string {
+	switch co.opC {
+	case WaitCondOp:
+		return "NW"
+	case BroadcastOp:
+		return "NB"
+	case SignalOp:
+		return "NS"
+	}
+	return "N"
 }
 
 // MARK: Setter

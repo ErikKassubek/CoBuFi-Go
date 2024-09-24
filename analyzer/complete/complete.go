@@ -3,9 +3,8 @@
 // File: complete.go
 // Brief: Functions to check if all program elements have been executed at least once
 //
-// Author: Erik Kassubek <kassubek.erik@gmail.com>
+// Author: Erik Kassubek
 // Created: 2024-06-26
-// LastChange: 2024-09-01
 //
 // License: BSD-3-Clause
 
@@ -42,9 +41,7 @@ func Check(resultFolderPath string, progPath string) error {
 	notInTrace := areAllProgElemInTrace(progElems, traceElems)
 	notSelectedSelectCase := getNotSelectedSelectCases()
 
-
 	err = printResultsToFiles(notInTrace, notSelectedSelectCase, resultFolderPath)
-
 
 	return err
 }

@@ -3,9 +3,8 @@
 // File: replay.go
 // Brief: Read the info about the rewrite and replay of the bug
 //
-// Author: Erik Kassubek <kassubek.erik@gmail.com>
+// Author: Erik Kassubek
 // Created: 2024-06-18
-// LastChange: 2024-09-01
 //
 // License: BSD-3-Clause
 
@@ -62,14 +61,14 @@ func getRewriteInfo(bugType string, path string, index int) map[string]string {
 func getReplayInfo(path string, index int) (string, string, string, error) {
 	if _, err := os.Stat(path + "output.log"); os.IsNotExist(err) {
 		res := "No replay info available. Output.log does not exist."
-		return "", res, "false", errors.New(res)
+		return "", res, "information not available", errors.New(res)
 	}
 
 	// read the output file
 	content, err := os.ReadFile(path + "output.log")
 	if err != nil {
 		res := "No replay info available. Could not read output.log file"
-		return "", res, "false", errors.New(res)
+		return "", res, "information not available", errors.New(res)
 	}
 
 	// find all line, that either start with "Reading trace from "

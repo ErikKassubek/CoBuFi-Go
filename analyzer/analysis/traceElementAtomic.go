@@ -3,9 +3,8 @@
 // File: traceElementAtomic.go
 // Brief: Struct and functions for atomic operations in the trace
 //
-// Author: Erik Kassubek <kassubek.erik@gmail.com>
+// Author: Erik Kassubek
 // Created: 2023-08-08
-// LastChange: 2024-09-01
 //
 // License: BSD-3-Clause
 
@@ -165,6 +164,26 @@ func (at *TraceElementAtomic) GetTID() string {
  */
 func (at *TraceElementAtomic) GetVC() clock.VectorClock {
 	return at.vc
+}
+
+/*
+ * Get the string representation of the object type
+ */
+func (at *TraceElementAtomic) GetObjType() string {
+	switch at.opA {
+	case LoadOp:
+		return "AL"
+	case StoreOp:
+		return "AS"
+	case AddOp:
+		return "AA"
+	case SwapOp:
+		return "AW"
+	case CompSwapOp:
+		return "AC"
+	}
+
+	return "A"
 }
 
 // MARK: Setter

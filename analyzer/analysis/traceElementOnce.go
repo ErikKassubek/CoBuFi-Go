@@ -3,9 +3,8 @@
 // File: traceElementOnce.go
 // Brief: Struct and functions for once operations in the trace
 //
-// Author: Erik Kassubek <kassubek.erik@gmail.com>
+// Author: Erik Kassubek
 // Created: 2023-09-25
-// LastChange: 2024-09-01
 //
 // License: BSD-3-Clause
 
@@ -166,6 +165,16 @@ func (on *TraceElementOnce) GetTID() string {
  */
 func (on *TraceElementOnce) GetVC() clock.VectorClock {
 	return on.vc
+}
+
+/*
+ * Get the string representation of the object type
+ */
+func (on *TraceElementOnce) GetObjType() string {
+	if on.suc {
+		return "OE"
+	}
+	return "ON"
 }
 
 // MARK: Setter

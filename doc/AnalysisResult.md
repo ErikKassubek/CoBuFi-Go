@@ -57,10 +57,16 @@ Each arg contains the following elements separated by a colon (:)
 - `[objId]` is the id of the object that is involved in the operation
 - `[tpre]` is the time of the operation
 - `[opjType]` is the type of the element
+	- Atomic:
+	  - AL: Load
+		- AS: Store
+		- AA: Add
+		- AW: Swap
+		- AC: CompSwap
   - Channel:
-    - CS: send
-    - CR: receive
-    - CC: close
+    - CS: Send
+    - CR: Receive
+    - CC: Close
   - Mutex:
     - ML: Lock
     - MR: RLock

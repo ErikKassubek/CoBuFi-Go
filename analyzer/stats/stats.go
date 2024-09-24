@@ -3,9 +3,8 @@
 // File: stats.go
 // Brief: Create statistics about programs and traces
 //
-// Author: Erik Kassubek <kassubek.erik@gmail.com>
+// Author: Erik Kassubek
 // Created: 2023-07-13
-// LastChange: 2024-09-21
 //
 // License: BSD-3-Clause
 
@@ -162,7 +161,7 @@ func writeStatsToFile(path string, progName string, statsProg, statsTraces map[s
 
 	statType := []string{"detected", "replayWritten", "replaySuccessful"}
 	bugCodes := []string{"A01", "A02", "A03", "A04", "A05",
-		"P01", "P02", "P03",
+		"P01", "P02", "P03", "P04",
 		"L01", "L02", "L03", "L04", "L05", "L06", "L07", "L08", "L09", "L10"}
 
 	for _, c := range statType {

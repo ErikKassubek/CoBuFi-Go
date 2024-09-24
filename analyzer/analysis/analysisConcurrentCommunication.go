@@ -3,9 +3,8 @@
 // File: analysisConcurrentCommunication.go
 // Brief: Trace analysis of concurrent reveice on the same channel
 //
-// Author: Erik Kassubek <kassubek.erik@gmail.com>
+// Author: Erik Kassubek
 // Created: 2024-01-27
-// LastChange: 2024-08-03
 //
 // License: BSD-3-Clause
 

@@ -1,11 +1,10 @@
 // Copyrigth (c) 2024 Erik Kassubek
 //
 // File: analysisMixedDeadlock.go
-// Brief: Trace analysis for mixed deadlocks. Currently not used. 
-// 
-// Author: Erik Kassubek <kassubek.erik@gmail.com>
+// Brief: Trace analysis for mixed deadlocks. Currently not used.
+//
+// Author: Erik Kassubek
 // Created: 2024-01-27
-// LastChange: 2024-09-01
 //
 // License: BSD-3-Clause
 

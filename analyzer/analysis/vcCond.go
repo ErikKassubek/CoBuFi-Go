@@ -3,9 +3,8 @@
 // File: vcCond.go
 // Brief: Update functions for vector clocks from conditional variables operations
 //
-// Author: Erik Kassubek <kassubek.erik@gmail.com>
+// Author: Erik Kassubek
 // Created: 2024-01-09
-// LastChange: 2024-09-01
 //
 // License: BSD-3-Clause
 

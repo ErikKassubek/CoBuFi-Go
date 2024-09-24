@@ -3,9 +3,8 @@
 // File: traceElementFork.go
 // Brief: Struct and functions for fork operations in the trace
 //
-// Author: Erik Kassubek <kassubek.erik@gmail.com>
+// Author: Erik Kassubek
 // Created: 2023-08-08
-// LastChange: 2024-09-01
 //
 // License: BSD-3-Clause
 
@@ -140,6 +139,13 @@ func (fo *TraceElementFork) GetTID() string {
  */
 func (fo *TraceElementFork) GetVC() clock.VectorClock {
 	return fo.vc
+}
+
+/*
+ * Get the string representation of the object type
+ */
+func (fo *TraceElementFork) GetObjType() string {
+	return "GF"
 }
 
 // MARK: Setter

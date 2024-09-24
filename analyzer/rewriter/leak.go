@@ -3,9 +3,8 @@
 // File: leak.go
 // Brief: Rewrite trace for leaked channel
 //
-// Author: Erik Kassubek <kassubek.erik@gmail.com>
+// Author: Erik Kassubek
 // Created: 2024-04-07
-// LastChange: 2024-09-01
 //
 // License: BSD-3-Clause
 

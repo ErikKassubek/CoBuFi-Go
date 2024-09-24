@@ -3,9 +3,8 @@
 // File: bugs.go
 // Brief: Operations for handeling found bugs
 //
-// Author: Erik Kassubek <kassubek.erik@gmail.com>
+// Author: Erik Kassubek
 // Created: 2023-11-30
-// LastChange: 2024-09-01
 //
 // License: BSD-3-Clause
 
@@ -30,9 +29,10 @@ const (
 	ASelCaseWithoutPartner ResultType = "A05"
 
 	// possible
-	PSendOnClosed ResultType = "P01"
-	PRecvOnClosed ResultType = "P02"
-	PNegWG        ResultType = "P03"
+	PSendOnClosed     ResultType = "P01"
+	PRecvOnClosed     ResultType = "P02"
+	PNegWG            ResultType = "P03"
+	PUnlockBeforeLock ResultType = "P04"
 
 	// leaks
 	LUnbufferedWith    = "L01"
@@ -94,9 +94,12 @@ func (b Bug) ToString() string {
 		arg2Str = "close: "
 	case PNegWG:
 		typeStr = "Possible negative waitgroup counter:"
-		arg1Str = "add: "
-		arg2Str = "done: "
-
+		arg1Str = "done: "
+		arg2Str = "add: "
+	case PUnlockBeforeLock:
+		typeStr = "Possible unlock of a not locked mutex:"
+		arg1Str = "unlocks: "
+		arg2Str = "locks: "
 	case LUnbufferedWith:
 		typeStr = "Leak on unbuffered channel with possible partner:"
 		arg1Str = "channel: "
@@ -219,9 +222,11 @@ func ProcessBug(bugStr string) (bool, Bug, error) {
 		bug.Type = PRecvOnClosed
 	case "P03":
 		bug.Type = PNegWG
-	// case "P4":
+	case "P04":
+		bug.Type = PUnlockBeforeLock
+	// case "P05":
 	// 	bug.Type = CyclicDeadlock
-	// case "P5":
+	// case "P06":
 	// 	bug.Type = MixedDeadlock
 	case "L01":
 		bug.Type = LUnbufferedWith
@@ -255,7 +260,7 @@ func ProcessBug(bugStr string) (bool, Bug, error) {
 
 	bugArg1 := bugSplit[1]
 	bugArg2 := ""
-	if containsArg2 {
+	if containsArg2 && len(bugSplit) == 3 {
 		bugArg2 = bugSplit[2]
 	}
 

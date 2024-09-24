@@ -3,9 +3,8 @@
 // File: analysisClose.go
 // Brief: Trace analysis for send, receive and close on closed channel
 //
-// Author: Erik Kassubek <kassubek.erik@gmail.com>
+// Author: Erik Kassubek
 // Created: 2024-01-04
-// LastChange: 2024-08-03
 //
 // License: BSD-3-Clause
 

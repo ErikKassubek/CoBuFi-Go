@@ -3,9 +3,8 @@
 // File: traceElements.go
 // Brief: Interface for all trace element types
 //
-// Author: Erik Kassubek <kassubek.erik@gmail.com>
+// Author: Erik Kassubek
 // Created: 2023-08-08
-// LastChange: 2024-09-01
 //
 // License: BSD-3-Clause
 
@@ -26,6 +25,7 @@ type TraceElement interface {
 	GetRoutine() int
 	GetPos() string
 	GetTID() string
+	GetObjType() string
 	ToString() string
 	updateVectorClock()
 	GetVC() clock.VectorClock

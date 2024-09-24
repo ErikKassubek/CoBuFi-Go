@@ -3,9 +3,8 @@
 // File: cyclicDeadlock.go
 // Brief: Rewrite trace for cyclic deadlocks
 //
-// Author: Erik Kassubek <kassubek.erik@gmail.com>
+// Author: Erik Kassubek
 // Created: 2024-04-05
-// LastChange: 2024-09-01
 //
 // License: BSD-3-Clause
 

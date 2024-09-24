@@ -3,9 +3,8 @@
 // File: rewriter.go
 // Brief: Main functions to rewrite the trace
 //
-// Author: Erik Kassubek <kassubek.erik@gmail.com>
+// Author: Erik Kassubek
 // Created: 2023-11-30
-// LastChange: 2024-09-01
 //
 // License: BSD-3-Clause
 
@@ -32,6 +31,7 @@ const (
 	exitSendClose          = 30
 	exitRecvClose          = 31
 	exitNegativeWG         = 32
+	exitUnlockBeforeLock   = 33
 	exitCodeCyclic         = 41
 )
 
@@ -69,7 +69,11 @@ func RewriteTrace(bug bugs.Bug) (rewriteNeeded bool, code int, err error) {
 	case bugs.PNegWG:
 		code = exitNegativeWG
 		rewriteNeeded = true
-		err = rewriteWaitGroup(bug)
+		err = rewriteGraph(bug, code)
+	case bugs.PUnlockBeforeLock:
+		code = exitUnlockBeforeLock
+		rewriteNeeded = true
+		err = rewriteGraph(bug, code)
 	// case bugs.MixedDeadlock:
 	// 	err = errors.New("Rewriting trace for mixed deadlock is not implemented yet")
 	// case bugs.CyclicDeadlock:
