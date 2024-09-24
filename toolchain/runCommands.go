@@ -33,3 +33,16 @@ func runCommandWithOutput(name, outputFile string, args ...string) error {
 	// Write output to the specified file
 	return os.WriteFile(outputFile, output, 0644)
 }
+
+// runCommandWithTee runs a command and writes output to a file
+func runCommandWithTee(name, outputFile string, args ...string) error {
+	cmd := exec.Command(name, args...)
+	outfile, err := os.Create(outputFile)
+	if err != nil {
+		return err
+	}
+	defer outfile.Close()
+	cmd.Stdout = outfile
+	cmd.Stderr = outfile
+	return cmd.Run()
+}

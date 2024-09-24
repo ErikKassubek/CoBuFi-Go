@@ -66,9 +66,10 @@ func main() {
 
 	// replace ~ in path with home
 	home, _ := os.UserHomeDir()
-	pathToAdvocate = strings.Replace(pathToAdvocate, "~", home, 0)
-	pathToFile = strings.Replace(pathToFile, "~", home, 0)
-	println(pathToAdvocate, pathToFile)
+	fmt.Println("Path: ", pathToFile)
+	pathToAdvocate = strings.Replace(pathToAdvocate, "~", home, -1)
+	pathToFile = strings.Replace(pathToFile, "~", home, -1)
+	fmt.Println("Path: ", pathToFile)
 
 	var err error
 	switch mode {

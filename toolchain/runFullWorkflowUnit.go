@@ -18,7 +18,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"strings"
 	"time"
@@ -51,7 +50,7 @@ func runWorkflowUnit(pathToAdvocate, dir, progName string,
 
 	// Change to the directory
 	if err := os.Chdir(dir); err != nil {
-		return fmt.Errorf("Failed to change directory: %v", err)
+		return fmt.Errorf("Failed to change directory: %v", dir)
 	}
 	fmt.Printf("In directory: %s\n", dir)
 
@@ -391,19 +390,6 @@ func unitTestFullWorkflow(pathToAdvocate string, dir string,
 	fmt.Println("GOROOT removed")
 
 	return durationRecord, timeAnalysis, timeReplay, nil
-}
-
-// runCommandWithTee runs a command and writes output to a file
-func runCommandWithTee(name, outputFile string, args ...string) error {
-	cmd := exec.Command(name, args...)
-	outfile, err := os.Create(outputFile)
-	if err != nil {
-		return err
-	}
-	defer outfile.Close()
-	cmd.Stdout = outfile
-	cmd.Stderr = outfile
-	return cmd.Run()
 }
 
 // extractTraceNumber extracts the numeric part from a trace directory name
