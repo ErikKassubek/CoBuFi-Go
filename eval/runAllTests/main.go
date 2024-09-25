@@ -10,7 +10,12 @@ import (
 func main() {
 	names := []string{
 		"canonicalTests",
-		"gocrawl",
+		"bbolt",
+		"GoBench",
+		"go-ethereum",
+		"kubernetes",
+		"moby",
+		"prometheus",
 	}
 
 	mainPath := "~/Uni/HiWi/ADVOCATE/examples/"
