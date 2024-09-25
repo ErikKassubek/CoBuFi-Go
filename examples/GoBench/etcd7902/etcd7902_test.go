@@ -19,6 +19,7 @@ package etcd7902
 
 import (
 	"sync"
+	"time"
 )
 
 type roundClient struct {
@@ -91,6 +92,7 @@ func doRounds(rcs []roundClient, rounds int) {
 // / 						mu.Lock()
 // / -------------------------G1,G2,G3 deadlock--------------------------
 // /
-func Etcd7902() {
+func Etcd7902Test() {
 	go runElectionFunc() // G1
+	time.Sleep(10 * time.Second)
 }

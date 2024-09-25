@@ -113,7 +113,7 @@ func unlockAll(requests []request) {
 //	                        b.activeRequests <- t
 //
 // ----------------------------G1,G2,G3 deadlock-----------------------------
-func Serving2137() {
+func Serving2137Test() {
 	b := NewBreaker(1, 1)
 
 	locks := b.concurrentRequests(2) // G1

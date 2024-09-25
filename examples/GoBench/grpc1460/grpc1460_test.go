@@ -16,6 +16,7 @@ package grpc1460
 
 import (
 	"sync"
+	"time"
 )
 
 type Stream struct{}
@@ -58,10 +59,12 @@ func (t *http2Client) NewStream() {
 // / 						t.mu.Lock()
 // / ---------------G1, G2 deadlock--------------
 // /
-func Grpc1460() {
+func Grpc1460Test() {
 	client := &http2Client{
 		awakenKeepalive: make(chan struct{}),
 	}
 	go client.keepalive() //G1
 	go client.NewStream() //G2
+
+	time.Sleep(10 * time.Second)
 }

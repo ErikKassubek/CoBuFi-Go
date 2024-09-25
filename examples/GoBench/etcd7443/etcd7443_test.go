@@ -200,7 +200,7 @@ func WithBalancer(b Balancer) DialOption {
 		o.balancer = b
 	}
 }
-func Etcd7443() {
+func Etcd7443Test() {
 	sb := newSimpleBalancer()
 	conn := Dial(WithBalancer(sb))
 

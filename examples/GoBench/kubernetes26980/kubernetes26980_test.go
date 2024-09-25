@@ -45,7 +45,7 @@ func newProcessListener() *processorListener {
 	ret.cond.L = &ret.lock
 	return ret
 }
-func Kubernetes26980() {
+func Kubernetes26980Test() {
 	pl := newProcessListener()
 	stopCh := make(chan struct{})
 	defer close(stopCh)

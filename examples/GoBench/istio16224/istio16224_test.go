@@ -83,7 +83,7 @@ func NewBufferedMonitor() Monitor {
 		eventCh: make(chan Event),
 	}
 }
-func Istio16224() {
+func Istio16224Test() {
 	controller := &controller{monitor: NewMonitor()}
 	done := make(chan bool)
 	lock := sync.Mutex{}

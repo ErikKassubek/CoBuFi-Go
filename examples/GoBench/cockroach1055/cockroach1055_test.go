@@ -63,7 +63,7 @@ func NewStopper() *Stopper {
 	}
 }
 
-func Cockroach1055() {
+func Cockroach1055Test() {
 	var stoppers []*Stopper
 	for i := 0; i < 3; i++ {
 		stoppers = append(stoppers, NewStopper())

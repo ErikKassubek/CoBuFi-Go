@@ -14,6 +14,7 @@ package kubernetes6632
 
 import (
 	"sync"
+	"time"
 )
 
 type Connection struct {
@@ -70,7 +71,7 @@ func NewIdleAwareFramer() *idleAwareFramer {
 // /	i.writeLock.Lock()
 // /	----------------------G1,G2 deadlock------------------------
 // /
-func Kubernetes6632() {
+func Kubernetes6632Test() {
 	i := NewIdleAwareFramer()
 
 	go func() { // helper goroutine
@@ -78,4 +79,6 @@ func Kubernetes6632() {
 	}()
 	go i.monitor()    // G1
 	go i.WriteFrame() // G2
+
+	time.Sleep(10 * time.Second)
 }

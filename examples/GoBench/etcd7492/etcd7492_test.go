@@ -142,7 +142,7 @@ func setupAuthStore() (store *authStore, teardownfunc func()) {
 // /											t.simpleTokensMu.Lock()
 // /------------------------------------G1,G2 deadlock---------------------------------------------
 // /
-func Etcd7492() {
+func Etcd7492Test() {
 	as, tearDown := setupAuthStore()
 	defer tearDown()
 	var wg sync.WaitGroup

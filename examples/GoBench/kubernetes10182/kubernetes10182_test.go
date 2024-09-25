@@ -13,6 +13,7 @@ package kubernetes10182
 
 import (
 	"sync"
+	"time"
 )
 
 type statusManager struct {
@@ -64,9 +65,11 @@ func NewStatusManager() *statusManager {
 // / 													s.podStatusChannel <- true
 // / s.podStatusesLock.Lock()
 // / -----------------------------G1,G3 deadlock----------------------------
-func Kubernetes10182() {
+func Kubernetes10182Test() {
 	s := NewStatusManager()
 	go s.Start()
 	go s.SetPodStatus() // G2
 	go s.SetPodStatus() // G3
+
+	time.Sleep(10 * time.Second)
 }

@@ -67,7 +67,7 @@ func (wbs *watchBroadcasts) update(wb *watchBroadcast) {
 // /							wbs.mu.Lock()
 // /---------------------G2,G3 deadlock-------------------------
 // /
-func Etcd6873() {
+func Etcd6873Test() {
 	wbs := newWatchBroadcasts() // G1
 	wbs.update(&watchBroadcast{})
 	go wbs.stop() // G3

@@ -27,6 +27,7 @@ package grpc1353
 
 import (
 	"sync"
+	"time"
 )
 
 var HelpCh chan struct{}
@@ -152,7 +153,7 @@ func NewClientConn() *ClientConn {
 // / 					rr.addrCh <- true
 // / ----------------------G2, G3 deadlock-----------------------
 // /
-func Grpc1353() {
+func Grpc1353Test() {
 	HelpCh = make(chan struct{})
 	cc := NewClientConn()
 	cc.dopts.balancer.Start() // G1
@@ -161,4 +162,5 @@ func Grpc1353() {
 		<-HelpCh
 		cc.dopts.balancer.Close()
 	}()
+	time.Sleep(10 * time.Second)
 }

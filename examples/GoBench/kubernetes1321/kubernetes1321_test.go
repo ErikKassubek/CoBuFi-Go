@@ -20,6 +20,7 @@ package kubernetes1321
 
 import (
 	"sync"
+	"time"
 )
 
 var globalMtx sync.Mutex
@@ -106,6 +107,8 @@ func testMuxWatcherClose() {
 // / m.lock.Lock()
 // / ---------------G1,G2 deadlock---------------
 // /
-func Kubernetes1321() {
+func Kubernetes1321Test() {
 	go testMuxWatcherClose() // G1
+
+	time.Sleep(10 * time.Second)
 }

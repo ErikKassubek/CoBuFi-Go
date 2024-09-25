@@ -43,7 +43,7 @@ func newRevisionBackendsManagerWithProbeFrequency() *revisionBackendsManager {
 	return rbm
 }
 
-func Serving5865() {
+func Serving5865Test() {
 	rbm := newRevisionBackendsManagerWithProbeFrequency()
 
 	// Simplified code in the RealTestSuite

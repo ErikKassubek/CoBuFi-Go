@@ -54,7 +54,7 @@ func (i *impl) Wait() {
 	})
 }
 
-func Serving3068() {
+func Serving3068Test() {
 	p := NewWithCapacity(1, 5)
 	wg := &sync.WaitGroup{}
 	var cntExecuted int32

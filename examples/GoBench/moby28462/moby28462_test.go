@@ -15,6 +15,7 @@ package moby28462
 
 import (
 	"sync"
+	"time"
 )
 
 type State struct {
@@ -117,4 +118,6 @@ func Moby28462() {
 	d, c := NewDaemonAndContainer()
 	go monitor(c, c.State.Health.OpenMonitorChannel()) // G1
 	go d.StateChanged()                                // G2
+
+	time.Sleep(10 * time.Second)
 }

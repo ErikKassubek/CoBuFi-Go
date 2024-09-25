@@ -129,7 +129,7 @@ func processEventsUntil(ch <-chan interceptMessage, stopper *Stopper) {
 		}
 	}
 }
-func Cockroach1462() {
+func Cockroach1462Test() {
 	stopper := NewStopper()
 	transport := NewLocalInterceptableTransport(stopper).(*localInterceptableTransport)
 	stopper.RunWorker(func() {
