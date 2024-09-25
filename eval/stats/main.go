@@ -394,25 +394,31 @@ func getTableRows(data progData, size string) string {
 	case "time":
 		run, err1 := strconv.ParseFloat(data.timeRun, 64)
 		record, err2 := strconv.ParseFloat(data.timeRecord, 64)
-		replay, err3 := strconv.ParseFloat(data.timeAnalysis, 64)
+		analysis, err3 := strconv.ParseFloat(data.timeAnalysis, 64)
+		replay, err4 := strconv.ParseFloat(data.timeReplay, 64)
 
 		overheadRecord := -1.
+		overheadAnalysis := -1.
 		overheadReplay := -1.
 
 		if err1 == nil && err2 == nil {
 			overheadRecord = (record - run) / run * 100.
 		}
 		if err1 == nil && err3 == nil {
+			overheadAnalysis = (analysis - run) / run * 100.
+		}
+		if err1 == nil && err4 == nil {
 			overheadReplay = (replay - run) / run * 100.
 		}
 
-		return fmt.Sprintf("%s & %s & %s & %s & %s & %.2f & %.2f \\\\ \\hline\n",
+		return fmt.Sprintf("%s & %s & %s & %s & %s & %.2f & %.2f & %.2f \\\\ \\hline\n",
 			data.name,
 			gv(data.timeRun),
 			gv(data.timeRecord),
 			gv(data.timeAnalysis),
 			gv(data.timeReplay),
 			max(0, overheadRecord),
+			max(0, overheadAnalysis),
 			max(0, overheadReplay),
 		)
 	}
@@ -485,11 +491,59 @@ func getTableTopLine(size string) string {
 		return tableStarter + "{|l|c|c|c|c|c|c|}\n" +
 			"\\hline\nname " +
 			"& $\\mathcal{T}_0 [s]$ & $\\mathcal{T}_R [s]$ & $\\mathcal{T}_A [s]$ " +
-			"& $\\mathcal{T}_P [s]$ & $\\Delta_R [\\%] & $\\Delta_P [\\%]" +
+			"& $\\mathcal{T}_P [s]$ & $\\Delta_R [\\%] & \\Delta_A [\\%] & $\\Delta_P [\\%]" +
 			"\\\\ \\hline\n"
 	}
 
 	return ""
+}
+
+func getAvgTime() string {
+	count := 0.
+	totalTimeRun := 0.
+	totalTimeRecord := 0.
+	totalTimeAnalysis := 0.
+	totalTimeReplay := 0.
+
+	for _, prog := range progs {
+		run, err := strconv.ParseFloat(prog.timeRun, 64)
+		if err != nil || run < 0 {
+			fmt.Println("Run time for ", prog.name, " not valid")
+		}
+		record, err := strconv.ParseFloat(prog.timeRun, 64)
+		if err != nil || run < 0 {
+			fmt.Println("Run time for ", prog.name, " not valid")
+		}
+		analysis, err := strconv.ParseFloat(prog.timeRun, 64)
+		if err != nil || run < 0 {
+			fmt.Println("Run time for ", prog.name, " not valid")
+		}
+		replay, err := strconv.ParseFloat(prog.timeRun, 64)
+		if err != nil || run < 0 {
+			fmt.Println("Run time for ", prog.name, " not valid")
+		}
+
+		totalTimeRun += run
+		totalTimeRecord += record
+		totalTimeAnalysis += analysis
+		totalTimeReplay += replay
+		count++
+	}
+
+	avgTimeRun := totalTimeRun / count
+	avgTimeRecord := totalTimeRecord / count
+	avgTimeAnalysis := totalTimeAnalysis / count
+	avgTimeReplay := totalTimeReplay / count
+
+	overheadRecord := (avgTimeRecord - avgTimeRun) / avgTimeRun * 100.
+	overheadAnalysis := (avgTimeAnalysis - avgTimeRun) / avgTimeRun * 100.
+	overheadReplay := (avgTimeReplay - avgTimeRun) / avgTimeRun * 100.
+
+	return fmt.Sprintf("Average & - & - & - & - & %.2f & %.2f & %.2f \\\\ \\hline\n",
+		max(0, overheadRecord),
+		overheadAnalysis,
+		max(0, overheadReplay),
+	)
 }
 
 func createLatexTable(name string, fileName string) {
@@ -497,6 +551,10 @@ func createLatexTable(name string, fileName string) {
 
 	for _, prog := range progs {
 		table += getTableRows(prog, name)
+	}
+
+	if name == "time" {
+		table += getAvgTime()
 	}
 
 	table += "\\end{tabular}\n\\caption{"
@@ -546,6 +604,7 @@ func writeExplanation(fileName string) {
 	text += "\\item $\\mathcal{T}_A$: runtime of analysis in s\n"
 	text += "\\item $\\mathcal{T}_P$: avg. runtime of replay in s\n"
 	text += "\\item $\\Delta_R$: overhead of recording compared to $\\mathcal{T}_0$\n"
+	text += "\\item $\\Delta_R$: overhead of analysis compared to $\\mathcal{T}_0$\n"
 	text += "\\item $\\Delta_P$: avg overhead of replay compared to $\\mathcal{T}_0$\n"
 	text += "\\end{itemize}\n"
 
