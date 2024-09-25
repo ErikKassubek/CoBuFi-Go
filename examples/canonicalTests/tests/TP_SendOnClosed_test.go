@@ -1,11 +1,16 @@
 package main
 
 import (
+	"advocate"
 	"testing"
 	"time"
 )
 
 func Test11(t *testing.T) {
+	// ======= Preamble Start =======
+  advocate.EnableReplay(2, true)
+  defer advocate.WaitForReplayFinish()
+  // ======= Preamble End =======
 	n11()
 }
 // TP
