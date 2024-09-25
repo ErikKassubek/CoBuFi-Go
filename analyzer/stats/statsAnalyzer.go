@@ -149,8 +149,13 @@ func processBugFile(filePath string, info *map[string]map[string]int, alreadyPro
 	bug.paths = strings.Join(elemPaths, ">")
 
 	if val, ok := (*alreadyProcessed)[bug.paths]; ok { // path already counted -> only count if bug type is not equal
-		for _, b := range val {
+		for i, b := range val {
 			if bug.detectedBug == b.detectedBug {
+				// count as success, if it never had been counted as success before
+				if bug.replaySuc && !b.replaySuc {
+					(*alreadyProcessed)[bug.paths][i].replaySuc = true
+					(*info)["replaySuccessful"][bugType]++
+				}
 				continue
 			}
 
