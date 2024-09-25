@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -103,6 +104,8 @@ func main() {
 	createLatexTable("dataActual", fileName)
 	createLatexTable("dataPotential", fileName)
 	createLatexTable("dataLeak", fileName)
+
+	createLatexTable("time", fileName)
 
 	writeExplanation(fileName)
 
@@ -295,7 +298,7 @@ func getProgNameFromFile(path string) string {
 	return filepath.Base(path)
 }
 
-func getTableRows1(data progData, size string) string {
+func getTableRows(data progData, size string) string {
 	switch size {
 	case "dataMin":
 		return fmt.Sprintf("%s & %s & %s & %s & %s & %s & %s & %s  \\\\ \\hline\n",
@@ -388,6 +391,30 @@ func getTableRows1(data progData, size string) string {
 			gv(data.numberReplayed["P09"]),
 			gv(data.numberReplayed["P10"]),
 		)
+	case "time":
+		run, err1 := strconv.ParseFloat(data.timeRun, 64)
+		record, err2 := strconv.ParseFloat(data.timeRecord, 64)
+		replay, err3 := strconv.ParseFloat(data.timeAnalysis, 64)
+
+		overheadRecord := -1.
+		overheadReplay := -1.
+
+		if err1 == nil && err2 == nil {
+			overheadRecord = (record - run) / run * 100.
+		}
+		if err1 == nil && err3 == nil {
+			overheadReplay = (replay - run) / run * 100.
+		}
+
+		return fmt.Sprintf("%s & %s & %s & %s & %s & %.2f & %.2f \\\\ \\hline\n",
+			data.name,
+			gv(data.timeRun),
+			gv(data.timeRecord),
+			gv(data.timeAnalysis),
+			gv(data.timeReplay),
+			max(0, overheadRecord),
+			max(0, overheadReplay),
+		)
 	}
 	return ""
 }
@@ -454,6 +481,12 @@ func getTableTopLine(size string) string {
 			"& $\\mathcal{P}_{L7}$ & $\\mathcal{P}_{L8}$ & $\\mathcal{P}_{L9}$ " +
 			"& $\\mathcal{P}_{L10}$" +
 			"\\\\ \\hline\n"
+	case "time":
+		return tableStarter + "{|l|c|c|c|c|c|c|}\n" +
+			"\\hline\nname " +
+			"& $\\mathcal{T}_0 [s]$ & $\\mathcal{T}_R [s]$ & $\\mathcal{T}_A [s]$ " +
+			"& $\\mathcal{T}_P [s]$ & $\\Delta_R [\\%] & $\\Delta_P [\\%]" +
+			"\\\\ \\hline\n"
 	}
 
 	return ""
@@ -463,7 +496,7 @@ func createLatexTable(name string, fileName string) {
 	table := getTableTopLine(name)
 
 	for _, prog := range progs {
-		table += getTableRows1(prog, name)
+		table += getTableRows(prog, name)
 	}
 
 	table += "\\end{tabular}\n\\caption{"
@@ -508,7 +541,12 @@ func writeExplanation(fileName string) {
 	text += "\\item $\\mathcal{R}_Lx$: total number of rewrites of  unique leak of type x\n"
 	text += "\\item $\\mathcal{P}_Px$: total number of successful replays of unique potential bug of type x\n"
 	text += "\\item $\\mathcal{P}_Lx$: total number of successful replays of unique leak of type x\n"
-
+	text += "\\item $\\mathcal{T}_0$: runtime without recording/replay\n"
+	text += "\\item $\\mathcal{T}_R$: runtime of recording in s\n"
+	text += "\\item $\\mathcal{T}_A$: runtime of analysis in s\n"
+	text += "\\item $\\mathcal{T}_P$: avg. runtime of replay in s\n"
+	text += "\\item $\\Delta_R$: overhead of recording compared to $\\mathcal{T}_0$\n"
+	text += "\\item $\\Delta_P$: avg overhead of replay compared to $\\mathcal{T}_0$\n"
 	text += "\\end{itemize}\n"
 
 	writeToFile(fileName, text)
