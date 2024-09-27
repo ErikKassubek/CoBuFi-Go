@@ -194,7 +194,7 @@ func runWorkflowMain(pathToAdvocate string, pathToFile string, executableName st
 	generateBugReports(resultPath, pathToAdvocate)
 
 	if measureTime {
-		generateTimeFile(progName, resultPath, durationRun, durationRecord, durationAnalysis, durationReplay)
+		updateTimeFiles(progName, resultPath, durationRun, durationRecord, durationAnalysis, durationReplay)
 	}
 
 	if notExecuted {

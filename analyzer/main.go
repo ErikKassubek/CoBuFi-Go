@@ -13,20 +13,24 @@ package main
 import (
 	"flag"
 	"fmt"
+	"log"
 	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
-	"syscall"
 	"time"
 
 	"analyzer/analysis"
+	"analyzer/bugs"
 	"analyzer/complete"
 	"analyzer/explanation"
 	"analyzer/io"
 	"analyzer/logging"
 	"analyzer/rewriter"
 	"analyzer/stats"
+	"analyzer/utils"
+
+	"github.com/shirou/gopsutil/mem"
 )
 
 func main() {
@@ -45,6 +49,8 @@ func main() {
 	programPath := flag.String("P", "", "Path to the program folder")
 	preventCopyRewrittenTrace := flag.Bool("n", false, "Do not copy the rewritten trace in the explanation")
 	progName := flag.String("N", "", "Name of the program")
+	rewriteAll := flag.Bool("S", false, "If a the same position is flagged multiple times, run the replay for each of them. "+
+		"If not set, only the first occurence is rewritten")
 
 	scenarios := flag.String("s", "", "Select which analysis scenario to run, e.g. -s srd for the option s, r and d."+
 		"If not set, all scenarios are run.\n"+
@@ -61,7 +67,7 @@ func main() {
 	// "\tc: Cyclic deadlock\n",
 	// "\tm: Mixed deadlock\n"
 
-	// go memorySupervisor() // BUG: does not work properly
+	go memorySupervisor() // panic if not enough ram
 
 	flag.Parse()
 
@@ -109,7 +115,7 @@ func main() {
 	case "run":
 		modeRun(pathTrace, noPrint, noRewrite, scenarios, level, outReadable,
 			outMachine, ignoreAtomics, fifo, ignoreCriticalSection,
-			noWarning, folderTrace, newTrace)
+			noWarning, rewriteAll, folderTrace, newTrace)
 	default:
 		fmt.Printf("Unknown mode %s", os.Args[1])
 		fmt.Printf("Select one mode from 'run', 'stats', 'explain' or 'check'")
@@ -143,6 +149,7 @@ func modeExplain(pathTrace *string, folderTrace string, explanationIndex *int,
 		fmt.Println("Please provide a path to the trace file and an index (1 based) for the explanation. Set with -t [file] -i [index]")
 		return
 	}
+
 	err := explanation.CreateOverview(folderTrace, *explanationIndex, *preventCopyRewrittenTrace)
 	if err != nil {
 		fmt.Println("Error creating explanation: ", err.Error())
@@ -170,7 +177,7 @@ func modeCheck(resultFolderTool, programPath *string) {
 func modeRun(pathTrace *string, noPrint *bool, noRewrite *bool,
 	scenarios *string, level *int, outReadable string, outMachine string,
 	ignoreAtomics *bool, fifo *bool, ignoreCriticalSection *bool,
-	noWarning *bool, folderTrace string, newTrace string) {
+	noWarning *bool, rewriteAll *bool, folderTrace string, newTrace string) {
 	printHeader()
 
 	if *pathTrace == "" {
@@ -191,10 +198,18 @@ func modeRun(pathTrace *string, noPrint *bool, noRewrite *bool,
 	// based on the analysis results
 
 	logging.InitLogging(*level, outReadable, outMachine)
-	numberOfRoutines, err := io.CreateTraceFromFiles(*pathTrace, *ignoreAtomics)
+	numberOfRoutines, containsElems, err := io.CreateTraceFromFiles(*pathTrace, *ignoreAtomics)
 	if err != nil {
 		panic(err)
 	}
+
+	if !containsElems {
+		fmt.Println("Trace does not contain any elem")
+		fmt.Println("Skip analysis")
+		_ = logging.PrintSummary(*noWarning, *noPrint)
+		return
+	}
+
 	analysis.SetNumberOfRoutines(numberOfRoutines)
 
 	if analysisCases["all"] {
@@ -220,9 +235,12 @@ func modeRun(pathTrace *string, noPrint *bool, noRewrite *bool,
 		notNeededRewrites := 0
 		println("\n\nStart rewriting trace files...")
 		originalTrace := analysis.CopyCurrentTrace()
+
+		rewrittenBugs := make(map[bugs.ResultType][]string) // bugtype -> paths string
+
 		for resultIndex := 0; resultIndex < numberOfResults; resultIndex++ {
 			needed, err := rewriteTrace(outMachine,
-				newTrace+"_"+strconv.Itoa(resultIndex+1)+"/", resultIndex, numberOfRoutines)
+				newTrace+"_"+strconv.Itoa(resultIndex+1)+"/", resultIndex, numberOfRoutines, &rewrittenBugs, !*rewriteAll)
 
 			if !needed {
 				println("Trace can not be rewritten.")
@@ -254,22 +272,34 @@ func modeRun(pathTrace *string, noPrint *bool, noRewrite *bool,
 }
 
 func memorySupervisor() {
-	var stat syscall.Sysinfo_t
-
+	thresholdRAM := uint64(1 * 1024 * 1024 * 1024) // 1GB
+	thresholdSwap := uint64(200 * 1024 * 1024)     // 200mb
 	for {
-		time.Sleep(2 * time.Second)
-
-		err := syscall.Sysinfo(&stat)
+		// Get the memory stats
+		v, err := mem.VirtualMemory()
 		if err != nil {
-			panic(err)
+			log.Fatalf("Error getting memory info: %v", err)
 		}
 
-		freeRAM := stat.Freeram * uint64(stat.Unit)
-
-		if freeRAM < 3000000000 {
-			println("Not enough free RAM available. Exiting...")
-			os.Exit(1)
+		// Get the swap stats
+		s, err := mem.SwapMemory()
+		if err != nil {
+			log.Fatalf("Error getting swap info: %v", err)
 		}
+
+		// fmt.Printf("Available RAM: %v MB, Available Swap: %v MB\n", v.Available/1024/1024, s.Free/1024/1024)
+
+		// Panic if available RAM or swap is below the threshold
+		if v.Available < thresholdRAM {
+			log.Panicf("Available RAM is below threshold! Available: %v MB, Threshold: %v MB", v.Available/1024/1024, thresholdRAM/1024/1024)
+		}
+
+		if s.Free < thresholdSwap {
+			log.Panicf("Available Swap is below threshold! Available: %v MB, Threshold: %v MB", s.Free/1024/1024, thresholdSwap/1024/1024)
+		}
+
+		// Sleep for a while before checking again
+		time.Sleep(5 * time.Second)
 	}
 }
 
@@ -280,12 +310,13 @@ func memorySupervisor() {
  *   newTrace (string): The path where the new traces folder will be created
  *   resultIndex (int): The index of the result to use for the reordered trace file
  *   numberOfRoutines (int): The number of routines in the trace
+ *   rewrittenTrace (*map[string][]string): set of bugs that have been already rewritten
  * Returns:
  *   bool: true, if a rewrite was nessesary, false if not (e.g. actual bug, warning)
  *   error: An error if the trace file could not be created
  */
 func rewriteTrace(outMachine string, newTrace string, resultIndex int,
-	numberOfRoutines int) (bool, error) {
+	numberOfRoutines int, rewrittenTrace *map[bugs.ResultType][]string, rewriteOnce bool) (bool, error) {
 
 	actual, bug, err := io.ReadAnalysisResults(outMachine, resultIndex)
 	if err != nil {
@@ -294,6 +325,20 @@ func rewriteTrace(outMachine string, newTrace string, resultIndex int,
 
 	if actual {
 		return false, nil
+	}
+
+	if rewriteOnce {
+		bugString := bug.GetBugString()
+		if _, ok := (*rewrittenTrace)[bug.Type]; !ok {
+			(*rewrittenTrace)[bug.Type] = make([]string, 0)
+		} else {
+			if utils.Contains((*rewrittenTrace)[bug.Type], bugString) {
+				fmt.Println("Bug was already rewritten before")
+				fmt.Println("Skip rewrite")
+				return false, nil
+			}
+		}
+		(*rewrittenTrace)[bug.Type] = append((*rewrittenTrace)[bug.Type], bugString)
 	}
 
 	rewriteNeeded, code, err := rewriter.RewriteTrace(bug)
@@ -428,6 +473,7 @@ func printHelp() {
 	println("  -p          Do not print the results to the terminal (default false). Automatically set -x to true")
 	println("  -r [folder] Path to where the result file should be saved. (default parallel to -t)")
 	println("  -a          Ignore atomic operations (default false). Use to reduce memory header for large traces.")
+	println("  -S          If the same bug is detected multiple times, run the replay for each of them. If not set, only the first occurence is rewritten")
 	println("  -s [cases]  Select which analysis scenario to run, e.g. -s srd for the option s, r and d.")
 	println("              If it is not set, all scenarios are run")
 	println("              Options:")

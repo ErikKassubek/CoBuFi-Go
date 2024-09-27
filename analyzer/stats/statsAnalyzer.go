@@ -138,7 +138,9 @@ func processBugFile(filePath string, info *map[string]map[string]int, alreadyPro
 				return err
 			}
 
-			if num < 10 || num >= 20 {
+			leak := strings.HasPrefix("L", bugType)
+
+			if (!leak && num < 10) || num >= 20 {
 				bug.replaySuc = true
 			}
 		}

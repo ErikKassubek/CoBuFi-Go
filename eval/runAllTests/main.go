@@ -9,13 +9,15 @@ import (
 
 func main() {
 	names := []string{
-		"canonicalTests",
-		"bbolt",
-		"GoBench",
-		"go-ethereum",
-		"kubernetes",
+		// "canonicalTests",
 		"moby",
 		"prometheus",
+		"etcd",
+		"kubernetes",
+		"go-ethereum",
+		"connect",
+		"argo-cd",
+		"GoBench",
 	}
 
 	mainPath := "~/Uni/HiWi/ADVOCATE/examples/"
@@ -61,6 +63,8 @@ func main() {
 			}
 			file.Close()
 		}
+
+		fmt.Println("Finished running", name)
 
 	}
 

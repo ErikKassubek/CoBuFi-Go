@@ -13,6 +13,7 @@ package bugs
 import (
 	"analyzer/analysis"
 	"errors"
+	"sort"
 	"strings"
 )
 
@@ -51,6 +52,25 @@ type Bug struct {
 	Type          ResultType
 	TraceElement1 []*analysis.TraceElement
 	TraceElement2 []*analysis.TraceElement
+}
+
+func (b Bug) GetBugString() string {
+	paths := make([]string, 0)
+
+	for _, t := range b.TraceElement1 {
+		paths = append(paths, (*t).GetPos())
+	}
+	for _, t := range b.TraceElement2 {
+		paths = append(paths, (*t).GetPos())
+	}
+
+	sort.Strings(paths)
+
+	res := string(b.Type)
+	for _, path := range paths {
+		res += path
+	}
+	return res
 }
 
 /*

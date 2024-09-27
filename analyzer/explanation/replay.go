@@ -80,6 +80,7 @@ func getReplayInfo(path string, index int) (string, string, string, error) {
 	prefixTrace := "Reading trace from rewritten_trace_"
 	prefixCode := "Exit Replay with code"
 	prefixPanic := "panic: "
+	prefixDouble := "Bug was already rewritten before"
 
 	for _, line := range lines {
 		if strings.HasPrefix(line, prefixTrace) {
@@ -97,6 +98,8 @@ func getReplayInfo(path string, index int) (string, string, string, error) {
 			line = strings.Split(line, " ")[0]
 			line = strings.TrimSpace(line)
 			linesWithCode = append(linesWithCode, line)
+		} else if strings.HasPrefix(line, prefixDouble) {
+			linesWithCode = append(linesWithCode, "double")
 		}
 	}
 
@@ -121,6 +124,10 @@ func getReplayInfo(path string, index int) (string, string, string, error) {
 
 	exitCode := linesWithCode[foundIndex]
 	replaySuc := "failed"
+	if exitCode == "double" {
+		replaySuc = "was already performed for this bug in another test"
+		return "double", "", replaySuc, nil
+	}
 	if !strings.HasPrefix(exitCode, prefixPanic) {
 		exitCodeInt, err := strconv.Atoi(exitCode)
 		if err != nil {

@@ -109,6 +109,18 @@ func main() {
 			return
 		}
 		err = runWorkflowUnit(pathToAdvocate, pathToFile, progName, measureTime, notExecuted, stats)
+	case "explain":
+		if pathToAdvocate == "" {
+			fmt.Println("Path to advocate required")
+			printHelpUnit()
+			return
+		}
+		if pathToFile == "" {
+			fmt.Println("Path to test folder required for mode main")
+			printHelpUnit()
+			return
+		}
+		generateBugReports(pathToFile, pathToAdvocate)
 	default:
 		fmt.Println("Choose one mode from 'main' or 'test'")
 		printHelp()

@@ -139,7 +139,6 @@ func readAnalysisResults(path string, index int, mainFile string) (string, map[i
 	}
 
 	return bugType, bugPos, bugElemType, nil
-
 }
 
 func writeFile(path string, index int, description map[string]string,
@@ -235,20 +234,26 @@ func writeFile(path string, index int, description map[string]string,
 	res += replay["description"] + "\n\n"
 
 	replayPossible := replay["replaySuc"] != "was not possible"
+	replayDouble := replay["exitCode"] != "double"
 
-	if replayPossible {
-		res += "The rewritten trace can be found in the `rewritten_trace` folder.\n\n"
-	}
+	if replayDouble {
+		res += "The replay was not performed, because the same bug had been found before."
+	} else {
 
-	res += "**Replaying " + replay["replaySuc"] + "**.\n\n"
-	if replayPossible {
-		if replay["replaySuc"] != "panicked" {
-			res += "It exited with the following code: "
-			res += replay["exitCode"] + "\n\n"
-			res += replay["exitCodeExplanation"] + "\n\n"
-		} else {
-			res += "It panicked with the following message:\n\n"
-			res += replay["exitCode"] + "\n\n"
+		if replayPossible {
+			res += "The rewritten trace can be found in the `rewritten_trace` folder.\n\n"
+		}
+
+		res += "**Replaying " + replay["replaySuc"] + "**.\n\n"
+		if replayPossible {
+			if replay["replaySuc"] != "panicked" {
+				res += "It exited with the following code: "
+				res += replay["exitCode"] + "\n\n"
+				res += replay["exitCodeExplanation"] + "\n\n"
+			} else {
+				res += "It panicked with the following message:\n\n"
+				res += replay["exitCode"] + "\n\n"
+			}
 		}
 	}
 

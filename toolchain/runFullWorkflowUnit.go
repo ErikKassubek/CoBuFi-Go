@@ -13,7 +13,6 @@
 package main
 
 import (
-	"bufio"
 	"errors"
 	"fmt"
 	"log"
@@ -21,6 +20,10 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
+)
+
+const (
+	timeout = "5m"
 )
 
 /*
@@ -68,15 +71,12 @@ func runWorkflowUnit(pathToAdvocate, dir, progName string,
 	totalFiles := len(testFiles)
 	attemptedTests, skippedTests, currentFile := 0, 0, 1
 
-	var durationRun time.Duration
-	var durationRecord time.Duration
-	var durationAnalysis time.Duration
-	var durationReplay time.Duration
+	resultPath := filepath.Join(dir, "advocateResult")
 
 	// Process each test file
 	for _, file := range testFiles {
-		fmt.Printf("Progress: %d/%d\n", currentFile, totalFiles)
-		fmt.Printf("Processing file: %s\n", file)
+		fmt.Printf("\n\n\n\nProgress: %d/%d\n", currentFile, totalFiles)
+		fmt.Printf("\n\n\nProcessing file: %s\n", file)
 
 		packagePath := filepath.Dir(file)
 		testFunctions, err := findTestFunctions(file)
@@ -89,7 +89,7 @@ func runWorkflowUnit(pathToAdvocate, dir, progName string,
 			attemptedTests++
 			packageName := filepath.Base(packagePath)
 			fileName := filepath.Base(file)
-			fmt.Printf("Running full workflow for test: %s in package: %s in file: %s\n", testFunc, packageName, file)
+			fmt.Printf("\n\nRunning full workflow for test: %s in package: %s in file: %s\n", testFunc, packageName, file)
 
 			adjustedPackagePath := strings.TrimPrefix(packagePath, dir)
 			fileNameWithoutEnding := strings.TrimSuffix(fileName, ".go")
@@ -99,53 +99,28 @@ func runWorkflowUnit(pathToAdvocate, dir, progName string,
 				continue
 			}
 
-			// run the tests without recording/replay
-			if measureTime {
-				if err := os.Chdir(dir); err != nil {
-					fmt.Printf("Failed to change directory: %v\n", err)
-				}
-
-				// Remove header just in case
-				if err := headerRemoverUnit(file); err != nil {
-					fmt.Println(err)
-				}
-
-				timeStart := time.Now()
-				err = runCommand("go", "test", "-count=1", "-run="+testFunc, "./"+adjustedPackagePath)
-				if err != nil {
-					log.Println(err)
-					log.Println("Test failed, removing header and exiting")
-				}
-				duration := time.Since(timeStart)
-				durationRun += duration
-			}
-
 			// Execute full workflow
-			timeRecord, timeAnalysis, timeReplay, err := unitTestFullWorkflow(pathToAdvocate, dir, testFunc, adjustedPackagePath, file, directoryName)
-			durationRecord += timeRecord
-			durationAnalysis += timeAnalysis
-			durationReplay += timeReplay
-			if err != nil {
-				fmt.Printf("File %d with Test %d failed, check output.log for more information. Skipping...\n", currentFile, attemptedTests)
-				skippedTests++
-				continue
+			timeRun, timeRecord, timeAnalysis, timeReplay, err := unitTestFullWorkflow(pathToAdvocate, dir, testFunc, adjustedPackagePath, file, directoryName, measureTime)
+
+			if measureTime {
+				updateTimeFiles(progName, resultPath, timeRun, timeRecord, timeAnalysis, timeReplay)
 			}
 
 			// Move logs and results to the appropriate directory
 			moveResults(packagePath, directoryName)
+
+			if err != nil {
+				fmt.Printf("File %d with Test %d failed, check output.log for more information.\n", currentFile, attemptedTests)
+				skippedTests++
+			}
 		}
+
 		currentFile++
 	}
-
-	resultPath := filepath.Join(dir, "advocateResult")
 
 	// Generate Bug Reports
 	fmt.Println("Generate Bug Reports")
 	generateBugReports(resultPath, pathToAdvocate)
-
-	if measureTime {
-		generateTimeFile(progName, resultPath, durationRun, durationRecord, durationAnalysis, durationReplay)
-	}
 
 	// Check for untriggered selects
 	if notExecuted {
@@ -177,30 +152,26 @@ func runWorkflowUnit(pathToAdvocate, dir, progName string,
  *     durationAnalysis (time.Duration): time to analyze all traces
  *     durationReplay (time.Duration): time to run all replays. For each test the avg time is used
  */
-func generateTimeFile(progName string, folderName string, durationRun, durationRecord, durationAnalysis,
+func updateTimeFiles(progName string, folderName string, durationRun, durationRecord, durationAnalysis,
 	durationReplay time.Duration) {
-	fmt.Println("Generate time file")
-	file, err := os.Create(filepath.Join(folderName, "times_"+progName+".log"))
+	// fmt.Println("Generate time file")
+
+	file, err := os.OpenFile(filepath.Join(folderName, "times_"+progName+".log"), os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
-		fmt.Println("Error creating file:", err)
+		fmt.Println("Error opening or creating file:", err)
 		return
 	}
 	defer file.Close()
 
-	writer := bufio.NewWriter(file)
-
 	timeInfo := fmt.Sprintf(
-		"Run: %.2f\nRecord: %.2f\nAnalysis: %.2f\nReplay: %.2f",
+		"%.2f#%.2f#%.2f#%.2f",
 		durationRun.Seconds(), durationRecord.Seconds(),
 		durationAnalysis.Seconds(), durationReplay.Seconds())
 
-	fmt.Println(timeInfo)
-
-	_, err = writer.WriteString(timeInfo)
-	if err != nil {
-		fmt.Println("Failed to write time file: ", err)
+	// Write to the file
+	if _, err := file.WriteString(timeInfo); err != nil {
+		fmt.Println("Could not write time: ", err)
 	}
-	writer.Flush()
 }
 
 /*
@@ -259,20 +230,23 @@ func findTestFiles(dir string) ([]string, error) {
  *    pkg (string): adjusted package path
  *    file (string): file with the test
  *    output (string): write all outputs to this file
+ *    measureTime (bool): if true, run the test once without recording/replay to measure time
  * Returns:
+ *    time.Duration: time of running without recording or replay
  *    time.Duration: time of trace recording
  *    time.Duration: time for analysis
  *    time.Duration: avg. time of trace replay
  *    error
  */
 func unitTestFullWorkflow(pathToAdvocate string, dir string,
-	testName string, pkg string, file string, outputDir string) (time.Duration, time.Duration, time.Duration, error) {
+	testName string, pkg string, file string, outputDir string,
+	measureTime bool) (time.Duration, time.Duration, time.Duration, time.Duration, error) {
 
 	output := filepath.Join(outputDir, "output.log")
 
 	outFile, err := os.OpenFile(output, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
-		return 0, 0, 0, fmt.Errorf("Failed to open log file: %v", err)
+		return 0, 0, 0, 0, fmt.Errorf("Failed to open log file: %v", err)
 	}
 	defer outFile.Close()
 
@@ -290,19 +264,19 @@ func unitTestFullWorkflow(pathToAdvocate string, dir string,
 
 	// Validate required inputs
 	if pathToAdvocate == "" {
-		return 0, 0, 0, errors.New("Path to advocate is empty")
+		return 0, 0, 0, 0, errors.New("Path to advocate is empty")
 	}
 	if dir == "" {
-		return 0, 0, 0, errors.New("Directory is empty")
+		return 0, 0, 0, 0, errors.New("Directory is empty")
 	}
 	if testName == "" {
-		return 0, 0, 0, errors.New("Test name is empty")
+		return 0, 0, 0, 0, errors.New("Test name is empty")
 	}
 	if pkg == "" {
-		return 0, 0, 0, errors.New("Package is empty")
+		return 0, 0, 0, 0, errors.New("Package is empty")
 	}
 	if file == "" {
-		return 0, 0, 0, errors.New("Test file is empty")
+		return 0, 0, 0, 0, errors.New("Test file is empty")
 	}
 
 	pathToPatchedGoRuntime := filepath.Join(pathToAdvocate, "go-patch/bin/go")
@@ -311,13 +285,31 @@ func unitTestFullWorkflow(pathToAdvocate string, dir string,
 
 	// Change to the directory
 	if err := os.Chdir(dir); err != nil {
-		return 0, 0, 0, fmt.Errorf("Failed to change directory: %v", err)
+		return 0, 0, 0, 0, fmt.Errorf("Failed to change directory: %v", err)
 	}
 	fmt.Printf("In directory: %s\n", dir)
 
+	// run the tests without recording/replay
+	timeRun := time.Duration(0)
+	if measureTime {
+		// Remove header just in case
+		if err := headerRemoverUnit(file); err != nil {
+			fmt.Println(err)
+		}
+
+		timeStart := time.Now()
+		fmt.Println("Run T0")
+		err = runCommand("go", "test", "-timeout", timeout, "-count=1", "-run="+testName, "./"+pkg)
+		if err != nil {
+			log.Println(err)
+			log.Println("Test failed, removing header and exiting")
+		}
+		timeRun = time.Since(timeStart)
+	}
+
 	// Set GOROOT
 	os.Setenv("GOROOT", pathToGoRoot)
-	fmt.Println("GOROOT exported")
+	fmt.Println("GOROOT = " + pathToGoRoot + " exported")
 
 	fmt.Println("FileName: ", file)
 	fmt.Println("TestName: ", testName)
@@ -325,25 +317,25 @@ func unitTestFullWorkflow(pathToAdvocate string, dir string,
 	// Remove header just in case
 	fmt.Println(fmt.Sprintf("Remove header for %s", file))
 	if err := headerRemoverUnit(file); err != nil {
-		return 0, 0, 0, fmt.Errorf("Failed to remove header: %v", err)
+		return 0, 0, 0, 0, fmt.Errorf("Failed to remove header: %v", err)
 	}
 
 	// Add header
 	fmt.Println(fmt.Sprintf("Add header for %s: %s", file, testName))
 	if err := headerInserterUnit(file, testName, false, "0"); err != nil {
-		return 0, 0, 0, fmt.Errorf("Error in adding header: %v", err)
+		return 0, 0, 0, 0, fmt.Errorf("Error in adding header: %v", err)
 	}
 
 	// Run the test
-	fmt.Println(fmt.Sprintf("%s test -count=1 -run=%s ./%s", pathToPatchedGoRuntime, testName, pkg))
+	fmt.Println("\nRun Recording")
 
 	timeStart := time.Now()
-	err = runCommand(pathToPatchedGoRuntime, "test", "-count=1", "-run="+testName, "./"+pkg)
+	err = runCommand(pathToPatchedGoRuntime, "test", "-timeout", timeout, "-count=1", "-run="+testName, "./"+pkg)
 	if err != nil {
 		log.Println(err)
 		log.Println("Test failed, removing header and exiting")
 		headerRemoverUnit(file)
-		return 0, 0, 0, errors.New("Error running test")
+		return 0, 0, 0, 0, errors.New("Error running test")
 	}
 	durationRecord := time.Since(timeStart)
 
@@ -366,14 +358,14 @@ func unitTestFullWorkflow(pathToAdvocate string, dir string,
 	fmt.Printf("Found %d rewritten traces\n", len(rewrittenTraces))
 
 	var timeReplay time.Duration
-	for _, trace := range rewrittenTraces {
+	for i, trace := range rewrittenTraces {
 		traceNum := extractTraceNumber(trace)
 		fmt.Printf("Insert replay header or %s: %s for trace %s\n", file, testName, traceNum)
 		headerInserterUnit(file, testName, true, traceNum)
 
-		fmt.Printf("%s test -count=1 -run=%s ./%s\n", pathToPatchedGoRuntime, testName, pkg)
+		fmt.Printf("\nRun replay %d/%d\n", i, len(rewrittenTraces))
 		startTime := time.Now()
-		runCommand(pathToPatchedGoRuntime, "test", "-count=1", "-run="+testName, "./"+pkg)
+		runCommand(pathToPatchedGoRuntime, "test", "-timeout", timeout, "-count=1", "-run="+testName, "./"+pkg)
 		timeReplay += time.Since(startTime)
 
 		// Remove reorder header
@@ -389,7 +381,7 @@ func unitTestFullWorkflow(pathToAdvocate string, dir string,
 	os.Unsetenv("GOROOT")
 	fmt.Println("GOROOT removed")
 
-	return durationRecord, timeAnalysis, timeReplay, nil
+	return timeRun, durationRecord, timeAnalysis, timeReplay, nil
 }
 
 // extractTraceNumber extracts the numeric part from a trace directory name
