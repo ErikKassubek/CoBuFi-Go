@@ -293,7 +293,6 @@ func chansend(c *hchan, ep unsafe.Pointer, block bool, callerpc uintptr, ignored
 			AdvocateChanPostCausedByClose(advocateIndex)
 		}
 		// ADVOCATE-CHANGE-END
-
 		panic(plainError("send on closed channel"))
 	}
 

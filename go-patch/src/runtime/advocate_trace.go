@@ -71,8 +71,21 @@ var advocateAtomicMapToID = make(map[uint64]uint64)
 var advocateAtomicMapIDCounter uint64 = 1
 var advocateAtomicMapLock mutex
 var advocateAtomicMapToIDLock mutex
+var advocatePanicWriteBlock chan struct{}
+var advocatePanicDone chan struct{}
 
 // var advocateTraceWritingDisabled = false
+
+/*
+ * Get the channels used to write the trace on certain panics
+ * Args:
+ *    apwb (chan struct{}): advocatePanicWriteBlock
+ *    apd (chan struct{}): advocatePanicDone
+ */
+func GetAdvocatePanicChannels(apwb, apd chan struct{}) {
+	advocatePanicWriteBlock = apwb
+	advocatePanicDone = apd
+}
 
 /*
  * Return a string representation of the trace

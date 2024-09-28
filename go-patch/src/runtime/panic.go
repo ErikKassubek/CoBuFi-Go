@@ -720,6 +720,11 @@ var panicnil = &godebugInc{name: "panicnil"}
 func gopanic(e any) {
 	// ADVOCATE-CHANGE-START
 	ExitReplayPanic(e)
+	// write the trace
+	if !advocateDisabled {
+		advocatePanicWriteBlock <- struct{}{}
+		<-advocatePanicDone
+	}
 	// ADVOCATE-CHANGE-END
 	if e == nil {
 		if debug.panicnil.Load() != 1 {

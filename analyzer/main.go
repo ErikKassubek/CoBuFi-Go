@@ -178,7 +178,7 @@ func modeRun(pathTrace *string, noPrint *bool, noRewrite *bool,
 	scenarios *string, level *int, outReadable string, outMachine string,
 	ignoreAtomics *bool, fifo *bool, ignoreCriticalSection *bool,
 	noWarning *bool, rewriteAll *bool, folderTrace string, newTrace string) {
-	printHeader()
+	// printHeader()
 
 	if *pathTrace == "" {
 		fmt.Println("Please provide a path to the trace file. Set with -t [file]")

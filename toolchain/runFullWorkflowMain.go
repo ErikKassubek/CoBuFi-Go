@@ -100,9 +100,7 @@ func runWorkflowMain(pathToAdvocate string, pathToFile string, executableName st
 		fmt.Printf("./%s\n", executableName)
 		timeStart := time.Now()
 		if err := runCommand("./" + executableName); err != nil {
-			log.Println("Error in running program, removing header and stopping workflow")
 			headerRemoverMain(pathToFile)
-			return err
 		}
 		durationRun = time.Since(timeStart)
 	}
@@ -125,9 +123,7 @@ func runWorkflowMain(pathToAdvocate string, pathToFile string, executableName st
 	fmt.Printf("./%s\n", executableName)
 	timeStart := time.Now()
 	if err := runCommand("./" + executableName); err != nil {
-		log.Println("Error in running program, removing header and stopping workflow")
 		headerRemoverMain(pathToFile)
-		return err
 	}
 	durationRecord = time.Since(timeStart)
 

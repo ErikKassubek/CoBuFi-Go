@@ -198,6 +198,17 @@ func InitTracing(size int) {
 		}
 	}
 
+	// if the program panics, but is not in the main routine, no trace is written
+	// to prevent this, the following is done. The corresponding send/recv are in the panic definition
+	blocked := make(chan struct{})
+	writingDone := make(chan struct{})
+	runtime.GetAdvocatePanicChannels(blocked, writingDone)
+	go func() {
+		<-blocked
+		Finish()
+		writingDone <- struct{}{}
+	}()
+
 	// if the program is terminated by the user, the defer in the header
 	// is not executed. Therefore capture the signal and write the trace.
 	interuptSignal := make(chan os.Signal, 1)

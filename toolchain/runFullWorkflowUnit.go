@@ -301,8 +301,7 @@ func unitTestFullWorkflow(pathToAdvocate string, dir string,
 		fmt.Println("Run T0")
 		err = runCommand("go", "test", "-timeout", timeout, "-count=1", "-run="+testName, "./"+pkg)
 		if err != nil {
-			log.Println(err)
-			log.Println("Test failed, removing header and exiting")
+			log.Println("Test failed: ", err)
 		}
 		timeRun = time.Since(timeStart)
 	}
@@ -333,9 +332,9 @@ func unitTestFullWorkflow(pathToAdvocate string, dir string,
 	err = runCommand(pathToPatchedGoRuntime, "test", "-timeout", timeout, "-count=1", "-run="+testName, "./"+pkg)
 	if err != nil {
 		log.Println(err)
-		log.Println("Test failed, removing header and exiting")
-		headerRemoverUnit(file)
-		return 0, 0, 0, 0, errors.New("Error running test")
+		// log.Println("Test failed, removing header and exiting")
+		// headerRemoverUnit(file)
+		// return 0, 0, 0, 0, errors.New("Error running test")
 	}
 	durationRecord := time.Since(timeStart)
 
