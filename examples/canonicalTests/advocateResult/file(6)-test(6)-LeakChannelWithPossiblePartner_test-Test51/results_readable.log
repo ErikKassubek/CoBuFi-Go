@@ -1,0 +1,10 @@
+```
+==================== Summary ====================
+
+-------------------- Critical -------------------
+
+1 Leak on unbuffered channel with possible partner:
+	channel: /home/erik/Uni/HiWi/ADVOCATE/examples/canonicalTests/tests/LeakChannelWithPossiblePartner_test.go:29@262
+	partner: /home/erik/Uni/HiWi/ADVOCATE/examples/canonicalTests/tests/LeakChannelWithPossiblePartner_test.go:33@252
+
+```

@@ -1,0 +1,10 @@
+```
+==================== Summary ====================
+
+-------------------- Critical -------------------
+
+1 Possible negative waitgroup counter:
+	done: /home/erik/Uni/HiWi/ADVOCATE/examples/canonicalTests/tests/TP_NegativeWaitGroupCounter1_test.go:44@782
+	add: /home/erik/Uni/HiWi/ADVOCATE/examples/canonicalTests/tests/TP_NegativeWaitGroupCounter1_test.go:29@746
+
+```

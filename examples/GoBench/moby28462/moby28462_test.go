@@ -15,6 +15,7 @@ package moby28462
 
 import (
 	"sync"
+	"testing"
 	"time"
 )
 
@@ -114,7 +115,7 @@ func NewDaemonAndContainer() (*Daemon, *Container) {
 // / c.Lock()
 // / ----------------------G1,G2 deadlock------------------------
 // /
-func Moby28462() {
+func TestMoby28462(t *testing.T) {
 	d, c := NewDaemonAndContainer()
 	go monitor(c, c.State.Health.OpenMonitorChannel()) // G1
 	go d.StateChanged()                                // G2

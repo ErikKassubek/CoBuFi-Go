@@ -1,0 +1,17 @@
+```
+==================== Summary ====================
+
+-------------------- Critical -------------------
+
+1 Possible send on closed channel:
+	send: /home/erik/Uni/HiWi/ADVOCATE/examples/canonicalTests/tests/TP_SendOnClosed_test.go:27@848
+	close: /home/erik/Uni/HiWi/ADVOCATE/examples/canonicalTests/tests/TP_SendOnClosed_test.go:22@856
+
+
+-------------------- Warning --------------------
+
+2 Possible receive on closed channel:
+	recv: /home/erik/Uni/HiWi/ADVOCATE/examples/canonicalTests/tests/TP_SendOnClosed_test.go:35@852
+	close: /home/erik/Uni/HiWi/ADVOCATE/examples/canonicalTests/tests/TP_SendOnClosed_test.go:22@856
+
+```

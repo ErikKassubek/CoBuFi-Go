@@ -16,6 +16,7 @@ package grpc1460
 
 import (
 	"sync"
+	"testing"
 	"time"
 )
 
@@ -59,7 +60,7 @@ func (t *http2Client) NewStream() {
 // / 						t.mu.Lock()
 // / ---------------G1, G2 deadlock--------------
 // /
-func Grpc1460Test() {
+func TestGrpc1460(t *testing.T) {
 	client := &http2Client{
 		awakenKeepalive: make(chan struct{}),
 	}

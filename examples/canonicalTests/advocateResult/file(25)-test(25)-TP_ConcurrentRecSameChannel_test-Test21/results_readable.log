@@ -1,0 +1,11 @@
+```
+==================== Summary ====================
+
+
+-------------------- Warning --------------------
+
+1 Found concurrent Recv on same channel:
+	recv: /home/erik/Uni/HiWi/ADVOCATE/examples/canonicalTests/tests/TP_ConcurrentRecSameChannel_test.go:23@560
+	recv: /home/erik/Uni/HiWi/ADVOCATE/examples/canonicalTests/tests/TP_ConcurrentRecSameChannel_test.go:27@558
+
+```

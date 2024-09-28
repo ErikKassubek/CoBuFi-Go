@@ -3,6 +3,7 @@ package serving3068
 import (
 	"sync"
 	"sync/atomic"
+	"testing"
 	"time"
 )
 
@@ -54,7 +55,7 @@ func (i *impl) Wait() {
 	})
 }
 
-func Serving3068Test() {
+func TestServing3068(t *testing.T) {
 	p := NewWithCapacity(1, 5)
 	wg := &sync.WaitGroup{}
 	var cntExecuted int32

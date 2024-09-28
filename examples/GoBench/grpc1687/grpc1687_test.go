@@ -99,8 +99,7 @@ func testHandlerTransportHandleStreams(t *testing.T, handleStream func(st *handl
 	st.ht.HandleStreams(func() { go handleStream(st) })
 }
 
-func Grpc1687Test() {
-	t := new(testing.T)
+func TestGrpc1687(t *testing.T) {
 	testHandlerTransportHandleStreams(t, func(st *handleStreamTest) {
 		go st.ht.WriteStatus()
 		st.ht.Write()

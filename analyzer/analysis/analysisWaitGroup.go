@@ -15,6 +15,7 @@ import (
 	"analyzer/logging"
 	"analyzer/utils"
 	"errors"
+	"fmt"
 	"strconv"
 )
 
@@ -76,10 +77,16 @@ func checkForDoneBeforeAddDone(wa *TraceElementWait) {
  * If the maximum flow is smaller than the number of done operations, a negative wait group counter is possible.
  */
 func checkForDoneBeforeAdd() {
+	fmt.Println("Check for done before add")
+	defer fmt.Println("Finished check for done before add")
 	for id := range wgAdd { // for all waitgroups
+
 		graph := buildResidualGraph(wgAdd[id], wgDone[id])
 
-		maxFlow, graph := calculateMaxFlow(graph)
+		maxFlow, graph, err := calculateMaxFlow(graph)
+		if err != nil {
+			fmt.Println("Could not check for done before add: ", err)
+		}
 		nrDone := len(wgDone[id])
 
 		addsNegWg := []TraceElement{}

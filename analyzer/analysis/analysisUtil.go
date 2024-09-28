@@ -60,3 +60,18 @@ func splitAtLast(str string, sep string) []string {
 	}
 	return []string{str[:i], str[i+1:]}
 }
+
+func sameRoutine(elems ...[]TraceElement) bool {
+	ids := make(map[int]int)
+	for _, elem := range elems {
+		for i, e := range elem {
+			if _, ok := ids[i]; !ok {
+				ids[i] = e.GetRoutine()
+			} else if ids[i] != e.GetRoutine() {
+				return false
+			}
+		}
+	}
+
+	return true
+}

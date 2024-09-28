@@ -3,6 +3,7 @@ package etcd7443
 import (
 	"context"
 	"sync"
+	"testing"
 )
 
 type addrConn struct {
@@ -200,7 +201,7 @@ func WithBalancer(b Balancer) DialOption {
 		o.balancer = b
 	}
 }
-func Etcd7443Test() {
+func TestEtcd7443(t *testing.T) {
 	sb := newSimpleBalancer()
 	conn := Dial(WithBalancer(sb))
 

@@ -31,41 +31,30 @@ import (
 func ReadAnalysisResults(filePath string, index int) (bool, bugs.Bug, error) {
 	println("Read analysis results from " + filePath + " for index " + strconv.Itoa(index) + "...")
 
-	mb := 1048576 // 1 MB
-	maxTokenSize := 1
-
 	bugStr := ""
 
-	for {
-		file, err := os.Open(filePath)
-		if err != nil {
-			println("Error opening file: " + filePath)
-			panic(err)
-		}
+	file, err := os.Open(filePath)
+	if err != nil {
+		println("Error opening file: " + filePath)
+		panic(err)
+	}
 
-		scanner := bufio.NewScanner(file)
-		scanner.Buffer(make([]byte, 0, maxTokenSize*mb), maxTokenSize*mb)
+	scanner := bufio.NewScanner(file)
 
-		i := 0
-		for scanner.Scan() {
-			bugStr = scanner.Text()
-			if index == i {
-				break
-			}
-			i++
-		}
-
-		if err := scanner.Err(); err != nil {
-			if err == bufio.ErrTooLong {
-				maxTokenSize *= 2 // max buffer was to short, restart
-				println("Increase max file size to " + strconv.Itoa(maxTokenSize) + "MB")
-			} else {
-				println("Error reading file line.")
-				panic(err)
-			}
-		} else {
+	i := 0
+	for scanner.Scan() {
+		bugStr = scanner.Text()
+		if index == i {
 			break
 		}
+		i++
+
+		if err := scanner.Err(); err != nil {
+
+			println("Error reading file line.")
+			break
+		}
+
 	}
 
 	println("Analysis results read")

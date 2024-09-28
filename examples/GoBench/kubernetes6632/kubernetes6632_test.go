@@ -14,6 +14,7 @@ package kubernetes6632
 
 import (
 	"sync"
+	"testing"
 	"time"
 )
 
@@ -71,7 +72,7 @@ func NewIdleAwareFramer() *idleAwareFramer {
 // /	i.writeLock.Lock()
 // /	----------------------G1,G2 deadlock------------------------
 // /
-func Kubernetes6632Test() {
+func TestKubernetes6632(t *testing.T) {
 	i := NewIdleAwareFramer()
 
 	go func() { // helper goroutine

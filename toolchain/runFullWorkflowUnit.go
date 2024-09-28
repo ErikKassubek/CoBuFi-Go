@@ -75,8 +75,8 @@ func runWorkflowUnit(pathToAdvocate, dir, progName string,
 
 	// Process each test file
 	for _, file := range testFiles {
-		fmt.Printf("\n\n\n\nProgress: %d/%d\n", currentFile, totalFiles)
-		fmt.Printf("\n\n\nProcessing file: %s\n", file)
+		fmt.Printf("\n\nProgress: %d/%d\n", currentFile, totalFiles)
+		fmt.Printf("\nProcessing file: %s\n", file)
 
 		packagePath := filepath.Dir(file)
 		testFunctions, err := findTestFunctions(file)
@@ -89,7 +89,7 @@ func runWorkflowUnit(pathToAdvocate, dir, progName string,
 			attemptedTests++
 			packageName := filepath.Base(packagePath)
 			fileName := filepath.Base(file)
-			fmt.Printf("\n\nRunning full workflow for test: %s in package: %s in file: %s\n", testFunc, packageName, file)
+			fmt.Printf("Running full workflow for test: %s in package: %s in file: %s\n", testFunc, packageName, file)
 
 			adjustedPackagePath := strings.TrimPrefix(packagePath, dir)
 			fileNameWithoutEnding := strings.TrimSuffix(fileName, ".go")
@@ -164,7 +164,7 @@ func updateTimeFiles(progName string, folderName string, durationRun, durationRe
 	defer file.Close()
 
 	timeInfo := fmt.Sprintf(
-		"%.2f#%.2f#%.2f#%.2f",
+		"%.2f#%.2f#%.2f#%.2f\n",
 		durationRun.Seconds(), durationRecord.Seconds(),
 		durationAnalysis.Seconds(), durationReplay.Seconds())
 
@@ -272,9 +272,9 @@ func unitTestFullWorkflow(pathToAdvocate string, dir string,
 	if testName == "" {
 		return 0, 0, 0, 0, errors.New("Test name is empty")
 	}
-	if pkg == "" {
-		return 0, 0, 0, 0, errors.New("Package is empty")
-	}
+	// if pkg == "" {
+	// 	return 0, 0, 0, 0, errors.New("Package is empty")
+	// }
 	if file == "" {
 		return 0, 0, 0, 0, errors.New("Test file is empty")
 	}

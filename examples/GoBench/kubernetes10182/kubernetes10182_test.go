@@ -13,6 +13,7 @@ package kubernetes10182
 
 import (
 	"sync"
+	"testing"
 	"time"
 )
 
@@ -65,7 +66,7 @@ func NewStatusManager() *statusManager {
 // / 													s.podStatusChannel <- true
 // / s.podStatusesLock.Lock()
 // / -----------------------------G1,G3 deadlock----------------------------
-func Kubernetes10182Test() {
+func TestKubernetes10182(t *testing.T) {
 	s := NewStatusManager()
 	go s.Start()
 	go s.SetPodStatus() // G2

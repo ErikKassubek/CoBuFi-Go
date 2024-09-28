@@ -2,6 +2,7 @@ package serving5865
 
 import (
 	"sync"
+	"testing"
 	"time"
 )
 
@@ -43,7 +44,7 @@ func newRevisionBackendsManagerWithProbeFrequency() *revisionBackendsManager {
 	return rbm
 }
 
-func Serving5865Test() {
+func TestServing5865(t *testing.T) {
 	rbm := newRevisionBackendsManagerWithProbeFrequency()
 
 	// Simplified code in the RealTestSuite

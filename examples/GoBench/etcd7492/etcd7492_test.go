@@ -9,6 +9,7 @@ package etcd7492
 
 import (
 	"sync"
+	"testing"
 	"time"
 )
 
@@ -142,7 +143,7 @@ func setupAuthStore() (store *authStore, teardownfunc func()) {
 // /											t.simpleTokensMu.Lock()
 // /------------------------------------G1,G2 deadlock---------------------------------------------
 // /
-func Etcd7492Test() {
+func TestEtcd7492(t *testing.T) {
 	as, tearDown := setupAuthStore()
 	defer tearDown()
 	var wg sync.WaitGroup

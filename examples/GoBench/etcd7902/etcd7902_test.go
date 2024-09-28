@@ -19,6 +19,7 @@ package etcd7902
 
 import (
 	"sync"
+	"testing"
 	"time"
 )
 
@@ -92,7 +93,7 @@ func doRounds(rcs []roundClient, rounds int) {
 // / 						mu.Lock()
 // / -------------------------G1,G2,G3 deadlock--------------------------
 // /
-func Etcd7902Test() {
+func TestEtcd7902(t *testing.T) {
 	go runElectionFunc() // G1
 	time.Sleep(10 * time.Second)
 }

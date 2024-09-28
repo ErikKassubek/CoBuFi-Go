@@ -9,6 +9,8 @@ package etcd6873
 
 import (
 	"sync"
+	"testing"
+	"time"
 )
 
 type watchBroadcast struct{}
@@ -67,8 +69,10 @@ func (wbs *watchBroadcasts) update(wb *watchBroadcast) {
 // /							wbs.mu.Lock()
 // /---------------------G2,G3 deadlock-------------------------
 // /
-func Etcd6873Test() {
+func TestEtcd6873(t *testing.T) {
 	wbs := newWatchBroadcasts() // G1
 	wbs.update(&watchBroadcast{})
 	go wbs.stop() // G3
+
+	time.Sleep(10 * time.Second)
 }

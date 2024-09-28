@@ -3,6 +3,7 @@ package serving2137
 import (
 	"runtime"
 	"sync"
+	"testing"
 )
 
 type token struct{}
@@ -113,7 +114,7 @@ func unlockAll(requests []request) {
 //	                        b.activeRequests <- t
 //
 // ----------------------------G1,G2,G3 deadlock-----------------------------
-func Serving2137Test() {
+func TestServing2137(t *testing.T) {
 	b := NewBreaker(1, 1)
 
 	locks := b.concurrentRequests(2) // G1

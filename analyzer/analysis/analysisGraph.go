@@ -11,7 +11,11 @@
 
 package analysis
 
-import "analyzer/clock"
+import (
+	"analyzer/clock"
+	"fmt"
+	"math"
+)
 
 /*
  * Build a st graph for a wait group.
@@ -63,12 +67,18 @@ func buildResidualGraph(increases []TraceElement, decreases []TraceElement) map[
  * Returns:
  *   int: The maximum flow
  */
-func calculateMaxFlow(graph map[string][]string) (int, map[string][]string) {
+func calculateMaxFlow(graph map[string][]string) (int, map[string][]string, error) {
 	maxFlow := 0
-	for {
+	maxNumberRounds := 0.
+	for _, val := range graph {
+		numberOfRoutines += len(val)
+	}
+	maxNumberRounds = 100 * math.Pow(float64(numberOfRoutines), 4.)
+
+	for i := 0; i < int(maxNumberRounds); i++ { // max number rounds to prevent infinite loop
 		path, flow := findPath(graph)
 		if flow == 0 {
-			break
+			return maxFlow, graph, nil
 		}
 
 		maxFlow += flow
@@ -78,7 +88,7 @@ func calculateMaxFlow(graph map[string][]string) (int, map[string][]string) {
 		}
 	}
 
-	return maxFlow, graph
+	return maxFlow, graph, fmt.Errorf("To many rounds")
 }
 
 /*

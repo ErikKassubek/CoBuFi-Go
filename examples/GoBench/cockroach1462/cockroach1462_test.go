@@ -2,6 +2,7 @@ package cockroach1462
 
 import (
 	"sync"
+	"testing"
 )
 
 type Stopper struct {
@@ -129,7 +130,7 @@ func processEventsUntil(ch <-chan interceptMessage, stopper *Stopper) {
 		}
 	}
 }
-func Cockroach1462Test() {
+func TestCockroach1462(t *testing.T) {
 	stopper := NewStopper()
 	transport := NewLocalInterceptableTransport(stopper).(*localInterceptableTransport)
 	stopper.RunWorker(func() {

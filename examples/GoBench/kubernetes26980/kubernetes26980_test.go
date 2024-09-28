@@ -2,6 +2,7 @@ package kubernetes26980
 
 import (
 	"sync"
+	"testing"
 )
 
 type processorListener struct {
@@ -45,7 +46,7 @@ func newProcessListener() *processorListener {
 	ret.cond.L = &ret.lock
 	return ret
 }
-func Kubernetes26980Test() {
+func TestKubernetes26980(t *testing.T) {
 	pl := newProcessListener()
 	stopCh := make(chan struct{})
 	defer close(stopCh)

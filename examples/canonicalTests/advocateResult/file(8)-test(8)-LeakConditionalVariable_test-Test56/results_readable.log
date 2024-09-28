@@ -1,0 +1,10 @@
+```
+==================== Summary ====================
+
+-------------------- Critical -------------------
+
+1 Leak on conditional variable:
+	cond: /home/erik/Uni/HiWi/ADVOCATE/examples/canonicalTests/tests/LeakConditionalVariable_test.go:25@294
+
+
+```

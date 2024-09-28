@@ -3,6 +3,7 @@ package cockroach1055
 import (
 	"sync"
 	"sync/atomic"
+	"testing"
 )
 
 type Stopper struct {
@@ -63,7 +64,7 @@ func NewStopper() *Stopper {
 	}
 }
 
-func Cockroach1055Test() {
+func TestCockroach1055(t *testing.T) {
 	var stoppers []*Stopper
 	for i := 0; i < 3; i++ {
 		stoppers = append(stoppers, NewStopper())

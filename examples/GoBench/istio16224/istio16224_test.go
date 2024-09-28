@@ -2,6 +2,7 @@ package istio16224
 
 import (
 	"sync"
+	"testing"
 	"time"
 )
 
@@ -83,7 +84,7 @@ func NewBufferedMonitor() Monitor {
 		eventCh: make(chan Event),
 	}
 }
-func Istio16224Test() {
+func TestIstio16224(t *testing.T) {
 	controller := &controller{monitor: NewMonitor()}
 	done := make(chan bool)
 	lock := sync.Mutex{}
