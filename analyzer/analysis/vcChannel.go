@@ -327,7 +327,9 @@ func RecvC(ch *TraceElementChannel, vc map[int]clock.VectorClock, buffered bool)
 		foundReceiveOnClosedChannel(ch)
 	}
 
-	vc[ch.routine] = vc[ch.routine].Sync(closeData[ch.id].vc)
+	if _, ok := closeData[ch.id]; ok {
+		vc[ch.routine] = vc[ch.routine].Sync(closeData[ch.id].vc)
+	}
 	vc[ch.routine] = vc[ch.routine].Inc(ch.routine)
 
 	if analysisCases["selectWithoutPartner"] {
