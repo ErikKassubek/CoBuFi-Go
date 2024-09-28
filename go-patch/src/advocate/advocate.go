@@ -21,12 +21,19 @@ var tracePathRecorded = "advocateTrace"
 var advocateStartTimer time.Time // start time of the program
 var advocateReplayStartTime time.Time
 
+var hasFinished = false
+
 /*
  * Write the trace of the program to a file.
  * The trace is written in the file named file_name.
  * The trace is written in the format of advocate.
  */
 func Finish() {
+	if hasFinished {
+		return
+	}
+	hasFinished = true
+
 	runtime.DisableTrace()
 
 	writeToTraceFiles()
