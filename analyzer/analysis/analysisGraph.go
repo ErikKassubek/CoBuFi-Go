@@ -69,11 +69,11 @@ func buildResidualGraph(increases []TraceElement, decreases []TraceElement) map[
  */
 func calculateMaxFlow(graph map[string][]string) (int, map[string][]string, error) {
 	maxFlow := 0
-	maxNumberRounds := 0.
+	maxNumberRounds := 0
 	for _, val := range graph {
-		numberOfRoutines += len(val)
+		maxNumberRounds += len(val)
 	}
-	maxNumberRounds = 100 * math.Pow(float64(numberOfRoutines), 4.)
+	maxNumberRounds = 1e6 * int(math.Pow(float64(maxNumberRounds), 3.))
 
 	for i := 0; i < int(maxNumberRounds); i++ { // max number rounds to prevent infinite loop
 		path, flow := findPath(graph)
