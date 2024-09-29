@@ -86,6 +86,7 @@ var resultTypeMap = map[ResultType]string{
 	PNegWG:            "Possible negative waitgroup counter:",
 	PUnlockBeforeLock: "Possible unlock of a not locked mutex:",
 
+	LWithoutBlock:      "Leak on routine without any blocking operation",
 	LUnbufferedWith:    "Leak on unbuffered channel with possible partner:",
 	LUnbufferedWithout: "Leak on unbuffered channel without possible partner:",
 	LBufferedWith:      "Leak on buffered channel with possible partner:",
