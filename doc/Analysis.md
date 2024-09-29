@@ -134,10 +134,10 @@ rlock(t,x) {
 runlock(t,x) {
   RelR(x) = sync(RelR(x),Th(t))
             -- rlock and runlock do not synchronize.
-	    -- lock synchronizes with any prior runlock, see RW-2
-	    -- Hence, when lock synchronizes with RelR(x),
-	    -- RelR(x) must represent *all* prior runlocks.
-	    -- This is achieved by merging the vector clocks of all prior runlocks.
+      -- lock synchronizes with any prior runlock, see RW-2
+      -- Hence, when lock synchronizes with RelR(x),
+      -- RelR(x) must represent *all* prior runlocks.
+      -- This is achieved by merging the vector clocks of all prior runlocks.
   inc(Th(t),t)
 }
 ~~~~~~~~~~~
@@ -601,12 +601,6 @@ Revisit the analysis scenarios described in [Two-Phase Dynamic Analysis of Messa
 
 ### Analysis senario: "Send on closed"
 
-> [!NOTE]
-> #### Status
-> Detection: IMPLEMENTED\
-> Rewrite:   IMPLEMENTED
-
-
 Performing a send operation on a closed channel is a fatal operation.
 We wish to identify send operations that could possible be performed on a closed channel.
 For this purpose, we make use of `<HB`.
@@ -716,10 +710,6 @@ close(t,x) {
 
 ### Analysis scenario: "done before add"
 
-> [!NOTE]
-> #### Status
-> Detection: IMPLEMENTED\
-> Rewrite:   IMPLEMENTED
 
 If "done" happens before "add", the waitgroup counter may become negative => panic.
 
@@ -730,7 +720,7 @@ such that $A$ is before $D$ and for each $D$ there is a unique $A$.
 We therefore check, if
 $$(\forall D\ \exists (D, A): A < D)\ \land\ (\forall i, j\ (D_i \neq D_j \land (D_i, A_i) \land (D_j, A_j)) \Rightarrow A_i \neq A_j)$$
 
-If a done has 
+If a done has
 a delta which not 1, we treat it,as if it would be delta separate adds.
 
 To see if this is possible we store for every $D$ all $A$ for which $A < D$.
@@ -739,23 +729,39 @@ From this we build an bipartite st-graph as follows:
 
 For each Done $D$, there is an edge to the Add $A$ iff $A < D$.
 We now assume, that each edge has capacity 1 and use the Ford-Fulkerson
-algorithm to find the maximum flow in this graph. A done before add is possible, 
+algorithm to find the maximum flow in this graph. A done before add is possible,
 if this maximum flow is less then the number of done.
 
 
 
-<!-- 1. Reconstruct the trace such that the concurrent done happen directly after 
+<!-- 1. Reconstruct the trace such that the concurrent done happen directly after
 the done
 
 2. Replay the trace -->
 
 
-### Analysis scenario: "Concurrent Receive"
+### Analysis scenario: "Unlock before lock"
 
-> [!NOTE]
-> #### Status
-> Detection: IMPLEMENTED\
-> Rewrite:   NOT IMPLEMENTED
+If a not locked mutex is unlocked the program panics.
+This is possible, if we can reorder lock and unlock operations, such that
+at some point there are more executed unlock than lock operations.
+
+This is equal to the analysis scenario done before add, such that
+lock operations equal add operations and unlock operations equal done operations.
+The detection of such situations is therefore done equivalent to the
+done before add analysis scenario.
+
+The analysis for this is fairly slow. For the done before add detection,
+this has a rather small impact, because the number of adds and dones on one
+wait group is normally rather small. For mutexes this is not the case. For this
+reason we assume the following. We assume that an unlock before lock can only
+happen, if an unlock operation on a mutex happens in a different routine than
+the corresponding lock operations. Before we run the analysis for unlock before lock,
+we therefore check if this is the case for the mutex, and otherwise skip the
+further analysis.
+
+
+### Analysis scenario: "Concurrent Receive"
 
 Having multiple potentially concurrent receives on the same channel can cause
 nondeterministic behavior, which is rarely desired. We therefor want to detect
@@ -804,11 +810,6 @@ can and often is useful, e.g. as a form of wait group.
 
 ### Analysis scenario: Select with untriggered case
 
-> [!NOTE]
-> #### Status
-> Detection: IMPLEMENTED\
-> Rewrite:   NOT IMPLEMENTED
-
 Untriggered cases are easy to identify. There is a "pre" event but no "post" event.
 
 1. We could check if there is a potential partner. Can be done based on HB analysis.
@@ -821,11 +822,11 @@ No potential partners. Sounds like a bug.
 
 Several potential partners. Try all? Select one, how?
 
-To check if a possible partner for an untriggered select case exists, 
-we must compare them with other channel operations. We also compare them 
+To check if a possible partner for an untriggered select case exists,
+we must compare them with other channel operations. We also compare them
 with other untriggered select cases.
 
-To see, if we can find a possible partner, we store all select operations as 
+To see, if we can find a possible partner, we store all select operations as
 follows:
 
 When a select case is processed, we iterate over all of its cases, and compare
@@ -838,25 +839,20 @@ as having a possible partner without any additional checks.
 
 If a channel operation (send/recv/close) is processed, we iterate over all
 stored select cases with the same channel and compatible operations, that
-are not marked as having a potential partner yet. If the operation is a 
-potential partner for this case, we mark the case as having an potential 
+are not marked as having a potential partner yet. If the operation is a
+potential partner for this case, we mark the case as having an potential
 partner.
 
-After all trace operations have been processed, we compare all combinations 
+After all trace operations have been processed, we compare all combinations
 of channels cases, for which at least one of them was not marked as having
-a partner yet. If they form a potential communication, we can mark them 
+a partner yet. If they form a potential communication, we can mark them
 as having a partner as well.
 
-After that, we return warnings for all select cases, that have not been 
+After that, we return warnings for all select cases, that have not been
 marked as having a potential communication partner.
 
 
 ### Analysis scenario: Goroutine leak
-
-> [!NOTE]
-> #### Status
-> Detection: IMPLEMENTED\
-> Rewrite:   IMPLEMENTED
 
 A goroutine leak is an indefinitely blocked goroutine.
 
@@ -865,30 +861,31 @@ The [goleak](https://github.com/uber-go/goleak) checks for goroutine leaks.
 In our approach, we can identify potential leaks by checking for goroutines
 where the last recorded event is a "pre" event (tpost = 0).
 
-For channel operation, we try to find a possible partner, which is 
-used in the trace reorder to get the operation unstuck. 
+For channel operation, we try to find a possible partner, which is
+used in the trace reorder to get the operation unstuck.
 
 For the other operation, no additional analysis besides finding them is done.
-This is done in the following way. For each channel and each routine, 
-the last processed send and receive is recorded (the elements are processed 
+This is done in the following way. For each channel and each routine,
+the last processed send and receive is recorded (the elements are processed
 in the order of there execution in the trace).
-If a stuck channel or select element is processed, we check if one of the elements 
-in the last processes send or receives is a possible partner. If a possible 
-partner is found, the stuck element with its partner is added to the 
+If a stuck channel or select element is processed, we check if one of the elements
+in the last processes send or receives is a possible partner. If a possible
+partner is found, the stuck element with its partner is added to the
 analysis results. If no partner can be found, the operation is added to
 a list of stuck channel elements without partner $s$.
-For each non stuck channel or select element, we go through $s$
-to check if the element would be a potential 
-partner for one of the stuck elements. If it is, the element and its partner are
+For each non stuck channel element and each case in a non stuck
+select element, including not selected cases in those elements, we check
+if the element would be a potentialpartner for one of the stuck elements.
+If it is, the element and its partner are
 added to the analysis result and the element is removed from $s$.
-If all elements are processed, we traverse through $s$ and add a result 
-for an stuck channel element without possible partner to the analysis result 
+If all elements are processed, we traverse through $s$ and add a result
+for an stuck channel element without possible partner to the analysis result
 for each element in $s$.
 
-For a leaking mutex $m$, we add the mutex and the last successful lock of this 
+For a leaking mutex $m$, we add the mutex and the last successful lock of this
 mutex before $m$ to the analysis result.
 
-For all other stuck elements, we only add the stuck element to the analysis 
+For all other stuck elements, we only add the stuck element to the analysis
 result.
 
 <!-- 1. We could check if there is a potential partner. Can be done based on HB analysis.
@@ -896,16 +893,28 @@ result.
 2. Reorder the trace so that we can enable the "pre" event. -->
 
 
+### Analysis scenario: Non blocking Goroutine leak
+In some cases it can happen, that a routine is still running at the end,
+without it being blocked by one of the recorded operations. This can be
+a desired behavior, but can also be a sign for undesired behavior.
+For this reason, such cases are also detected.
+
+To do this, we add an additional trace element into the trace, whenever
+a routine terminates. In the analysis, we then traverse all routines and
+check if there last element is such an termination element. If this is the
+case, we have detected such a case. We then check if the penultimate element
+(if it exists), has tPost = 0. In this case the situation is a go routine
+leak as described above and is not again reported, to prevent double reports.
+Otherwise, it is reported.
+
+There is no rewrite/replay for those cases.
+
+
 ### Analysis Scenario: Cyclic Deadlock
 
-> [!NOTE]
-> #### Status
-> Detection: IMPLEMENTED\
-> Rewrite:   IMPLEMENTED
 
-
-A cyclic deadlock occurs, if locks from multiple routines block each other in 
-a cyclic manor. We use lock trees to find such circles. For an explanation see 
+A cyclic deadlock occurs, if locks from multiple routines block each other in
+a cyclic manor. We use lock trees to find such circles. For an explanation see
 ![BachelorArbeit](../old/Arbeit.pdf). We additionally use the HB analysis,
 to see, if see, if the operations in the cycle are concurrent.
 
