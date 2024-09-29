@@ -423,6 +423,7 @@ func RunAnalysis(assumeFifo bool, ignoreCriticalSections bool, analysisCasesMap 
 
 	if analysisCases["leak"] {
 		checkForLeak()
+		checkForStuckRoutine()
 	}
 
 	if analysisCases["doneBeforeAdd"] {

@@ -12,6 +12,7 @@ const (
 	OperationNone Operation = iota
 	OperationSpawn
 	OperationSpawned
+	OperationRoutineExit
 
 	OperationChannelSend
 	OperationChannelRecv

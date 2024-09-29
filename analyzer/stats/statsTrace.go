@@ -197,6 +197,7 @@ func parseTraceFile(tracePath string, stats *map[string]int, known *map[string][
 				(*stats)["numberCondVars"]++
 				(*known)["condVar"] = append((*known)["condVar"], fields[3])
 			}
+		case "E":
 		default:
 			err = errors.New("Unknown trace element: " + fields[0])
 		}

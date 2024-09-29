@@ -36,6 +36,7 @@ const (
 	PUnlockBeforeLock ResultType = "P04"
 
 	// leaks
+	LWithoutBlock      = "L00"
 	LUnbufferedWith    = "L01"
 	LUnbufferedWithout = "L02"
 	LBufferedWith      = "L03"
@@ -120,6 +121,11 @@ func (b Bug) ToString() string {
 		typeStr = "Possible unlock of a not locked mutex:"
 		arg1Str = "unlocks: "
 		arg2Str = "locks: "
+
+	case LWithoutBlock:
+		typeStr = "Leak on routine without any blocking operation"
+		arg1Str = "fork: "
+		arg2Str = ""
 	case LUnbufferedWith:
 		typeStr = "Leak on unbuffered channel with possible partner:"
 		arg1Str = "channel: "
@@ -248,6 +254,8 @@ func ProcessBug(bugStr string) (bool, Bug, error) {
 	// 	bug.Type = CyclicDeadlock
 	// case "P06":
 	// 	bug.Type = MixedDeadlock
+	case "L00":
+		bug.Type = LWithoutBlock
 	case "L01":
 		bug.Type = LUnbufferedWith
 	case "L02":

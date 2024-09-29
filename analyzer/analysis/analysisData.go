@@ -95,6 +95,9 @@ var (
 	// for check of select without partner
 	// store all select cases
 	selectCases = make([]allSelectCase, 0)
+
+	// all positions of creations of routines
+	allForks = make(map[int]*TraceElementFork) // routineId -> fork
 )
 
 // InitAnalysis initializes the analysis cases

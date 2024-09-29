@@ -89,6 +89,7 @@ Each arg contains the following elements separated by a colon (:)
     - ON: Done Not Executed (because the once was already executed)
   - Routine:
     - GF: Fork
+		- GE: End
 - `[file]` is the file of the operation in the program code
 - `[line]` is the line of the operation in the program code
 

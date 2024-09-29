@@ -154,6 +154,8 @@ func processElement(element string, routine int, ignoreAtomics bool) error {
 	case "N":
 		err = analysis.AddTraceElementCond(routine, fields[1], fields[2], fields[3],
 			fields[4], fields[5])
+	case "E":
+		err = analysis.AddTraceElementRoutineEnd(routine, fields[1])
 	default:
 		return errors.New("Unknown element type in: " + element)
 	}

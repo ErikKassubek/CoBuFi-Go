@@ -61,6 +61,7 @@ const (
 	PUnlockBeforeLock ResultType = "P04"
 
 	// leaks
+	LWithoutBlock      = "L00"
 	LUnbufferedWith    = "L01"
 	LUnbufferedWithout = "L02"
 	LBufferedWith      = "L03"

@@ -5,8 +5,8 @@ better readable
 explanation for all trace elements in the corresponding files in `traceElements`.
 For the trace of each routine a separate trace file is created
 ```
-L := "" | {E"\n"}* E                                                     (routine local trace)
-E := G | M | W | C | S | O | N | X                                       (trace element)
+L := "" | {T"\n"}* T                                                     (routine local trace)
+T := G | M | W | C | S | O | N | E |  X                                  (trace element)
 G := "G,"tpre","id,","pos                                                (element for creation of new routine)
 A := "A,"tpre","addr","opA                                               (element for atomic operation)
 M := "M,"tpre","tpost","id","rw","opM","suc","pos                        (element for operation on sync (rw)mutex)
@@ -15,6 +15,7 @@ C := "C,"tpre","tpost","id_c","opC","cl",oId","qSize","pos               (elemen
 S := "S,"tpre","tpost","id","cases","selIndex","pos                      (element for select)
 O := "O,"tpre",tpost","id","suco","pos                                   (element for once)
 N := "N,"tpre",tpost","id","opN","pos                                    (element for conditional)
+E := "E,"tpre"                                                           (termination of a routine)
 X := "X,"tpre","ec                                                       (start/stop signal, only in rewritten trace)
 tpre := ℕ                                                                (timer when the operation is started)
 tpost := ℕ                                                               (timer when the operation has finished)

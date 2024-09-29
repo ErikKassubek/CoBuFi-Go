@@ -13,6 +13,8 @@ package analysis
 import (
 	"analyzer/clock"
 	"analyzer/logging"
+	"strconv"
+	"strings"
 )
 
 /*
@@ -615,4 +617,42 @@ func CheckForLeakCond(co *TraceElementCond) {
 
 	logging.Result(logging.CRITICAL, logging.LCond,
 		"cond", []logging.ResultElem{arg}, "", []logging.ResultElem{})
+}
+
+func checkForStuckRoutine() {
+	for routine, trace := range traces {
+		if len(trace) < 1 {
+			continue
+		}
+
+		lastElem := trace[len(trace)-1]
+		switch lastElem.(type) {
+		case *TraceElementRoutineEnd:
+			continue
+		}
+
+		// do not record extra if a leak with a blocked operation is present
+		if len(trace) > 1 && trace[len(trace)-2].getTpost() == 0 {
+			continue
+		}
+
+		file := ""
+		line := -1
+		if p, ok := allForks[routine]; ok {
+			pos := p.GetPos()
+			posSplit := strings.Split(pos, ":")
+			if len(posSplit) == 2 {
+				file = posSplit[0]
+				line, _ = strconv.Atoi(posSplit[1])
+			}
+		}
+
+		arg := logging.TraceElementResult{
+			RoutineID: routine, ObjID: -1, TPre: lastElem.GetTPre(),
+			ObjType: "GE", File: file, Line: line,
+		}
+
+		logging.Result(logging.CRITICAL, logging.LWithoutBlock,
+			"fork", []logging.ResultElem{arg}, "", []logging.ResultElem{})
+	}
 }

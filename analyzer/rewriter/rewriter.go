@@ -79,7 +79,8 @@ func RewriteTrace(bug bugs.Bug) (rewriteNeeded bool, code int, err error) {
 	// case bugs.CyclicDeadlock:
 	// 	rewriteNeeded = true
 	// err = rewriteCyclicDeadlock(bug)
-
+	case bugs.LWithoutBlock:
+		err = errors.New("Source of blocking not known. Therefore no rewrite is possible.")
 	case bugs.LUnbufferedWith:
 		code = exitCodeLeakUnbuf
 		rewriteNeeded = true

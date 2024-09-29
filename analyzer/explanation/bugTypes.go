@@ -25,6 +25,7 @@ var bugCrit = map[string]string{
 	"P02": "Diagnostic",
 	"P03": "Bug",
 	"P04": "Bug",
+	"L00": "Leak",
 	"L01": "Leak",
 	"L02": "Leak",
 	"L03": "Leak",
@@ -49,6 +50,7 @@ var bugNames = map[string]string{
 	"P03": "Possible Negative WaitGroup cCounter",
 	"P04": "Possible unlock of not locked mutex",
 
+	"L00": "Leak on routine without blocking operation",
 	"L01": "Leak of unbuffered Channel with possible partner",
 	"L02": "Leak on unbuffered Channel without possible partner",
 	"L03": "Leak of buffered Channel with possible partner",
@@ -94,6 +96,10 @@ var bugExplanations = map[string]string{
 		"Although the unlock of a not locked mutex did not occur during the recording, " +
 		"it is possible that it will occur, based on the happens before relation.\n" +
 		"A unlock of a not locked mutex will result in a panic.",
+	"L00": "The analyzer detected a leak on a routine without a blocking operations.\n" +
+		"This means that the routine was terminated because of a panic in another routine " +
+		"or because the main routine terminated while this routine was still running.\n" +
+		"This can be a desired behavior, but it can also be a signal for a not otherwise detected block.",
 	"L01": "The analyzer detected a leak of an unbuffered channel with a possible partner.\n" +
 		"A leak of an unbuffered channel is a situation, where a unbuffered channel is " +
 		"still blocking at the end of the program.\n" +
@@ -205,6 +211,11 @@ var bugExamples map[string]string = map[string]string{
 		"    go func() {\n" +
 		"        m.Unlock()     // <-------\n" +
 		"    }()\n\n}",
+	"L00": "func main() {\n" +
+		"    go func() {\n" +
+		"        time.Sleep(time.Second)          // <------- Is still running when main routine terminates\n" +
+		"    }()\n\n" +
+		"}",
 	"L01": "func main() {\n" +
 		"    c := make(chan int)\n\n" +
 		"    go func() {\n" +

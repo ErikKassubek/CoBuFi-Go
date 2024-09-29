@@ -34,6 +34,8 @@ func Finish() {
 	}
 	hasFinished = true
 
+	runtime.AdvocatRoutineExit()
+
 	runtime.DisableTrace()
 
 	writeToTraceFiles()

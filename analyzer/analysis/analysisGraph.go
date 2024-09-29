@@ -73,7 +73,7 @@ func calculateMaxFlow(graph map[string][]string) (int, map[string][]string, erro
 	for _, val := range graph {
 		maxNumberRounds += len(val)
 	}
-	maxNumberRounds = 1e6 * int(math.Pow(float64(maxNumberRounds), 3.))
+	maxNumberRounds = 1e5 * int(math.Pow(float64(maxNumberRounds), 3.))
 
 	for i := 0; i < int(maxNumberRounds); i++ { // max number rounds to prevent infinite loop
 		path, flow := findPath(graph)

@@ -4167,6 +4167,9 @@ func goexit1() {
 	if raceenabled {
 		racegoend()
 	}
+	// ADVOCATE-CHANGE-START
+	AdvocatRoutineExit()
+	// ADVOCATE-CHANGE-END
 	trace := traceAcquire()
 	if trace.ok() {
 		trace.GoEnd()

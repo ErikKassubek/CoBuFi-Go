@@ -234,7 +234,7 @@ func writeFile(path string, index int, description map[string]string,
 	res += replay["description"] + "\n\n"
 
 	replayPossible := replay["replaySuc"] != "was not possible"
-	replayDouble := replay["exitCode"] != "double"
+	replayDouble := replay["exitCode"] == "double"
 
 	if replayDouble {
 		res += "The replay was not performed, because the same bug had been found before."

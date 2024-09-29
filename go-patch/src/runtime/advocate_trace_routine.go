@@ -15,3 +15,12 @@ func AdvocateSpawnCaller(callerRoutine *AdvocateRoutine, newID uint64, file stri
 
 	callerRoutine.addToTrace(elem)
 }
+
+/*
+ * Record the finish of a routine
+ */
+func AdvocatRoutineExit() {
+	timer := GetNextTimeStep()
+	elem := "E," + uint64ToString(timer)
+	insertIntoTrace(elem, false)
+}
