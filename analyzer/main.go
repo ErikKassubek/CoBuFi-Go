@@ -51,6 +51,7 @@ func main() {
 	progName := flag.String("N", "", "Name of the program")
 	rewriteAll := flag.Bool("S", false, "If a the same position is flagged multiple times, run the replay for each of them. "+
 		"If not set, only the first occurence is rewritten")
+	timeout := flag.Int("T", -1, "Set a timeout in seconds for the analysis")
 
 	scenarios := flag.String("s", "", "Select which analysis scenario to run, e.g. -s srd for the option s, r and d."+
 		"If not set, all scenarios are run.\n"+
@@ -115,7 +116,7 @@ func main() {
 	case "run":
 		modeRun(pathTrace, noPrint, noRewrite, scenarios, level, outReadable,
 			outMachine, ignoreAtomics, fifo, ignoreCriticalSection,
-			noWarning, rewriteAll, folderTrace, newTrace)
+			noWarning, rewriteAll, folderTrace, newTrace, timeout)
 	default:
 		fmt.Printf("Unknown mode %s", os.Args[1])
 		fmt.Printf("Select one mode from 'run', 'stats', 'explain' or 'check'")
@@ -177,7 +178,7 @@ func modeCheck(resultFolderTool, programPath *string) {
 func modeRun(pathTrace *string, noPrint *bool, noRewrite *bool,
 	scenarios *string, level *int, outReadable string, outMachine string,
 	ignoreAtomics *bool, fifo *bool, ignoreCriticalSection *bool,
-	noWarning *bool, rewriteAll *bool, folderTrace string, newTrace string) {
+	noWarning *bool, rewriteAll *bool, folderTrace string, newTrace string, timeout *int) {
 	// printHeader()
 
 	if *pathTrace == "" {
@@ -189,6 +190,14 @@ func modeRun(pathTrace *string, noPrint *bool, noRewrite *bool,
 		*noRewrite = true
 	}
 
+	// set timeout
+	if timeout != nil && *timeout > 0 {
+		go func() {
+			<-time.After(time.Duration(*timeout) * time.Second)
+			os.Exit(1)
+		}()
+	}
+
 	analysisCases, err := parseAnalysisCases(*scenarios)
 	if err != nil {
 		panic(err)
@@ -198,34 +207,51 @@ func modeRun(pathTrace *string, noPrint *bool, noRewrite *bool,
 	// based on the analysis results
 
 	logging.InitLogging(*level, outReadable, outMachine)
-	numberOfRoutines, containsElems, err := io.CreateTraceFromFiles(*pathTrace, *ignoreAtomics)
-	if err != nil {
-		panic(err)
-	}
 
-	if !containsElems {
-		fmt.Println("Trace does not contain any elem")
-		fmt.Println("Skip analysis")
-		_ = logging.PrintSummary(*noWarning, *noPrint)
-		return
-	}
+	// done and separate routine to implement timeout
+	done := make(chan bool)
+	numberOfRoutines := 0
+	containsElems := false
+	go func() {
+		defer func() { done <- true }()
 
-	analysis.SetNumberOfRoutines(numberOfRoutines)
+		numberOfRoutines, containsElems, err = io.CreateTraceFromFiles(*pathTrace, *ignoreAtomics)
+		if err != nil {
+			panic(err)
+		}
 
-	if analysisCases["all"] {
-		fmt.Println("Start Analysis for all scenarios")
-	} else {
-		fmt.Println("Start Analysis for the following scenarios:")
-		for key, value := range analysisCases {
-			if value {
-				fmt.Println("\t", key)
+		if !containsElems {
+			fmt.Println("Trace does not contain any elem")
+			fmt.Println("Skip analysis")
+			return
+		}
+
+		analysis.SetNumberOfRoutines(numberOfRoutines)
+
+		if analysisCases["all"] {
+			fmt.Println("Start Analysis for all scenarios")
+		} else {
+			fmt.Println("Start Analysis for the following scenarios:")
+			for key, value := range analysisCases {
+				if value {
+					fmt.Println("\t", key)
+				}
 			}
 		}
+
+		analysis.RunAnalysis(*fifo, *ignoreCriticalSection, analysisCases)
+	}()
+
+	if timeout != nil && *timeout > 0 {
+		select {
+		case <-done:
+			fmt.Print("Analysis finished\n\n")
+		case <-time.After(time.Duration(*timeout) * time.Second):
+			fmt.Printf("Analysis ended by timeout after %d seconds\n\n", *timeout)
+		}
+	} else {
+		<-done
 	}
-
-	analysis.RunAnalysis(*fifo, *ignoreCriticalSection, analysisCases)
-
-	fmt.Print("Analysis finished\n\n")
 
 	numberOfResults := logging.PrintSummary(*noWarning, *noPrint)
 
@@ -474,6 +500,7 @@ func printHelp() {
 	println("  -r [folder] Path to where the result file should be saved. (default parallel to -t)")
 	println("  -a          Ignore atomic operations (default false). Use to reduce memory header for large traces.")
 	println("  -S          If the same bug is detected multiple times, run the replay for each of them. If not set, only the first occurence is rewritten")
+	println("  -T [second] Set a timeout in seconds for the analysis")
 	println("  -s [cases]  Select which analysis scenario to run, e.g. -s srd for the option s, r and d.")
 	println("              If it is not set, all scenarios are run")
 	println("              Options:")

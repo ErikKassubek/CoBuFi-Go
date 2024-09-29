@@ -18,6 +18,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -36,11 +37,12 @@ const (
  *      also runs the tests once without any recoding/replay to get a base value
  *    notExecuted (bool): if true, check for never executed operations
  *    stats (bool): create a stats file
+ *    timeout (int): Set a timeout in seconds for the analysis
  * Returns:
  *    error
  */
 func runWorkflowUnit(pathToAdvocate, dir, progName string,
-	measureTime, notExecuted, stats bool) error {
+	measureTime, notExecuted, stats bool, timeoutAna int) error {
 	// Validate required inputs
 	if pathToAdvocate == "" {
 		return errors.New("Path to advocate is empty")
@@ -100,7 +102,7 @@ func runWorkflowUnit(pathToAdvocate, dir, progName string,
 			}
 
 			// Execute full workflow
-			timeRun, timeRecord, timeAnalysis, timeReplay, err := unitTestFullWorkflow(pathToAdvocate, dir, testFunc, adjustedPackagePath, file, directoryName, measureTime)
+			timeRun, timeRecord, timeAnalysis, timeReplay, err := unitTestFullWorkflow(pathToAdvocate, dir, testFunc, adjustedPackagePath, file, directoryName, measureTime, timeoutAna)
 
 			if measureTime {
 				updateTimeFiles(progName, resultPath, timeRun, timeRecord, timeAnalysis, timeReplay)
@@ -231,6 +233,7 @@ func findTestFiles(dir string) ([]string, error) {
  *    file (string): file with the test
  *    output (string): write all outputs to this file
  *    measureTime (bool): if true, run the test once without recording/replay to measure time
+ *    timeout (int): Set a timeout in seconds for the analysis
  * Returns:
  *    time.Duration: time of running without recording or replay
  *    time.Duration: time of trace recording
@@ -240,7 +243,7 @@ func findTestFiles(dir string) ([]string, error) {
  */
 func unitTestFullWorkflow(pathToAdvocate string, dir string,
 	testName string, pkg string, file string, outputDir string,
-	measureTime bool) (time.Duration, time.Duration, time.Duration, time.Duration, error) {
+	measureTime bool, timeoutAna int) (time.Duration, time.Duration, time.Duration, time.Duration, error) {
 
 	output := filepath.Join(outputDir, "output.log")
 
@@ -345,7 +348,7 @@ func unitTestFullWorkflow(pathToAdvocate string, dir string,
 	// Apply analyzer
 	fmt.Println(fmt.Sprintf("Run the analyzer for %s/%s/advocateTrace", dir, pkg))
 	startTime := time.Now()
-	err = runCommand(pathToAnalyzer, "run", "-t", filepath.Join(dir, pkg, "advocateTrace"))
+	err = runCommand(pathToAnalyzer, "run", "-t", filepath.Join(dir, pkg, "advocateTrace"), "-T", strconv.Itoa(timeoutAna))
 	if err != nil {
 		log.Println("Analyzer failed", err)
 	}

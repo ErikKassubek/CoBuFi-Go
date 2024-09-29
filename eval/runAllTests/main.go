@@ -10,7 +10,6 @@ import (
 func main() {
 	names := []string{
 		// "canonicalTests",
-		"moby",
 		"prometheus",
 		"etcd",
 		"kubernetes",
@@ -18,6 +17,7 @@ func main() {
 		"connect",
 		"argo-cd",
 		"GoBench",
+		"moby",
 	}
 
 	mainPath := "~/Uni/HiWi/ADVOCATE/examples/"
@@ -30,11 +30,13 @@ func main() {
 		fmt.Printf("Changed working directory to: %s\n\n", wd)
 	}
 
+	analysisTimeout := "3600" // 3600s = 1h
+
 	for _, name := range names {
 		fmt.Println("\n\nRun prog ", name)
 		path := filepath.Join(mainPath, name)
 
-		cmd := exec.Command("./tool", "test", "-a", "~/Uni/HiWi/ADVOCATE", "-f", path, "-s", "-t", "-N", name)
+		cmd := exec.Command("./tool", "test", "-a", "~/Uni/HiWi/ADVOCATE", "-f", path, "-s", "-t", "-N", name, "-T", analysisTimeout)
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
 		fmt.Println(cmd.String())

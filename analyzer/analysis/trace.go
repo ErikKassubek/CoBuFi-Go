@@ -429,12 +429,12 @@ func RunAnalysis(assumeFifo bool, ignoreCriticalSections bool, analysisCasesMap 
 		checkForDoneBeforeAdd()
 	}
 
-	if analysisCases["unlockBeforeLock"] {
-		checkForUnlockBeforeLock()
-	}
-
 	if analysisCases["cyclicDeadlock"] {
 		checkForCyclicDeadlock()
+	}
+
+	if analysisCases["unlockBeforeLock"] {
+		checkForUnlockBeforeLock()
 	}
 
 	logging.Debug("Analysis completed", logging.INFO)

@@ -28,6 +28,7 @@ var (
 	measureTime    bool
 	notExecuted    bool
 	stats          bool
+	timeoutAna     int
 )
 
 func init() {
@@ -41,6 +42,7 @@ func init() {
 		"to get a base value")
 	flag.BoolVar(&notExecuted, "m", false, "check for not executed operations")
 	flag.BoolVar(&stats, "s", false, "create statistic files")
+	flag.IntVar(&timeoutAna, "T", -1, "Set a timeout in seconds for each run of the analyzer")
 }
 
 func main() {
@@ -91,7 +93,7 @@ func main() {
 			printHelpMain()
 			return
 		}
-		err = runWorkflowMain(pathToAdvocate, pathToFile, executableName)
+		err = runWorkflowMain(pathToAdvocate, pathToFile, executableName, timeoutAna)
 	case "test", "tests":
 		if pathToAdvocate == "" {
 			fmt.Println("Path to advocate required")
@@ -108,7 +110,7 @@ func main() {
 			printHelpUnit()
 			return
 		}
-		err = runWorkflowUnit(pathToAdvocate, pathToFile, progName, measureTime, notExecuted, stats)
+		err = runWorkflowUnit(pathToAdvocate, pathToFile, progName, measureTime, notExecuted, stats, timeoutAna)
 	case "explain":
 		if pathToAdvocate == "" {
 			fmt.Println("Path to advocate required")

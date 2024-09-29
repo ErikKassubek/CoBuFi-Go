@@ -18,6 +18,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"strconv"
 	"time"
 )
 
@@ -27,10 +28,11 @@ import (
  *    pathToAdvocate (string): path to the ADVOCATE folder
  *    pathToFile (string): path to the file containing the main function
  *    executableName (string): name of the executable
+ *    timeoutAna (int): timeout for the analyzer
  * Returns:
  *    error
  */
-func runWorkflowMain(pathToAdvocate string, pathToFile string, executableName string) error {
+func runWorkflowMain(pathToAdvocate string, pathToFile string, executableName string, timeoutAna int) error {
 	if _, err := os.Stat(pathToFile); os.IsNotExist(err) {
 		return fmt.Errorf("file %s does not exist", pathToFile)
 	}
@@ -135,7 +137,7 @@ func runWorkflowMain(pathToAdvocate string, pathToFile string, executableName st
 	// Apply analyzer
 	analyzerOutput := filepath.Join(dir, "advocateTrace")
 	timeStart = time.Now()
-	if err := runCommand(pathToAnalyzer, "run", "-t", analyzerOutput); err != nil {
+	if err := runCommand(pathToAnalyzer, "run", "-t", analyzerOutput, "-S", strconv.Itoa(timeoutAna)); err != nil {
 		return fmt.Errorf("Error applying analyzer: %v", err)
 	}
 	durationAnalysis = time.Since(timeStart)
