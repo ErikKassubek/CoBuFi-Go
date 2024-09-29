@@ -78,6 +78,8 @@ func runWorkflowMain(pathToAdvocate string, pathToFile string, executableName st
 		return fmt.Errorf("Failed to set GOROOT: %v", err)
 	}
 	fmt.Println("GOROOT exported")
+	// Unset GOROOT
+	defer os.Unsetenv("GOROOT")
 
 	// Remove header
 	if err := headerRemoverMain(pathToFile); err != nil {
@@ -179,9 +181,6 @@ func runWorkflowMain(pathToAdvocate string, pathToFile string, executableName st
 	if len(rewrittenTraces) > 0 {
 		durationReplay = durationReplay / time.Duration(len(rewrittenTraces))
 	}
-
-	// Unset GOROOT
-	os.Unsetenv("GOROOT")
 
 	resultPath := filepath.Join(dir, "advocateResult")
 

@@ -4,6 +4,8 @@ var advocateCounterAtomic uint64
 
 var unbufferedChannelComSend = make(map[string]uint64) // id -> tpost
 var unbufferedChannelComRecv = make(map[string]uint64) // id -> tpost
+var unbufferedChannelComSendMutex mutex
+var unbufferedChannelComRecvMutex mutex
 
 // MARK: Pre
 
@@ -133,15 +135,20 @@ func AdvocateChanPost(index int) {
 
 	if qSize == "0" { // unbuffered channel
 		if op == "S" {
+			lock(&unbufferedChannelComRecvMutex)
 			if tpost, ok := unbufferedChannelComRecv[id]; ok {
 				split[1] = uint64ToString(tpost - 1)
 				delete(unbufferedChannelComRecv, id)
 			} else {
 				split[1] = uint64ToString(time)
+				lock(&unbufferedChannelComSendMutex)
 				unbufferedChannelComSend[id] = time
+				unlock(&unbufferedChannelComSendMutex)
 			}
+			unlock(&unbufferedChannelComRecvMutex)
 			set = true
 		} else if op == "R" {
+			lock(&unbufferedChannelComSendMutex)
 			if tpost, ok := unbufferedChannelComSend[id]; ok {
 				split[1] = uint64ToString(tpost + 1)
 				delete(unbufferedChannelComSend, id)
@@ -149,6 +156,7 @@ func AdvocateChanPost(index int) {
 				split[1] = uint64ToString(time)
 				unbufferedChannelComRecv[id] = time
 			}
+			unlock(&unbufferedChannelComSendMutex)
 			set = true
 		}
 	}

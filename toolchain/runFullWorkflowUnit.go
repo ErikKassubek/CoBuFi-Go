@@ -214,7 +214,7 @@ func findTestFiles(dir string) ([]string, error) {
 	var testFunctions []string
 	lines := strings.Split(string(content), "\n")
 	for _, line := range lines {
-		if strings.Contains(line, "Test") && strings.Contains(line, "func") && strings.Contains(line, "*testing.T") {
+		if strings.HasPrefix(line, "func Test") && strings.Contains(line, "*testing.T") {
 			testFunc := strings.TrimSpace(strings.Split(line, "(")[0])
 			testFunc = strings.TrimPrefix(testFunc, "func ")
 			testFunctions = append(testFunctions, testFunc)
@@ -300,6 +300,9 @@ func unitTestFullWorkflow(pathToAdvocate string, dir string,
 			fmt.Println(err)
 		}
 
+		os.Unsetenv("GOROOT")
+		fmt.Println("GOROOT removed")
+
 		timeStart := time.Now()
 		fmt.Println("Run T0")
 		err = runCommand("go", "test", "-timeout", timeout, "-count=1", "-run="+testName, "./"+pkg)
@@ -309,27 +312,29 @@ func unitTestFullWorkflow(pathToAdvocate string, dir string,
 		timeRun = time.Since(timeStart)
 	}
 
-	// Set GOROOT
-	os.Setenv("GOROOT", pathToGoRoot)
-	fmt.Println("GOROOT = " + pathToGoRoot + " exported")
-
 	fmt.Println("FileName: ", file)
 	fmt.Println("TestName: ", testName)
 
 	// Remove header just in case
 	fmt.Println(fmt.Sprintf("Remove header for %s", file))
 	if err := headerRemoverUnit(file); err != nil {
+		fmt.Printf("Error in removing header: %v\n", err)
 		return 0, 0, 0, 0, fmt.Errorf("Failed to remove header: %v", err)
 	}
 
 	// Add header
 	fmt.Println(fmt.Sprintf("Add header for %s: %s", file, testName))
 	if err := headerInserterUnit(file, testName, false, "0"); err != nil {
+		fmt.Printf("Error in adding header: %v\n", err)
 		return 0, 0, 0, 0, fmt.Errorf("Error in adding header: %v", err)
 	}
 
 	// Run the test
 	fmt.Println("\nRun Recording")
+
+	// Set GOROOT
+	os.Setenv("GOROOT", pathToGoRoot)
+	fmt.Println("GOROOT = " + pathToGoRoot + " exported")
 
 	timeStart := time.Now()
 	err = runCommand(pathToPatchedGoRuntime, "test", "-timeout", timeout, "-count=1", "-run="+testName, "./"+pkg)
@@ -340,6 +345,9 @@ func unitTestFullWorkflow(pathToAdvocate string, dir string,
 		// return 0, 0, 0, 0, errors.New("Error running test")
 	}
 	durationRecord := time.Since(timeStart)
+
+	os.Unsetenv("GOROOT")
+	fmt.Println("GOROOT removed")
 
 	// Remove header after the test
 	fmt.Println(fmt.Sprintf("Remove header for %s", file))
@@ -365,10 +373,16 @@ func unitTestFullWorkflow(pathToAdvocate string, dir string,
 		fmt.Printf("Insert replay header or %s: %s for trace %s\n", file, testName, traceNum)
 		headerInserterUnit(file, testName, true, traceNum)
 
+		os.Setenv("GOROOT", pathToGoRoot)
+		fmt.Println("GOROOT = " + pathToGoRoot + " exported")
+
 		fmt.Printf("\nRun replay %d/%d\n", i, len(rewrittenTraces))
 		startTime := time.Now()
 		runCommand(pathToPatchedGoRuntime, "test", "-timeout", timeout, "-count=1", "-run="+testName, "./"+pkg)
 		timeReplay += time.Since(startTime)
+
+		os.Unsetenv("GOROOT")
+		fmt.Println("GOROOT removed")
 
 		// Remove reorder header
 		fmt.Printf("Remove header for %s\n", file)
@@ -378,10 +392,6 @@ func unitTestFullWorkflow(pathToAdvocate string, dir string,
 	if len(rewrittenTraces) > 0 {
 		timeReplay = timeReplay / time.Duration(len(rewrittenTraces))
 	}
-
-	// Unset GOROOT
-	os.Unsetenv("GOROOT")
-	fmt.Println("GOROOT removed")
 
 	return timeRun, durationRecord, timeAnalysis, timeReplay, nil
 }
