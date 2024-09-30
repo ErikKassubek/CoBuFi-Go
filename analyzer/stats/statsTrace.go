@@ -34,7 +34,9 @@ func statsTraces(tracePath string) (map[string]int, error) {
 
 		"numberRoutines":         0,
 		"numberNonEmptyRoutines": 0,
-		"numberOfSpawns":         0,
+
+		"numberOfSpawns":    0,
+		"numberRoutineEnds": 0,
 
 		"numberAtomics":          0,
 		"numberAtomicOperations": 0,
@@ -198,6 +200,7 @@ func parseTraceFile(tracePath string, stats *map[string]int, known *map[string][
 				(*known)["condVar"] = append((*known)["condVar"], fields[3])
 			}
 		case "E":
+			(*stats)["numberRoutineEnds"]++
 		default:
 			err = errors.New("Unknown trace element: " + fields[0])
 		}

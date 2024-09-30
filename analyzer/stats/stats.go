@@ -113,12 +113,10 @@ func writeStatsToFile(path string, progName string, statsProg, statsTraces map[s
 	statsTraceStr1 := fmt.Sprintf("%d,%d,%d\n", statsTraces["numberTraces"],
 		statsTraces["numberRoutines"], statsTraces["numberNonEmptyRoutines"])
 
-	totalNumberOps := statsTraces["numberOfSpawns"] + statsTraces["numberAtomics"] +
-		statsTraces["numberChannels"] + statsTraces["numberBufferedChannels"] +
-		statsTraces["numberUnbufferedChannels"] + statsTraces["numberSelects"] +
-		statsTraces["numberSelectCases"] + statsTraces["numberMutexes"] +
-		statsTraces["numberWaitGroups"] + statsTraces["numberCondVars"] +
-		statsTraces["numberOnce"]
+	totalNumberOps := statsTraces["numberOfSpawns"] + statsTraces["numberRoutineEnds"] + statsTraces["numberAtomicOperations"] +
+		statsTraces["numberChannelOperations"] + statsTraces["numberSelects"] + statsTraces["numberMutexOperations"] +
+		statsTraces["numberWaitGroupOperations"] + statsTraces["numberCondVarOperations"] +
+		statsTraces["numberOnceOperations"]
 
 	statsTraceStr2 := fmt.Sprintf("%d,%d,%d,%d,%d,%d,%d,%d,%d,%d\n",
 		statsTraces["numberAtomics"], statsTraces["numberChannels"],
@@ -127,8 +125,8 @@ func writeStatsToFile(path string, progName string, statsProg, statsTraces map[s
 		statsTraces["numberMutexes"], statsTraces["numberWaitGroups"],
 		statsTraces["numberCondVars"], statsTraces["numberOnce"])
 
-	statsTraceStr3 := fmt.Sprintf("%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d\n",
-		totalNumberOps, statsTraces["numberOfSpawns"],
+	statsTraceStr3 := fmt.Sprintf("%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d\n",
+		totalNumberOps, statsTraces["numberOfSpawns"], statsTraces["numberRoutineEnds"],
 		statsTraces["numberAtomicOperations"], statsTraces["numberChannelOperations"],
 		statsTraces["numberBufferedOps"], statsTraces["numberUnbufferedOps"],
 		statsTraces["numberSelectChanOps"], statsTraces["numberSelectDefaultOps"],

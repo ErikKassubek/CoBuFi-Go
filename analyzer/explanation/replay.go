@@ -75,6 +75,7 @@ func getReplayInfo(path string, index int) (string, string, string, error) {
 	// or with "Exit Replay with code"
 	traceNumbers := make([]int, 0)
 	linesWithCode := make([]string, 0)
+	numberDouble := 0
 	lines := strings.Split(string(content), "\n")
 
 	prefixTrace := "Reading trace from rewritten_trace_"
@@ -100,10 +101,11 @@ func getReplayInfo(path string, index int) (string, string, string, error) {
 			linesWithCode = append(linesWithCode, line)
 		} else if strings.HasPrefix(line, prefixDouble) {
 			linesWithCode = append(linesWithCode, "double")
+			numberDouble++
 		}
 	}
 
-	if len(traceNumbers) != len(linesWithCode) {
+	if len(traceNumbers) != len(linesWithCode)-numberDouble {
 		res := fmt.Sprintf("Invalid format in output.log. Number of trace numbers (%d) does not match number of exit codes (%d).", len(traceNumbers), len(linesWithCode))
 		return "", res, "failed", errors.New(res)
 	}
