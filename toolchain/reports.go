@@ -17,8 +17,6 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"strconv"
-	"strings"
 )
 
 /*
@@ -33,29 +31,42 @@ func generateBugReports(folderName string, advocateRoot string) {
 		fmt.Println(err)
 	}
 
-	analyzerPath := filepath.Join(advocateRoot, "analyzer", "analyzer")
 	for _, file := range files {
 		folder := filepath.Dir(file)
-		advocateTraceFolder := filepath.Join(folder, "advocateTrace")
-		cmd := exec.Command("wc", "-l", file)
-		out, err := cmd.Output()
+		// advocateTraceFolder := filepath.Join(folder, "advocateTrace")
+		analyzerPath := filepath.Join(advocateRoot, "analyzer", "analyzer")
+		cmd := exec.Command(analyzerPath, "explain", "-t", folder)
+		output, err := cmd.CombinedOutput()
+		fmt.Println(string(output))
 		if err != nil {
 			fmt.Println(err)
-		}
-
-		lineCount, err := strconv.Atoi(strings.Fields(string(out))[0])
-		if err != nil {
-			fmt.Println(err)
-		}
-
-		for i := 1; i <= lineCount; i++ {
-			cmd := exec.Command(analyzerPath, "explain", "-t", advocateTraceFolder, "-i", strconv.Itoa(i))
-			err := cmd.Run()
-			if err != nil {
-				fmt.Println(err)
-			}
 		}
 	}
+	// 		output, err := cmd.CombinedOutput()
+	// 		fmt.Println(string(output))
+	// for _, file := range files {
+	// 	folder := filepath.Dir(file)
+	// 	advocateTraceFolder := filepath.Join(folder, "advocateTrace")
+	// 	cmd := exec.Command("wc", "-l", file)
+	// 	out, err := cmd.Output()
+	// 	if err != nil {
+	// 		fmt.Println(err)
+	// 	}
+
+	// 	lineCount, err := strconv.Atoi(strings.Fields(string(out))[0])
+	// 	if err != nil {
+	// 		fmt.Println(err)
+	// 	}
+
+	// 	for i := 1; i <= lineCount; i++ {
+	// 		cmd := exec.Command(analyzerPath, "explain", "-t", advocateTraceFolder, "-i", strconv.Itoa(i))
+	// 		output, err := cmd.CombinedOutput()
+	// 		fmt.Println(string(output))
+	// 		if err != nil {
+	// 			fmt.Println(err)
+	// 		}
+	// 	}
+	// }
 }
 
 /*

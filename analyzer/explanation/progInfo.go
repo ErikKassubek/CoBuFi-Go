@@ -13,13 +13,16 @@ package explanation
 import (
 	"errors"
 	"os"
+	"path/filepath"
 	"strings"
 )
 
-func readProgInfo(path string, index int) (map[string]string, error) {
+func readProgInfo(path string) (map[string]string, error) {
 	res := make(map[string]string)
 
-	file, err := os.ReadFile(path + "output.log")
+	output := filepath.Join(path, "output.log")
+
+	file, err := os.ReadFile(output)
 	if err != nil {
 		return res, err
 	}
@@ -35,8 +38,6 @@ func readProgInfo(path string, index int) (map[string]string, error) {
 			continue
 		}
 
-		println(lines[i])
-
 		// if strings.Contains(lines[i], "unitTestheaderInserter") {
 		// 	if strings.Contains(lines[i], "-r true") {
 		// 		line := lines[i][:strings.LastIndex(lines[i], " ")]
@@ -49,17 +50,20 @@ func readProgInfo(path string, index int) (map[string]string, error) {
 		// } else if strings.Contains(lines[i], "-run") {
 		// 	res["run"] = lines[i]
 		if strings.Contains(lines[i], "FileName: ") {
-			println("FOUND")
 			res["file"] = strings.TrimPrefix(lines[i], "FileName: ")
-			println(res["file"])
-		} else if strings.Contains(lines[i], "TestName: ") {
-			res["name"] = strings.TrimPrefix(lines[i], "TestName: ")
+		} else if strings.Contains(lines[i], "Header added at file: ") {
+			res["name"] = strings.TrimPrefix(lines[i], "Header added at file: ")
 		} else if strings.Contains(lines[i], "Import added at line: ") {
 			res["importLine"] = strings.TrimPrefix(lines[i], "Import added at line: ")
 		} else if strings.Contains(lines[i], "Header added at line: ") {
 			res["headerLine"] = strings.TrimPrefix(lines[i], "Header added at line: ")
 		}
 	}
+
+	res["file"] = strings.TrimSpace(res["file"])
+	res["name"] = strings.TrimSpace(res["name"])
+	res["importLine"] = strings.TrimSpace(res["importLine"])
+	res["headerLine"] = strings.TrimSpace(res["headerLine"])
 
 	return res, nil
 }

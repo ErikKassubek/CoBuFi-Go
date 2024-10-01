@@ -190,8 +190,8 @@ func readCommandFile(path string) (string, int, int, error) {
 				println("Error in converting header line: ", line)
 				return headerFile, importLine, headerLine, err
 			}
-		} else if strings.Contains(line, "FileName: ") {
-			headerFile = strings.TrimSpace(strings.TrimPrefix(line, "FileName: "))
+		} else if strings.Contains(line, "Header added at file: ") {
+			headerFile = strings.TrimSpace(strings.TrimPrefix(line, "Header added at file: "))
 		}
 	}
 

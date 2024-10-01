@@ -127,13 +127,19 @@ func runWorkflowUnit(pathToAdvocate, dir, progName string,
 	// Check for untriggered selects
 	if notExecuted {
 		fmt.Println("Check for untriggered selects and not executed progs")
-		runCommand(pathToAnalyzer, "check", "-R", filepath.Join(dir, "advocateResult"), "-P", dir)
+		err := runCommand(pathToAnalyzer, "check", "-R", filepath.Join(dir, "advocateResult"), "-P", dir)
+		if err != nil {
+			fmt.Println("Could not run check for untriggered select and not executed progs")
+		}
 	}
 
 	if stats {
 		// create statistics
 		fmt.Println("Create statistics")
-		runCommand(pathToAnalyzer, "stats", "-R", filepath.Join(dir, "advocateResult"), "-P", dir, "-N", progName)
+		err := runCommand(pathToAnalyzer, "stats", "-R", filepath.Join(dir, "advocateResult"), "-P", dir, "-N", progName)
+		if err != nil {
+			fmt.Println("Could not create statistics")
+		}
 	}
 
 	// Output test summary

@@ -157,6 +157,7 @@ func addHeaderUnit(fileName string, testName string, replay bool, replayNumber s
   // ======= Preamble End =======`)
 			}
 			fmt.Println("Header added at line:", currentLine)
+			fmt.Printf("Header added at file: %s\n", fileName)
 		}
 	}
 

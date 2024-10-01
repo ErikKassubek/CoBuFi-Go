@@ -12,6 +12,7 @@ package explanation
 
 import (
 	"errors"
+	"fmt"
 	"os"
 	"strconv"
 	"strings"
@@ -24,14 +25,28 @@ import (
  * Returns:
  *   map[int][]string: Dict for the code snippets
  */
-func getBugPositions(traceElems map[int][]string) (map[int][]string, error) {
+func getBugPositions(traceElems map[int][]string, progInfo map[string]string) (map[int][]string, error) {
 	res := make(map[int][]string)
 
 	for i, elem := range traceElems {
 		for _, e := range elem {
 			pos := strings.Split(e, ":")
 			file := pos[0]
-			line, _ := strconv.Atoi(pos[1])
+			line, err := strconv.Atoi(pos[1])
+			if err != nil {
+				fmt.Println("Invalid line: ", pos[1])
+			}
+
+			// headerLine, _ := strconv.Atoi(progInfo["headerLine"])
+
+			// if file == progInfo["file"] {
+			// 	if line > headerLine {
+			// 		line -= 5 // header and import
+			// 	} else {
+			// 		line-- // only import
+			// 	}
+			// }
+
 			code, err := GetProgramCode(file, line, true)
 			if err != nil {
 				res[i] = append(res[i], "")

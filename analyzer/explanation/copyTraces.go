@@ -19,7 +19,7 @@ import (
 func copyTrace(path string, index int) error {
 	// copy the folder "path/advocateTrace"
 	// to "path/bugs/bug_index/advocateTrace"
-	err := copyDir(path+"advocateTrace", path+"bugs/bug_"+fmt.Sprint(index)+"/advocateTrace")
+	err := copyDir(path+"advocateTrace", path+"/bugs/bug_"+fmt.Sprint(index)+"/advocateTrace")
 	if err != nil {
 		return err
 	}
@@ -30,7 +30,7 @@ func copyTrace(path string, index int) error {
 func copyRewrite(path string, index int) error {
 	// copy the folder "path/rewritten_trace_index"
 	// to "path/bugs/bug_index/rewritten_trace"
-	err := copyDir(path+"rewritten_trace_"+fmt.Sprint(index), path+"bugs/bug_"+fmt.Sprint(index)+"/rewritten_trace")
+	err := copyDir(path+"rewritten_trace_"+fmt.Sprint(index), path+"/bugs/bug_"+fmt.Sprint(index)+"/rewritten_trace")
 	if err != nil {
 		return err
 	}

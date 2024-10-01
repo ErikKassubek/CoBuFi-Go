@@ -482,7 +482,9 @@ func (ch *TraceElementChannel) updateVectorClock() {
 	// hold back receive operations, until the send operation is processed
 	for _, elem := range waitingReceive {
 		if elem.oID <= maxOpID[ch.id] {
-			waitingReceive = waitingReceive[1:]
+			if len(waitingReceive) != 0 {
+				waitingReceive = waitingReceive[1:]
+			}
 			elem.updateVectorClock()
 		}
 	}

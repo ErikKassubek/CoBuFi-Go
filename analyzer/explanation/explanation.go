@@ -14,6 +14,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 )
@@ -41,50 +42,69 @@ import (
  *    path: the path to the folder, where the results of the analysis and the trace are stored
  *    index: the index of the bug in the results
  *    preventCopyRewrittenTrace: if the rewritten trace should not be copied
+ *    ignoreDouble: if true, only write one bug report for each bug
  * Returns:
  *    error: if an error occurred
  */
-func CreateOverview(path string, index int, preventCopyRewrittenTrace bool) error {
+func CreateOverview(path string, preventCopyRewrittenTrace bool, ignoreDouble bool) error {
 	// get the code info (main file, test name, commands)
-	progInfo, err := readProgInfo(path, index)
+
+	replayCodes := getOutputCodes(path)
+	fmt.Println(replayCodes)
+
+	progInfo, err := readProgInfo(path)
 	if err != nil {
 		fmt.Println("Error reading prog info: ", err)
 	}
 
-	// fmt.Println(progInfo["importLine"])
-	// fmt.Println(progInfo["headerLine"])
-
-	bugType, bugPos, bugElemType, err := readAnalysisResults(path, index, progInfo["file"])
+	hl, err := strconv.Atoi(progInfo["headerLine"])
 	if err != nil {
-		return err
+		fmt.Println("Cound not read header line: ", err)
 	}
 
-	// get the bug type description
-	bugTypeDescription := getBugTypeDescription(bugType)
+	file, err := os.ReadFile(filepath.Join(path, "results_machine.log"))
+	numberResults := len(strings.Split(string(file), "\n"))
 
-	// get the code of the bug elements
-	code, err := getBugPositions(bugPos)
-	if err != nil {
-		fmt.Println("Error getting bug positions: ", err)
-	}
+	for index := 1; index < numberResults; index++ {
+		bugType, bugPos, bugElemType, err := readAnalysisResults(path, index, progInfo["file"], hl)
+		if err != nil {
+			continue
+		}
 
-	// get the replay info
-	replay := getRewriteInfo(bugType, path, index)
+		// get the bug type description
+		bugTypeDescription := getBugTypeDescription(bugType)
 
-	err = writeFile(path, index, bugTypeDescription, bugPos, bugElemType, code,
-		replay, progInfo)
+		// get the code of the bug elements
+		code, err := getBugPositions(bugPos, progInfo)
+		if err != nil {
+			fmt.Println("Error getting bug positions: ", err)
+		}
 
-	// copyTrace(path, index)
-	if !preventCopyRewrittenTrace {
-		copyRewrite(path, index)
+		// get the replay info
+		replay := getRewriteInfo(bugType, replayCodes, index)
+
+		if ignoreDouble && replay["exitCode"] == "double" {
+			fmt.Printf("The same error was processed before. No additional bug report is created. To create all reports, run with -S. Index: %d\n", index)
+			continue
+		} else {
+			fmt.Printf("Create bug overview. Index: %d\n", index)
+		}
+
+		err = writeFile(path, index, bugTypeDescription, bugPos, bugElemType, code,
+			replay, progInfo)
+
+		// copyTrace(path, index)
+		if !preventCopyRewrittenTrace {
+			copyRewrite(path, index)
+		}
 	}
 
 	return err
 
 }
 
-func readAnalysisResults(path string, index int, mainFile string) (string, map[int][]string, map[int]string, error) {
-	file, err := os.ReadFile(path + "results_machine.log")
+func readAnalysisResults(path string, index int, fileWithHeader string, headerLine int) (string, map[int][]string, map[int]string, error) {
+	file, err := os.ReadFile(filepath.Join(path, "results_machine.log"))
 	if err != nil {
 		return "", nil, nil, err
 	}
@@ -128,9 +148,13 @@ func readAnalysisResults(path string, index int, mainFile string) (string, map[i
 
 			// correct the line number, if the file is the main file of the program
 			// because of the inserted preamble
-			if file == mainFile { // TODO: only if preamble is after line, otherwise only -1
+			if file == fileWithHeader {
 				lineInt, _ := strconv.Atoi(line)
-				line = fmt.Sprint(lineInt - 5)
+				if lineInt >= headerLine {
+					line = fmt.Sprint(lineInt - 5) // import + header
+				} else {
+					line = fmt.Sprint(lineInt - 1) // only import
+				}
 			}
 
 			pos := file + ":" + line
@@ -144,27 +168,6 @@ func readAnalysisResults(path string, index int, mainFile string) (string, map[i
 func writeFile(path string, index int, description map[string]string,
 	positions map[int][]string, bugElemType map[int]string, code map[int][]string,
 	replay map[string]string, progInfo map[string]string) error {
-	// if in path, the folder "bugs" does not exist, create it
-	if _, err := os.Stat(path + "bugs"); os.IsNotExist(err) {
-		err := os.Mkdir(path+"bugs", 0755)
-		if err != nil {
-			return err
-		}
-	}
-
-	folderName := path + "bugs/bug_" + fmt.Sprint(index)
-	if _, err := os.Stat(folderName); os.IsNotExist(err) {
-		err := os.Mkdir(folderName, 0755)
-		if err != nil {
-			return err
-		}
-	}
-
-	// create the file
-	file, err := os.Create(folderName + "/bug.md")
-	if err != nil {
-		return err
-	}
 
 	res := ""
 
@@ -223,6 +226,9 @@ func writeFile(path string, index int, description map[string]string,
 		res += bugElemType[key] + "\n"
 
 		for j, pos := range positions[key] {
+			if pos == ":-1" {
+				return nil
+			}
 			code := code[key][j]
 			res += "-> " + pos + "\n"
 			res += code + "\n\n"
@@ -255,6 +261,28 @@ func writeFile(path string, index int, description map[string]string,
 				res += replay["exitCode"] + "\n\n"
 			}
 		}
+	}
+
+	// if in path, the folder "bugs" does not exist, create it
+	if _, err := os.Stat(path + "/bugs"); os.IsNotExist(err) {
+		err := os.Mkdir(path+"/bugs", 0755)
+		if err != nil {
+			return err
+		}
+	}
+
+	folderName := path + "/bugs/bug_" + fmt.Sprint(index)
+	if _, err := os.Stat(folderName); os.IsNotExist(err) {
+		err := os.Mkdir(folderName, 0755)
+		if err != nil {
+			return err
+		}
+	}
+
+	// create the file
+	file, err := os.Create(folderName + "/bug.md")
+	if err != nil {
+		return err
 	}
 
 	_, err = file.WriteString(res)

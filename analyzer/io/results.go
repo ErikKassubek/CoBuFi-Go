@@ -29,7 +29,7 @@ import (
  *   error: An error if the bug could not be processed
  */
 func ReadAnalysisResults(filePath string, index int) (bool, bugs.Bug, error) {
-	println("Read analysis results from " + filePath + " for index " + strconv.Itoa(index) + "...")
+	println("Read analysis results from " + filePath + " for index " + strconv.Itoa(index))
 
 	bugStr := ""
 

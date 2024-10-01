@@ -666,6 +666,8 @@ func ExitReplayPanic(msg any) {
 		return
 	}
 
+	println("Exit replay with panic")
+
 	switch m := msg.(type) {
 	case plainError:
 		if expectedExitCode == ExitCodeSendClose && m.Error() == "send on closed channel" {
@@ -681,7 +683,8 @@ func ExitReplayPanic(msg any) {
 				ExitReplayWithCode(ExitCodeUnlockBeforeLock)
 			}
 		}
-
 	}
+	printany(msg)
+	print("\n")
 	ExitReplayWithCode(ExitCodePanic)
 }

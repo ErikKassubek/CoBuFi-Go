@@ -390,9 +390,9 @@ func readTraceFile(fileName string, chanWithoutPartner *map[string]int) (int, ru
 			pos := strings.Split(fields[8], ":")
 			file = pos[0]
 			line, _ = strconv.Atoi(pos[1])
-			if op == runtime.OperationChannelSend || op == runtime.OperationChannelRecv {
+			if !blocked && (op == runtime.OperationChannelSend || op == runtime.OperationChannelRecv) {
 				index := findReplayPartner(fields[3], fields[6], len(replayData), chanWithoutPartner)
-				if index != -1 {
+				if index != -1 && index < len(replayData) {
 					pFile = replayData[index].File
 					pLine = replayData[index].Line
 					replayData[index].PFile = file
@@ -508,6 +508,8 @@ func readTraceFile(fileName string, chanWithoutPartner *map[string]int) (int, ru
 			}
 		case "A":
 			// do nothing
+		case "E":
+			// do nothing
 
 		default:
 			panic("Unknown operation " + fields[0] + " in line " + elem + " in file " + fileName + ".")
@@ -573,9 +575,9 @@ func swapTimerRwMutex(op string, time int, file string, line int, replayData *ru
  */
 func findReplayPartner(cID string, oID string, index int, chanWithoutPartner *map[string]int) int {
 	opString := cID + ":" + oID
-	if index, ok := (*chanWithoutPartner)[opString]; ok {
+	if ind, ok := (*chanWithoutPartner)[opString]; ok {
 		delete((*chanWithoutPartner), opString)
-		return index
+		return ind
 	}
 
 	(*chanWithoutPartner)[opString] = index

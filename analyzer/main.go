@@ -44,7 +44,6 @@ func main() {
 	noPrint := flag.Bool("p", false, "Do not print the results to the terminal (default false). Automatically set -x to true")
 	resultFolder := flag.String("r", "", "Path to where the result file should be saved.")
 	ignoreAtomics := flag.Bool("a", false, "Ignore atomic operations (default false). Use to reduce memory header for large traces.")
-	explanationIndex := flag.Int("i", 0, "Index of the explanation to create")
 	resultFolderTool := flag.String("R", "", "Path where the advocateResult folder created by the pipeline is located")
 	programPath := flag.String("P", "", "Path to the program folder")
 	preventCopyRewrittenTrace := flag.Bool("n", false, "Do not copy the rewritten trace in the explanation")
@@ -110,7 +109,7 @@ func main() {
 	case "stats":
 		modeStats(programPath, resultFolderTool, progName)
 	case "explain":
-		modeExplain(pathTrace, folderTrace, explanationIndex, preventCopyRewrittenTrace)
+		modeExplain(pathTrace, preventCopyRewrittenTrace, !*rewriteAll)
 	case "check":
 		modeCheck(resultFolderTool, programPath)
 	case "run":
@@ -144,14 +143,14 @@ func modeStats(programPath, resultFolder, progName *string) {
 	stats.CreateStats(*programPath, *resultFolder, *progName)
 }
 
-func modeExplain(pathTrace *string, folderTrace string, explanationIndex *int,
-	preventCopyRewrittenTrace *bool) {
-	if *pathTrace == "" || *explanationIndex == 0 {
-		fmt.Println("Please provide a path to the trace file and an index (1 based) for the explanation. Set with -t [file] -i [index]")
+func modeExplain(pathTrace *string,
+	preventCopyRewrittenTrace *bool, ignoreDouble bool) {
+	if *pathTrace == "" {
+		fmt.Println("Please provide a path to the trace files for the explanation. Set with -t [file]")
 		return
 	}
 
-	err := explanation.CreateOverview(folderTrace, *explanationIndex, *preventCopyRewrittenTrace)
+	err := explanation.CreateOverview(*pathTrace, *preventCopyRewrittenTrace, ignoreDouble)
 	if err != nil {
 		fmt.Println("Error creating explanation: ", err.Error())
 	}
@@ -265,19 +264,26 @@ func modeRun(pathTrace *string, noPrint *bool, noRewrite *bool,
 		rewrittenBugs := make(map[bugs.ResultType][]string) // bugtype -> paths string
 
 		for resultIndex := 0; resultIndex < numberOfResults; resultIndex++ {
-			needed, err := rewriteTrace(outMachine,
+			needed, double, err := rewriteTrace(outMachine,
 				newTrace+"_"+strconv.Itoa(resultIndex+1)+"/", resultIndex, numberOfRoutines, &rewrittenBugs, !*rewriteAll)
 
 			if !needed {
 				println("Trace can not be rewritten.")
 				notNeededRewrites++
+				if double {
+					fmt.Printf("Bugreport info: %d,double", resultIndex+1)
+				} else {
+					fmt.Printf("Bugreport info: %d,fail", resultIndex+1)
+				}
 			} else if err != nil {
 				println("Failed to rewrite trace: ", err.Error())
 				failedRewrites++
 				analysis.SetTrace(originalTrace)
+				fmt.Printf("Bugreport info: %d,fail", resultIndex+1)
 			} else { // needed && err == nil
 				numberRewrittenTrace++
 				analysis.SetTrace(originalTrace)
+				fmt.Printf("Bugreport info: %d,suc", resultIndex+1)
 			}
 
 			print("\n\n")
@@ -339,51 +345,53 @@ func memorySupervisor() {
  *   rewrittenTrace (*map[string][]string): set of bugs that have been already rewritten
  * Returns:
  *   bool: true, if a rewrite was nessesary, false if not (e.g. actual bug, warning)
+ *   bool: true if rewrite was skipped because of double
  *   error: An error if the trace file could not be created
  */
 func rewriteTrace(outMachine string, newTrace string, resultIndex int,
-	numberOfRoutines int, rewrittenTrace *map[bugs.ResultType][]string, rewriteOnce bool) (bool, error) {
+	numberOfRoutines int, rewrittenTrace *map[bugs.ResultType][]string, rewriteOnce bool) (bool, bool, error) {
 
 	actual, bug, err := io.ReadAnalysisResults(outMachine, resultIndex)
 	if err != nil {
-		return false, err
-	}
-
-	if actual {
-		return false, nil
+		return false, false, err
 	}
 
 	if rewriteOnce {
 		bugString := bug.GetBugString()
+		println(resultIndex, bugString)
 		if _, ok := (*rewrittenTrace)[bug.Type]; !ok {
 			(*rewrittenTrace)[bug.Type] = make([]string, 0)
 		} else {
 			if utils.Contains((*rewrittenTrace)[bug.Type], bugString) {
 				fmt.Println("Bug was already rewritten before")
 				fmt.Println("Skip rewrite")
-				return false, nil
+				return false, true, nil
 			}
 		}
 		(*rewrittenTrace)[bug.Type] = append((*rewrittenTrace)[bug.Type], bugString)
 	}
 
+	if actual {
+		return false, false, nil
+	}
+
 	rewriteNeeded, code, err := rewriter.RewriteTrace(bug)
 
 	if err != nil {
-		return rewriteNeeded, err
+		return rewriteNeeded, false, err
 	}
 
 	err = io.WriteTrace(newTrace, numberOfRoutines)
 	if err != nil {
-		return rewriteNeeded, err
+		return rewriteNeeded, false, err
 	}
 
 	err = io.WriteRewriteInfoFile(newTrace, string(bug.Type), code, resultIndex)
 	if err != nil {
-		return rewriteNeeded, err
+		return rewriteNeeded, false, err
 	}
 
-	return rewriteNeeded, nil
+	return rewriteNeeded, false, nil
 }
 
 /*
@@ -518,8 +526,7 @@ func printHelp() {
 	println("Usage: ./analyzer explain [options]")
 	println("This mode creates an explanation for a found bug in the trace file.")
 	println("It has the following options:")
-	println("  -t [file]   Path to the trace file to create the explanation for (required)")
-	println("  -i [index]  Index of the explanation to create (1 based) (required)")
+	println("  -t [file]   Path to the folder containing the machine readable result file (required)")
 	println("\n\n")
 	println("3. Check if all concurrency elements of the program have been executed at least once")
 	println("Usage: ./analyzer check [options]")
