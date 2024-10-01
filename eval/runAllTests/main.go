@@ -9,15 +9,15 @@ import (
 
 func main() {
 	names := []string{
+		// "GoBench",
 		// "canonicalTests",
+		"moby",
 		"prometheus",
 		"etcd",
 		"kubernetes",
 		"go-ethereum",
-		// "connect",
-		// "argo-cd",
-		// "GoBench",
-		// "moby",
+		"connect",
+		"argo-cd",
 	}
 
 	mainPath := "~/Uni/HiWi/ADVOCATE/examples/"
