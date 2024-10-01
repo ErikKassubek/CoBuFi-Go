@@ -50,7 +50,6 @@ func CreateOverview(path string, preventCopyRewrittenTrace bool, ignoreDouble bo
 	// get the code info (main file, test name, commands)
 
 	replayCodes := getOutputCodes(path)
-	fmt.Println(replayCodes)
 
 	progInfo, err := readProgInfo(path)
 	if err != nil {
@@ -84,10 +83,7 @@ func CreateOverview(path string, preventCopyRewrittenTrace bool, ignoreDouble bo
 		replay := getRewriteInfo(bugType, replayCodes, index)
 
 		if ignoreDouble && replay["exitCode"] == "double" {
-			fmt.Printf("The same error was processed before. No additional bug report is created. To create all reports, run with -S. Index: %d\n", index)
 			continue
-		} else {
-			fmt.Printf("Create bug overview. Index: %d\n", index)
 		}
 
 		err = writeFile(path, index, bugTypeDescription, bugPos, bugElemType, code,
