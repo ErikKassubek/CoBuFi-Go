@@ -252,13 +252,15 @@ func writeFile(path string, index int, description map[string]string,
 
 		res += "**Replaying " + replay["replaySuc"] + "**.\n\n"
 		if replayPossible {
-			if replay["replaySuc"] != "panicked" {
+			if replay["replaySuc"] == "panicked" {
+				res += "It panicked with the following message:\n\n"
+				res += replay["exitCode"] + "\n\n"
+			} else if replay["exitCode"] == "fail" {
+				res += replay["exitCodeExplanation"] + "\n\n"
+			} else {
 				res += "It exited with the following code: "
 				res += replay["exitCode"] + "\n\n"
 				res += replay["exitCodeExplanation"] + "\n\n"
-			} else {
-				res += "It panicked with the following message:\n\n"
-				res += replay["exitCode"] + "\n\n"
 			}
 		}
 	}

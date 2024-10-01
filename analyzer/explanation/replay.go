@@ -124,6 +124,9 @@ func getReplayInfo(replayCode map[string]string, index int) (string, string, str
 		replaySuc = "was already performed for this bug in another test"
 		return "double", "", replaySuc, nil
 	}
+	if exitCode == "fail" {
+		return "fail", exitCodeExplanation["-1"], "was not run", nil
+	}
 
 	exitCodeInt, err := strconv.Atoi(exitCode)
 	if err != nil {

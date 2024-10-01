@@ -14,10 +14,10 @@ func main() {
 		"etcd",
 		"kubernetes",
 		"go-ethereum",
-		"connect",
-		"argo-cd",
-		"GoBench",
-		"moby",
+		// "connect",
+		// "argo-cd",
+		// "GoBench",
+		// "moby",
 	}
 
 	mainPath := "~/Uni/HiWi/ADVOCATE/examples/"
