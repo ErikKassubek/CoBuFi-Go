@@ -41,12 +41,11 @@ import (
  * Args:
  *    path: the path to the folder, where the results of the analysis and the trace are stored
  *    index: the index of the bug in the results
- *    preventCopyRewrittenTrace: if the rewritten trace should not be copied
  *    ignoreDouble: if true, only write one bug report for each bug
  * Returns:
  *    error: if an error occurred
  */
-func CreateOverview(path string, preventCopyRewrittenTrace bool, ignoreDouble bool) error {
+func CreateOverview(path string, ignoreDouble bool) error {
 	// get the code info (main file, test name, commands)
 
 	replayCodes := getOutputCodes(path)
@@ -88,11 +87,6 @@ func CreateOverview(path string, preventCopyRewrittenTrace bool, ignoreDouble bo
 
 		err = writeFile(path, index, bugTypeDescription, bugPos, bugElemType, code,
 			replay, progInfo)
-
-		// copyTrace(path, index)
-		if !preventCopyRewrittenTrace {
-			copyRewrite(path, index)
-		}
 	}
 
 	return err
@@ -241,11 +235,6 @@ func writeFile(path string, index int, description map[string]string,
 	if replayDouble {
 		res += "The replay was not performed, because the same bug had been found before."
 	} else {
-
-		if replayPossible {
-			res += "The rewritten trace can be found in the `rewritten_trace` folder.\n\n"
-		}
-
 		res += "**Replaying " + replay["replaySuc"] + "**.\n\n"
 		if replayPossible {
 			if replay["replaySuc"] == "panicked" {
@@ -269,7 +258,7 @@ func writeFile(path string, index int, description map[string]string,
 		}
 	}
 
-	folderName := path + "/bugs/bug_" + fmt.Sprint(index)
+	folderName := path + "/bugs"
 	if _, err := os.Stat(folderName); os.IsNotExist(err) {
 		err := os.Mkdir(folderName, 0755)
 		if err != nil {
@@ -278,7 +267,7 @@ func writeFile(path string, index int, description map[string]string,
 	}
 
 	// create the file
-	file, err := os.Create(folderName + "/bug.md")
+	file, err := os.Create(folderName + "/bug_" + fmt.Sprint(index) + ".md")
 	if err != nil {
 		return err
 	}

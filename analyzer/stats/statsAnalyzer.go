@@ -16,7 +16,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"sort"
 	"strconv"
 	"strings"
 )
@@ -49,15 +48,19 @@ func statsAnalyzer(pathToResults string) (map[string]map[string]int, error) {
 		"replaySuccessful": replaySuccessful,
 	}
 
-	alreadyProcessed := make(map[string][]processedBug)
+	bugs := filepath.Join(pathToResults, "bugs")
+	_, err := os.Stat(bugs)
+	if os.IsNotExist(err) {
+		return res, nil
+	}
 
-	err := filepath.Walk(pathToResults, func(path string, info os.FileInfo, err error) error {
+	err = filepath.Walk(bugs, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
 
-		if !info.IsDir() && info.Name() == "bug.md" {
-			err := processBugFile(path, &res, &alreadyProcessed)
+		if !info.IsDir() && strings.HasPrefix(info.Name(), "bug_") {
+			err := processBugFile(path, &res)
 			if err != nil {
 				fmt.Println(err)
 			}
@@ -84,7 +87,7 @@ type processedBug struct {
  * Returns:
  *     error
  */
-func processBugFile(filePath string, info *map[string]map[string]int, alreadyProcessed *map[string][]processedBug) error {
+func processBugFile(filePath string, info *map[string]map[string]int) error {
 	file, err := os.Open(filePath)
 	if err != nil {
 		return err
@@ -93,8 +96,6 @@ func processBugFile(filePath string, info *map[string]map[string]int, alreadyPro
 
 	bugType := ""
 
-	// paths of bug elems
-	elemPaths := make([]string, 0)
 	bug := processedBug{}
 
 	// read the file
@@ -116,21 +117,11 @@ func processBugFile(filePath string, info *map[string]map[string]int, alreadyPro
 				return fmt.Errorf("unknown error type %s", line)
 			}
 			bug.detectedBug = bugType
-		}
-
-		// get bug id based on the path of the elements
-		if strings.HasPrefix(line, "->") {
-			path := strings.TrimPrefix(line, "-> ")
-			elemPaths = append(elemPaths, path)
-		}
-
-		// replay written
-		if line == "The rewritten trace can be found in the `rewritten_trace` folder." {
+		} else if strings.Contains(line, "The analyzer found a way to resolve the leak") {
 			bug.replayWritten = true
-		}
-
-		// replay result
-		if strings.HasPrefix(line, "It exited with the following code: ") {
+		} else if strings.Contains(line, "The analyzer has tries to rewrite the trace in such a way") {
+			bug.replayWritten = true
+		} else if strings.HasPrefix(line, "It exited with the following code: ") {
 			code := strings.TrimPrefix(line, "It exited with the following code: ")
 
 			num, err := strconv.Atoi(code)
@@ -138,53 +129,20 @@ func processBugFile(filePath string, info *map[string]map[string]int, alreadyPro
 				return err
 			}
 
-			leak := strings.HasPrefix("L", bugType)
-
-			if (!leak && num < 10) || num >= 20 {
+			if num >= 20 || num == 0 {
 				bug.replaySuc = true
 			}
 		}
 	}
 
-	// do not count the same bug twice
-	sort.Strings(elemPaths)
-	bug.paths = strings.Join(elemPaths, ">")
+	(*info)["detected"][bugType]++
 
-	if val, ok := (*alreadyProcessed)[bug.paths]; ok { // path already counted -> only count if bug type is not equal
-		for i, b := range val {
-			if bug.detectedBug == b.detectedBug {
-				// count as success, if it never had been counted as success before
-				if bug.replaySuc && !b.replaySuc {
-					(*alreadyProcessed)[bug.paths][i].replaySuc = true
-					(*info)["replaySuccessful"][bugType]++
-				}
-				continue
-			}
+	if bug.replayWritten {
+		(*info)["replayWritten"][bugType]++
+	}
 
-			(*info)["detected"][bugType]++
-
-			if bug.replayWritten {
-				(*info)["replayWritten"][bugType]++
-			}
-
-			if bug.replaySuc {
-				(*info)["replaySuccessful"][bugType]++
-			}
-
-			(*alreadyProcessed)[bug.paths] = append((*alreadyProcessed)[bug.paths], bug)
-		}
-	} else { // path not in already processed
-		(*info)["detected"][bugType]++
-
-		if bug.replayWritten {
-			(*info)["replayWritten"][bugType]++
-		}
-
-		if bug.replaySuc {
-			(*info)["replaySuccessful"][bugType]++
-		}
-
-		(*alreadyProcessed)[bug.paths] = []processedBug{bug}
+	if bug.replaySuc {
+		(*info)["replaySuccessful"][bugType]++
 	}
 
 	return nil

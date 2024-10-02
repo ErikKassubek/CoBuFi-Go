@@ -530,3 +530,4 @@ program will exit with one of the following exit codes:
 - 30: Send on close
 - 31: Receive on close
 - 32: Negative WaitGroup counter
+- 33: Unlock of unlocked mutex

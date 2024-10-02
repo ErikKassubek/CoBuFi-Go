@@ -43,7 +43,7 @@ func getRewriteInfo(bugType string, codes map[string]string, index int) map[stri
 		res["description"] += "leak should not reappear in the rewritten trace."
 	} else if rewPos == "Leak" {
 		res["description"] += "The analyzer found a leak in the recorded trace.\n"
-		res["description"] += "The analyzer could not find a way to resolve the leak."
+		res["description"] += "The analyzer could not find a way to resolve the leak. "
 		res["description"] += "No rewritten trace was created. This does not need to mean, "
 		res["description"] += "that the leak can not be resolved, especially because the "
 		res["description"] += "analyzer is only aware of executed operations."

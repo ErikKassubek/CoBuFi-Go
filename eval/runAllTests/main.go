@@ -36,7 +36,7 @@ func main() {
 		fmt.Println("\n\nRun prog ", name)
 		path := filepath.Join(mainPath, name)
 
-		cmd := exec.Command("./tool", "test", "-a", "~/Uni/HiWi/ADVOCATE", "-f", path, "-s", "-t", "-N", name, "-T", analysisTimeout)
+		cmd := exec.Command("./tool", "test", "-a", "~/Uni/HiWi/ADVOCATE", "-f", path, "-m", "-s", "-t", "-N", name, "-T", analysisTimeout)
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
 		fmt.Println(cmd.String())

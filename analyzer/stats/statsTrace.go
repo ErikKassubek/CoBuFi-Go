@@ -23,14 +23,14 @@ import (
 /*
  * Collect stats about the traces
  * Args:
- *     tracePath (string): path to the result folder containing the traces
+ *     dataPath (string): path to the result folder
  * Returns:
  *     map[string]int: map with the stats
  *     error
  */
-func statsTraces(tracePath string) (map[string]int, error) {
+func statsTraces(dataPath string) (map[string]int, error) {
 	res := map[string]int{
-		"numberTraces": 0, // for each program run/each test run, one trace is created
+		"numberElements": 0,
 
 		"numberRoutines":         0,
 		"numberNonEmptyRoutines": 0,
@@ -66,28 +66,7 @@ func statsTraces(tracePath string) (map[string]int, error) {
 		"numberOnceOperations": 0,
 	}
 
-	err := filepath.Walk(tracePath, func(currentPath string, info os.FileInfo, err error) error {
-		if err != nil {
-			return err
-		}
-
-		// Check if the current item is a directory named "advocateTrace"
-		if info.IsDir() && info.Name() == "advocateTrace" {
-			err := statsTrace(currentPath, &res)
-			if err != nil {
-				fmt.Println("Could not process ", currentPath)
-				fmt.Println(err)
-			}
-		}
-		return nil
-	})
-
-	return res, err
-
-}
-
-func statsTrace(tracePath string, stats *map[string]int) error {
-	(*stats)["numberTraces"]++
+	tracePath := filepath.Join(dataPath, "advocateTrace")
 
 	// do not count the same twice
 	known := map[string][]string{
@@ -105,7 +84,7 @@ func statsTrace(tracePath string, stats *map[string]int) error {
 		}
 
 		if !info.IsDir() {
-			err = parseTraceFile(path, stats, &known)
+			err = parseTraceFile(path, &res, &known)
 			if err != nil {
 				fmt.Println(err)
 			}
@@ -113,7 +92,8 @@ func statsTrace(tracePath string, stats *map[string]int) error {
 
 		return nil
 	})
-	return err
+
+	return res, err
 }
 
 func parseTraceFile(tracePath string, stats *map[string]int, known *map[string][]string) error {
@@ -123,11 +103,11 @@ func parseTraceFile(tracePath string, stats *map[string]int, known *map[string][
 		return err
 	}
 
-	routine, err := getRoutineFromFileName(filepath.Base(tracePath))
-	if err != nil {
-		return fmt.Errorf("%s not an trace file", tracePath)
-	}
-	(*stats)["numberRoutines"] += routine
+	// routine, err := getRoutineFromFileName(filepath.Base(tracePath))
+	// if err != nil {
+	// 	return fmt.Errorf("%s not an trace file", tracePath)
+	// }
+	(*stats)["numberRoutines"]++
 
 	scanner := bufio.NewScanner(file)
 
@@ -140,6 +120,7 @@ func parseTraceFile(tracePath string, stats *map[string]int, known *map[string][
 			(*stats)["numberNonEmptyRoutines"]++
 			foundNonEmpty = true
 		}
+		(*stats)["numberElements"]++
 		fields := strings.Split(elem, ",")
 		switch fields[0] {
 		case "G":

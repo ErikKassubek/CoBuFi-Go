@@ -650,7 +650,7 @@ func SetExpectedExitCode(code int) {
  * 	code: the exit code
  */
 func ExitReplayWithCode(code int) {
-	if replayExitCode {
+	if replayExitCode && ExitCodeNames[code] != "" {
 		println("Exit Replay with code ", code, ExitCodeNames[code])
 		exit(int32(code))
 	}
@@ -665,8 +665,6 @@ func ExitReplayPanic(msg any) {
 	if !replayExitCode {
 		return
 	}
-
-	println("Exit replay with panic")
 
 	switch m := msg.(type) {
 	case plainError:
@@ -684,7 +682,6 @@ func ExitReplayPanic(msg any) {
 			}
 		}
 	}
-	printany(msg)
-	print("\n")
+
 	ExitReplayWithCode(ExitCodePanic)
 }

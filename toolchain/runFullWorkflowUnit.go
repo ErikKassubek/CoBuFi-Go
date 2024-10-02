@@ -97,6 +97,7 @@ func runWorkflowUnit(pathToAdvocate, dir, progName string,
 			adjustedPackagePath := strings.TrimPrefix(packagePath, dir)
 			fileNameWithoutEnding := strings.TrimSuffix(fileName, ".go")
 			directoryName := fmt.Sprintf("advocateResult/file(%d)-test(%d)-%s-%s", currentFile, attemptedTests, fileNameWithoutEnding, testFunc)
+			directoryPath := filepath.Join(dir, directoryName)
 			if err := os.MkdirAll(directoryName, os.ModePerm); err != nil {
 				log.Printf("Failed to create directory %s: %v", directoryName, err)
 				continue
@@ -116,14 +117,17 @@ func runWorkflowUnit(pathToAdvocate, dir, progName string,
 				fmt.Printf("File %d with Test %d failed, check output.log for more information.\n", currentFile, attemptedTests)
 				skippedTests++
 			}
+
+			generateBugReports(directoryPath, pathToAdvocate)
+
+			if stats {
+				updateStatsFiles(pathToAnalyzer, progName, directoryPath)
+				// create statistics
+			}
 		}
 
 		currentFile++
 	}
-
-	// Generate Bug Reports
-	fmt.Println("Generate Bug Reports")
-	generateBugReports(resultPath, pathToAdvocate)
 
 	// Check for untriggered selects
 	if notExecuted {
@@ -131,15 +135,6 @@ func runWorkflowUnit(pathToAdvocate, dir, progName string,
 		err := runCommand(pathToAnalyzer, "check", "-R", filepath.Join(dir, "advocateResult"), "-P", dir)
 		if err != nil {
 			fmt.Println("Could not run check for untriggered select and not executed progs")
-		}
-	}
-
-	if stats {
-		// create statistics
-		fmt.Println("Create statistics")
-		err := runCommand(pathToAnalyzer, "stats", "-R", filepath.Join(dir, "advocateResult"), "-P", dir, "-N", progName)
-		if err != nil {
-			fmt.Println("Could not create statistics")
 		}
 	}
 
@@ -162,12 +157,27 @@ func runWorkflowUnit(pathToAdvocate, dir, progName string,
 func updateTimeFiles(progName string, testName string, folderName string, times map[string]time.Duration, numberReplay int) {
 	// fmt.Println("Generate time file")
 
-	file, err := os.OpenFile(filepath.Join(folderName, "times_"+progName+".log"), os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	timeFilePath := filepath.Join(folderName, "times_"+progName+".csv")
+
+	newFile := false
+	_, err := os.Stat(timeFilePath)
+	if os.IsNotExist(err) {
+		newFile = true
+	}
+
+	file, err := os.OpenFile(timeFilePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
 		fmt.Println("Error opening or creating file:", err)
 		return
 	}
 	defer file.Close()
+
+	if newFile {
+		csvTitels := "TestName,ExecTime,ExecTimeWithTracing,AnalyzerTime,AnalysisTime,HBAnalysisTime,TimeToIdentifyLeaksPlusFindingPoentialPartners,TimeToIdentifyPanicBugs,ReplayTime,NumberReplay\n"
+		if _, err := file.WriteString(csvTitels); err != nil {
+			fmt.Println("Could not write time: ", err)
+		}
+	}
 
 	timeInfo := fmt.Sprintf(
 		"%s,%.5f#%.5f#%.5f#%.5f#%.5f#%.5f#%.5f#%.5f#%d\n", testName,
@@ -383,20 +393,16 @@ func unitTestFullWorkflow(pathToAdvocate string, dir string,
 		if strings.HasPrefix(line, "AdvocateAnalysisTimes:") {
 			line = strings.TrimPrefix(line, "AdvocateAnalysisTimes:")
 			elems := strings.Split(line, "#")
-			fmt.Println(elems)
 
 			timeAnaFloat, _ := strconv.ParseFloat(elems[0], 64)
 			timeLeakFloat, _ := strconv.ParseFloat(elems[1], 64)
 			timePanicFloat, _ := strconv.ParseFloat(elems[2], 64)
 			timeOtherFloat, _ := strconv.ParseFloat(elems[3], 64)
 
-			fmt.Println(timeAnaFloat)
-
 			resTimes["analysis"] = time.Duration(timeAnaFloat * float64(time.Second))
 			resTimes["leak"] = time.Duration(timeLeakFloat * float64(time.Second))
 			resTimes["panic"] = time.Duration(timePanicFloat * float64(time.Second))
 			durationOther = time.Duration(timeOtherFloat * float64(time.Second))
-			fmt.Println(resTimes["analysis"])
 		}
 	}
 	fileOuputRead.Close()
@@ -420,7 +426,7 @@ func unitTestFullWorkflow(pathToAdvocate string, dir string,
 		os.Setenv("GOROOT", pathToGoRoot)
 		fmt.Println("GOROOT = " + pathToGoRoot + " exported")
 
-		fmt.Printf("\nRun replay %d/%d\n", i, len(rewrittenTraces))
+		fmt.Printf("\nRun replay %d/%d\n", i+1, len(rewrittenTraces))
 		startTime := time.Now()
 		runCommand(pathToPatchedGoRuntime, "test", "-timeout", timeout, "-count=1", "-run="+testName, "./"+pkg)
 		resTimes["replay"] += time.Since(startTime)

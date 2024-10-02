@@ -66,7 +66,6 @@ var bugNames = map[string]string{
 var bugCodes = make(map[string]string) // inverse of bugNames, initialized in init
 
 // explanations
-// TODO: add missing bug explainations
 var bugExplanations = map[string]string{
 	"A01": "During the execution of the program, a send on a closed channel occurred.\n" +
 		"The occurrence of a send on closed leads to a panic.",

@@ -25,21 +25,13 @@ import (
  *    folderName string: path to folder containing the results
  *    advocateRoot string: path to ADVOCATE
  */
-func generateBugReports(folderName string, advocateRoot string) {
-	files, err := getFiles(folderName, "results_machine.log")
+func generateBugReports(folder string, advocateRoot string) {
+	// advocateTraceFolder := filepath.Join(folder, "advocateTrace")
+	analyzerPath := filepath.Join(advocateRoot, "analyzer", "analyzer")
+	cmd := exec.Command(analyzerPath, "explain", "-t", folder)
+	err := cmd.Run()
 	if err != nil {
 		fmt.Println(err)
-	}
-
-	for _, file := range files {
-		folder := filepath.Dir(file)
-		// advocateTraceFolder := filepath.Join(folder, "advocateTrace")
-		analyzerPath := filepath.Join(advocateRoot, "analyzer", "analyzer")
-		cmd := exec.Command(analyzerPath, "explain", "-t", folder)
-		err := cmd.Run()
-		if err != nil {
-			fmt.Println(err)
-		}
 	}
 }
 
@@ -52,25 +44,25 @@ func generateBugReports(folderName string, advocateRoot string) {
  *    []string: list of the paths of the files
  *    error
  */
-func getFiles(folderPath string, fileName string) ([]string, error) {
-	var files []string
-	err := filepath.Walk(folderPath, func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			return err
-		}
-		if info.IsDir() {
-			return nil
-		}
-		if filepath.Base(path) == fileName {
-			files = append(files, path)
-		}
-		return nil
-	})
-	if err != nil {
-		return nil, err
-	}
-	return files, nil
-}
+// func getFiles(folderPath string, fileName string) ([]string, error) {
+// 	var files []string
+// 	err := filepath.Walk(folderPath, func(path string, info os.FileInfo, err error) error {
+// 		if err != nil {
+// 			return err
+// 		}
+// 		if info.IsDir() {
+// 			return nil
+// 		}
+// 		if filepath.Base(path) == fileName {
+// 			files = append(files, path)
+// 		}
+// 		return nil
+// 	})
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	return files, nil
+// }
 
 /*
  * Function to move results files from the package directory to the destination directory
@@ -101,5 +93,12 @@ func moveResults(packagePath, destination string) {
 		if err := os.Rename(trace, dest); err != nil {
 			log.Printf("Failed to move %s to %s: %v", trace, dest, err)
 		}
+	}
+}
+
+func updateStatsFiles(pathToAnalyzer string, testName string, dir string) {
+	err := runCommand(pathToAnalyzer, "stats", "-t", dir, "-N", testName)
+	if err != nil {
+		fmt.Println("Could not create statistics")
 	}
 }

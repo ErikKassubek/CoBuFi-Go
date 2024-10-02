@@ -1,8 +1,7 @@
 In directory: /home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns
 GOROOT removed
 Run T0
-/usr/local/go/bin/go test -timeout 15m -count=1 -run=TestMain ./
-ok  	uberLeakPatterns	2.003s
+ok  	uberLeakPatterns	2.005s
 FileName:  /home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns/uberLeakPatterns_test.go
 TestName:  TestMain
 Remove header for /home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns/uberLeakPatterns_test.go
@@ -13,7 +12,6 @@ Header added at file: /home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns/ube
 
 Run Recording
 GOROOT = /home/erik/Uni/HiWi/ADVOCATE/go-patch exported
-/home/erik/Uni/HiWi/ADVOCATE/go-patch/bin/go test -timeout 15m -count=1 -run=TestMain ./
 # go/internal/typeparams
 Go Exit
 Go Exit
@@ -26,45 +24,40 @@ Go Exit
 Go Exit
 Go Exit
 Go Exit
-ok  	uberLeakPatterns	2.012s
+ok  	uberLeakPatterns	2.010s
 GOROOT removed
 Remove header for /home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns/uberLeakPatterns_test.go
 Run the analyzer for /home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns//advocateTrace
-/home/erik/Uni/HiWi/ADVOCATE/analyzer/analyzer run -t /home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns/advocateTrace -T 3600
 Read trace from /home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns/advocateTrace...
 Start Analysis for all scenarios
 Leak on unbuffered channel with possible partner:
 	channel: /home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns/uberLeakPatterns_test.go:76@710
-	partner: /home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns/uberLeakPatterns_test.go:80@178
+	partner: /home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns/uberLeakPatterns_test.go:80@180
 
 Leak on unbuffered channel with possible partner:
-	channel: /home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns/uberLeakPatterns_test.go:106@400
-	partner: /home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns/uberLeakPatterns_test.go:111@352
+	channel: /home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns/uberLeakPatterns_test.go:106@424
+	partner: /home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns/uberLeakPatterns_test.go:111@346
 
 Leak on unbuffered channel with possible partner:
-	channel: /home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns/uberLeakPatterns_test.go:106@360
-	partner: /home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns/uberLeakPatterns_test.go:111@352
+	channel: /home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns/uberLeakPatterns_test.go:106@396
+	partner: /home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns/uberLeakPatterns_test.go:111@346
 
 Leak on unbuffered channel with possible partner:
-	channel: /home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns/uberLeakPatterns_test.go:106@348
-	partner: /home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns/uberLeakPatterns_test.go:111@352
+	channel: /home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns/uberLeakPatterns_test.go:106@414
+	partner: /home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns/uberLeakPatterns_test.go:111@346
 
 Leak on unbuffered channel with possible partner:
-	channel: /home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns/uberLeakPatterns_test.go:106@350
-	partner: /home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns/uberLeakPatterns_test.go:111@352
+	channel: /home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns/uberLeakPatterns_test.go:106@422
+	partner: /home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns/uberLeakPatterns_test.go:111@346
 
 /home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns/uberLeakPatterns_test.go:43@280
 Leak on unbuffered channel without possible partner:
 	channel: /home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns/uberLeakPatterns_test.go:43@280
 
 
-/home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns/uberLeakPatterns_test.go:139@686
+/home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns/uberLeakPatterns_test.go:139@694
 Leak on unbuffered channel without possible partner:
-	channel: /home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns/uberLeakPatterns_test.go:139@686
-
-
-Leak on routine without any blocking operation
-	fork: /home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns/uberLeakPatterns_test.go:74@710
+	channel: /home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns/uberLeakPatterns_test.go:139@694
 
 
 Leak on routine without any blocking operation
@@ -72,26 +65,30 @@ Leak on routine without any blocking operation
 
 
 Leak on routine without any blocking operation
-	fork: /home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns/uberLeakPatterns_test.go:105@360
+	fork: /home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns/uberLeakPatterns_test.go:105@424
 
 
 Leak on routine without any blocking operation
-	fork: /home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns/uberLeakPatterns_test.go:105@348
+	fork: /home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns/uberLeakPatterns_test.go:74@710
 
 
 Leak on routine without any blocking operation
-	fork: /home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns/uberLeakPatterns_test.go:105@350
+	fork: /home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns/uberLeakPatterns_test.go:105@414
 
 
 Leak on routine without any blocking operation
-	fork: /home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns/uberLeakPatterns_test.go:105@400
+	fork: /home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns/uberLeakPatterns_test.go:105@396
+
+
+Leak on routine without any blocking operation
+	fork: /home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns/uberLeakPatterns_test.go:105@422
 
 
 Check for done before add
 Finished check for done before add
 Check for unlock before lock
 Finished check for unlock before lock
-AdvocateAnalysisTimes:0.00186#0.00018#0.00009#0.00004
+AdvocateAnalysisTimes:0.00991#0.00082#0.00046#0.00020
 Analysis finished
 
 ==================== Summary ====================
@@ -100,54 +97,54 @@ Analysis finished
 
 1 Leak on unbuffered channel with possible partner:
 	channel: /home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns/uberLeakPatterns_test.go:76@710
-	partner: /home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns/uberLeakPatterns_test.go:80@178
+	partner: /home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns/uberLeakPatterns_test.go:80@180
 
 2 Leak on unbuffered channel with possible partner:
-	channel: /home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns/uberLeakPatterns_test.go:106@400
-	partner: /home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns/uberLeakPatterns_test.go:111@352
+	channel: /home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns/uberLeakPatterns_test.go:106@424
+	partner: /home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns/uberLeakPatterns_test.go:111@346
 
 3 Leak on unbuffered channel with possible partner:
-	channel: /home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns/uberLeakPatterns_test.go:106@360
-	partner: /home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns/uberLeakPatterns_test.go:111@352
+	channel: /home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns/uberLeakPatterns_test.go:106@396
+	partner: /home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns/uberLeakPatterns_test.go:111@346
 
 4 Leak on unbuffered channel with possible partner:
-	channel: /home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns/uberLeakPatterns_test.go:106@348
-	partner: /home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns/uberLeakPatterns_test.go:111@352
+	channel: /home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns/uberLeakPatterns_test.go:106@414
+	partner: /home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns/uberLeakPatterns_test.go:111@346
 
 5 Leak on unbuffered channel with possible partner:
-	channel: /home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns/uberLeakPatterns_test.go:106@350
-	partner: /home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns/uberLeakPatterns_test.go:111@352
+	channel: /home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns/uberLeakPatterns_test.go:106@422
+	partner: /home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns/uberLeakPatterns_test.go:111@346
 
 6 Leak on unbuffered channel without possible partner:
 	channel: /home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns/uberLeakPatterns_test.go:43@280
 
 
 7 Leak on unbuffered channel without possible partner:
-	channel: /home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns/uberLeakPatterns_test.go:139@686
+	channel: /home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns/uberLeakPatterns_test.go:139@694
 
 
 8 Leak on routine without any blocking operation
-	fork: /home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns/uberLeakPatterns_test.go:74@710
-
-
-9 Leak on routine without any blocking operation
 	fork: :-1@330
 
 
+9 Leak on routine without any blocking operation
+	fork: /home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns/uberLeakPatterns_test.go:105@424
+
+
 10 Leak on routine without any blocking operation
-	fork: /home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns/uberLeakPatterns_test.go:105@360
+	fork: /home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns/uberLeakPatterns_test.go:74@710
 
 
 11 Leak on routine without any blocking operation
-	fork: /home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns/uberLeakPatterns_test.go:105@348
+	fork: /home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns/uberLeakPatterns_test.go:105@414
 
 
 12 Leak on routine without any blocking operation
-	fork: /home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns/uberLeakPatterns_test.go:105@350
+	fork: /home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns/uberLeakPatterns_test.go:105@396
 
 
 13 Leak on routine without any blocking operation
-	fork: /home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns/uberLeakPatterns_test.go:105@400
+	fork: /home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns/uberLeakPatterns_test.go:105@422
 
 
 
@@ -157,7 +154,7 @@ Read analysis results from /home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPattern
 Analysis results read
 Leak on unbuffered channel with possible partner:
 	channel: /home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns/uberLeakPatterns_test.go:76@710
-	partner: /home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns/uberLeakPatterns_test.go:80@178
+	partner: /home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns/uberLeakPatterns_test.go:80@180
 0 L01/home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns/uberLeakPatterns_test.go:76/home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns/uberLeakPatterns_test.go:80
 Create new trace at /home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns//rewritten_trace_1/...
 Trace written
@@ -166,8 +163,8 @@ Bugreport info: 1,suc
 Read analysis results from /home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns//results_machine.log for index 1
 Analysis results read
 Leak on unbuffered channel with possible partner:
-	channel: /home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns/uberLeakPatterns_test.go:106@400
-	partner: /home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns/uberLeakPatterns_test.go:111@352
+	channel: /home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns/uberLeakPatterns_test.go:106@424
+	partner: /home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns/uberLeakPatterns_test.go:111@346
 1 L01/home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns/uberLeakPatterns_test.go:106/home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns/uberLeakPatterns_test.go:111
 Create new trace at /home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns//rewritten_trace_2/...
 Trace written
@@ -176,8 +173,8 @@ Bugreport info: 2,suc
 Read analysis results from /home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns//results_machine.log for index 2
 Analysis results read
 Leak on unbuffered channel with possible partner:
-	channel: /home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns/uberLeakPatterns_test.go:106@360
-	partner: /home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns/uberLeakPatterns_test.go:111@352
+	channel: /home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns/uberLeakPatterns_test.go:106@396
+	partner: /home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns/uberLeakPatterns_test.go:111@346
 2 L01/home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns/uberLeakPatterns_test.go:106/home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns/uberLeakPatterns_test.go:111
 Bug was already rewritten before
 Skip rewrite
@@ -187,8 +184,8 @@ Bugreport info: 3,double
 Read analysis results from /home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns//results_machine.log for index 3
 Analysis results read
 Leak on unbuffered channel with possible partner:
-	channel: /home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns/uberLeakPatterns_test.go:106@348
-	partner: /home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns/uberLeakPatterns_test.go:111@352
+	channel: /home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns/uberLeakPatterns_test.go:106@414
+	partner: /home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns/uberLeakPatterns_test.go:111@346
 3 L01/home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns/uberLeakPatterns_test.go:106/home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns/uberLeakPatterns_test.go:111
 Bug was already rewritten before
 Skip rewrite
@@ -198,8 +195,8 @@ Bugreport info: 4,double
 Read analysis results from /home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns//results_machine.log for index 4
 Analysis results read
 Leak on unbuffered channel with possible partner:
-	channel: /home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns/uberLeakPatterns_test.go:106@350
-	partner: /home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns/uberLeakPatterns_test.go:111@352
+	channel: /home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns/uberLeakPatterns_test.go:106@422
+	partner: /home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns/uberLeakPatterns_test.go:111@346
 4 L01/home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns/uberLeakPatterns_test.go:106/home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns/uberLeakPatterns_test.go:111
 Bug was already rewritten before
 Skip rewrite
@@ -217,7 +214,7 @@ Bugreport info: 6,fail
 Read analysis results from /home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns//results_machine.log for index 6
 Analysis results read
 Leak on unbuffered channel without possible partner:
-	channel: /home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns/uberLeakPatterns_test.go:139@686
+	channel: /home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns/uberLeakPatterns_test.go:139@694
 6 L02/home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns/uberLeakPatterns_test.go:139
 Trace can not be rewritten.
 Bugreport info: 7,fail
@@ -225,31 +222,31 @@ Bugreport info: 7,fail
 Read analysis results from /home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns//results_machine.log for index 7
 Analysis results read
 Leak on routine without any blocking operation
-	fork: /home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns/uberLeakPatterns_test.go:76@710
-7 L00/home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns/uberLeakPatterns_test.go:76
+	fork: /home/erik/Uni/HiWi/ADVOCATE/go-patch/src/time/sleep.go:145@330
+7 L00/home/erik/Uni/HiWi/ADVOCATE/go-patch/src/time/sleep.go:145
 Trace can not be rewritten.
 Bugreport info: 8,fail
 
 Read analysis results from /home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns//results_machine.log for index 8
 Analysis results read
 Leak on routine without any blocking operation
-	fork: /home/erik/Uni/HiWi/ADVOCATE/go-patch/src/time/sleep.go:145@330
-8 L00/home/erik/Uni/HiWi/ADVOCATE/go-patch/src/time/sleep.go:145
+	fork: /home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns/uberLeakPatterns_test.go:106@424
+8 L00/home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns/uberLeakPatterns_test.go:106
 Trace can not be rewritten.
 Bugreport info: 9,fail
 
 Read analysis results from /home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns//results_machine.log for index 9
 Analysis results read
 Leak on routine without any blocking operation
-	fork: /home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns/uberLeakPatterns_test.go:106@360
-9 L00/home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns/uberLeakPatterns_test.go:106
+	fork: /home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns/uberLeakPatterns_test.go:76@710
+9 L00/home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns/uberLeakPatterns_test.go:76
 Trace can not be rewritten.
 Bugreport info: 10,fail
 
 Read analysis results from /home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns//results_machine.log for index 10
 Analysis results read
 Leak on routine without any blocking operation
-	fork: /home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns/uberLeakPatterns_test.go:106@348
+	fork: /home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns/uberLeakPatterns_test.go:106@414
 10 L00/home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns/uberLeakPatterns_test.go:106
 Bug was already rewritten before
 Skip rewrite
@@ -259,7 +256,7 @@ Bugreport info: 11,double
 Read analysis results from /home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns//results_machine.log for index 11
 Analysis results read
 Leak on routine without any blocking operation
-	fork: /home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns/uberLeakPatterns_test.go:106@350
+	fork: /home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns/uberLeakPatterns_test.go:106@396
 11 L00/home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns/uberLeakPatterns_test.go:106
 Bug was already rewritten before
 Skip rewrite
@@ -269,7 +266,7 @@ Bugreport info: 12,double
 Read analysis results from /home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns//results_machine.log for index 12
 Analysis results read
 Leak on routine without any blocking operation
-	fork: /home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns/uberLeakPatterns_test.go:106@400
+	fork: /home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns/uberLeakPatterns_test.go:106@422
 12 L00/home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns/uberLeakPatterns_test.go:106
 Bug was already rewritten before
 Skip rewrite
@@ -286,9 +283,6 @@ Finished Rewrite
 
 
 
-[0.00186 0.00018 0.00009 0.00004]
-0.00186
-1.86ms
 Finished Analyzer
 Found 2 rewritten traces
 Insert replay header or /home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns/uberLeakPatterns_test.go: TestMain for trace 1
@@ -297,8 +291,7 @@ Header added at line: 13
 Header added at file: /home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns/uberLeakPatterns_test.go
 GOROOT = /home/erik/Uni/HiWi/ADVOCATE/go-patch exported
 
-Run replay 0/2
-/home/erik/Uni/HiWi/ADVOCATE/go-patch/bin/go test -timeout 15m -count=1 -run=TestMain ./
+Run replay 1/2
 # go/internal/typeparams
 Go Exit
 Go Exit
@@ -314,7 +307,7 @@ Go Exit
 Reading trace from rewritten_trace_1
 Replay enabled
 Exit Replay with code  20 Leak: Leaking unbuffered channel or select was unstuck
-FAIL	uberLeakPatterns	2.017s
+FAIL	uberLeakPatterns	2.028s
 FAIL
 GOROOT removed
 Remove header for /home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns/uberLeakPatterns_test.go
@@ -324,8 +317,7 @@ Header added at line: 13
 Header added at file: /home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns/uberLeakPatterns_test.go
 GOROOT = /home/erik/Uni/HiWi/ADVOCATE/go-patch exported
 
-Run replay 1/2
-/home/erik/Uni/HiWi/ADVOCATE/go-patch/bin/go test -timeout 15m -count=1 -run=TestMain ./
+Run replay 2/2
 # go/internal/typeparams
 Go Exit
 Go Exit
@@ -341,7 +333,7 @@ Go Exit
 Reading trace from rewritten_trace_2
 Replay enabled
 Exit Replay with code  20 Leak: Leaking unbuffered channel or select was unstuck
-FAIL	uberLeakPatterns	1.005s
+FAIL	uberLeakPatterns	1.029s
 FAIL
 GOROOT removed
 Remove header for /home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns/uberLeakPatterns_test.go

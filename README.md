@@ -190,6 +190,7 @@ AdvocateGo currently supports following bugs
 - P02: Possible receive on closed channel
 - P03: Possible negative waitgroup counter
 - P04: Possible unlock of not locked mutex
+- L00: Leak on routine without blocking element
 - L01: Leak on unbuffered channel with possible partner
 - L02: Leak on unbuffered channel without possible partner
 - L03: Leak on buffered channel with possible partner

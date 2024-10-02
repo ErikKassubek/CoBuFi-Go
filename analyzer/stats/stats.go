@@ -14,6 +14,8 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strconv"
+	"strings"
 )
 
 /*
@@ -23,23 +25,23 @@ import (
  *     pathToTrace (string): path to the traces
  *     progName (string): name of the analyzed program
  */
-func CreateStats(pathToProgram, pathToResults, progName string) error {
-	statsProg, err := statsProgram(pathToProgram)
+func CreateStats(pathFolder, progName string) error {
+	// statsProg, err := statsProgram(pathToProgram)
+	// if err != nil {
+	// 	return err
+	// }
+
+	statsTrace, err := statsTraces(pathFolder)
 	if err != nil {
 		return err
 	}
 
-	statsTraces, err := statsTraces(pathToResults)
+	statsAnalyzer, err := statsAnalyzer(pathFolder)
 	if err != nil {
 		return err
 	}
 
-	statsAnalyzer, err := statsAnalyzer(pathToResults)
-	if err != nil {
-		return err
-	}
-
-	err = writeStatsToFile(pathToResults, progName, statsProg, statsTraces, statsAnalyzer)
+	err = writeStatsToFile(filepath.Dir(pathFolder), progName, statsTrace, statsAnalyzer)
 	if err != nil {
 		return err
 	}
@@ -49,46 +51,7 @@ func CreateStats(pathToProgram, pathToResults, progName string) error {
 }
 
 /*
-* Write the collected statistics to a file
-* The file consists of [............] lines.
-* The lines contain the informations always separated by commas
-* The first line contains the stats about the program. This consists of the
-*   number of files, the number of lines and the number of non empty lines.
-* Lines 2 to 4 contain values about the trace.
-*   In line 2 those values are
-*     number of traces (for a main this should be 1, for tests this should be equal to the number of run tests)
-*     total number of routines
-*     number of non empty routines
-*   Line 3 contains the number of relevant objects, this includes
-*     number of atomic variables
-*     number of channels
-*     number of buffered channels
-*     number of unbuffered channels
-*     number of selects
-*     number of select cases
-*     number of mutexes
-*     number of wait groups
-*     number of cond variables
-*     number of once
-*   Line 4 contain the number of operations
-*     number of total operations in the trace
-*     number of spawns
-*     number of atomic operations
-*     number channel operations
-*     number buffered channel operations
-*     number unbuffered channel operations
-*     number of select operations where a non default case was selected
-*     number of select operations where the default case was selected
-*     number of mutex operations
-*     number of wait group operations
-*     number of cond var operations
-*     number of once operations
-* Line 5 to 7 contain information about the analysis and replay.
-*   For each line it contains the number of bugs actual (A), potential (P)
-*   and leak (L) and after those three values the more precise for each number
-*   Line 5 contains the information about the number of detected bugs
-*   Line 6 contains the number of successful rewrites
-*   Line 7 contains the number of successful replays
+* Write the collected statistics to files
 * Args:
 *     path (string): path to where the stats file should be created
 *     progName (string): name of the program
@@ -98,105 +61,115 @@ func CreateStats(pathToProgram, pathToResults, progName string) error {
 * Returns:
 *     error
  */
-func writeStatsToFile(path string, progName string, statsProg, statsTraces map[string]int,
+func writeStatsToFile(path string, progName string, statsTraces map[string]int,
 	statsAnalyzer map[string]map[string]int) error {
 
-	f, err := os.Create(filepath.Join(path, "stats_"+progName+".log"))
-	if err != nil {
-		return err
-	}
-	defer f.Close()
+	fileTracingPath := filepath.Join(path, "statsTrace_"+progName+".csv")
+	fileAnalysisPath := filepath.Join(path, "statsAnalysis_"+progName+".csv")
+	fileAllPath := filepath.Join(path, "statsAll_"+progName+".csv")
 
-	statsProgStr := fmt.Sprintf("%d,%d,%d\n", statsProg["numberFiles"],
-		statsProg["numberLines"], statsProg["numberNonEmptyLines"])
-
-	statsTraceStr1 := fmt.Sprintf("%d,%d,%d\n", statsTraces["numberTraces"],
-		statsTraces["numberRoutines"], statsTraces["numberNonEmptyRoutines"])
-
-	totalNumberOps := statsTraces["numberOfSpawns"] + statsTraces["numberRoutineEnds"] + statsTraces["numberAtomicOperations"] +
-		statsTraces["numberChannelOperations"] + statsTraces["numberSelects"] + statsTraces["numberMutexOperations"] +
-		statsTraces["numberWaitGroupOperations"] + statsTraces["numberCondVarOperations"] +
-		statsTraces["numberOnceOperations"]
-
-	statsTraceStr2 := fmt.Sprintf("%d,%d,%d,%d,%d,%d,%d,%d,%d,%d\n",
-		statsTraces["numberAtomics"], statsTraces["numberChannels"],
-		statsTraces["numberBufferedChannels"], statsTraces["numberUnbufferedChannels"],
-		statsTraces["numberSelects"], statsTraces["numberSelectCases"],
-		statsTraces["numberMutexes"], statsTraces["numberWaitGroups"],
-		statsTraces["numberCondVars"], statsTraces["numberOnce"])
-
-	statsTraceStr3 := fmt.Sprintf("%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d\n",
-		totalNumberOps, statsTraces["numberOfSpawns"], statsTraces["numberRoutineEnds"],
+	headerTracing := "TestName,NumberOfEvents,NumberOfGoroutines,NumberOfAtomicEvents," +
+		"NumberOfChannelEvents,NumberOfSelectEvents,NumberOfMutexEvents,NumberOfWaitgroupEvents," +
+		"NumberOfCondVariablesEvents,NumberOfOnceOperations"
+	dataTracing := fmt.Sprintf("%s,%d,%d,%d,%d,%d,%d,%d,%d,%d", progName,
+		statsTraces["numberElements"], statsTraces["numberRoutines"],
 		statsTraces["numberAtomicOperations"], statsTraces["numberChannelOperations"],
+		statsTraces["numberSelects"], statsTraces["numberMutexOperations"],
+		statsTraces["numberWaitGroupOperations"], statsTraces["numberCondVarOperations"],
+		statsTraces["numberOnceOperations"])
+
+	writeStatsFile(fileTracingPath, headerTracing, dataTracing)
+
+	leakCodes := []string{"L00", "L01", "L02", "L03", "L04", "L05", "L06", "L07", "L08", "L09", "L10"}
+
+	numberOfLeaks := 0
+	for _, code := range leakCodes {
+		numberOfLeaks += statsAnalyzer["detected"][code]
+	}
+
+	numberOfLeaksWithRewrite := 0
+	for _, code := range leakCodes {
+		numberOfLeaksWithRewrite += statsAnalyzer["replayWritten"][code]
+	}
+
+	numberOfLeaksResolvedViaReplay := 0
+	for _, code := range leakCodes {
+		numberOfLeaksResolvedViaReplay += statsAnalyzer["replaySuccessful"][code]
+	}
+
+	panicCodes := []string{"P01", "P03", "P04"}
+
+	numberOfPanics := 0
+	for _, code := range panicCodes {
+		numberOfPanics += statsAnalyzer["detected"][code]
+	}
+
+	numberOfPanicsVerifiedViaReplay := 0
+	for _, code := range panicCodes {
+		numberOfPanicsVerifiedViaReplay += statsAnalyzer["replaySuccessful"][code]
+	}
+
+	headerAnalysis := "TestName,NumberOfLeaks,NumberOfLeaksWithRewrite,NumberOfLeaksResolvedViaReplay,NumberOfPanics,NumberOfPanicsVerifiedViaReplay"
+	dataAnalysis := fmt.Sprintf("%s,%d,%d,%d,%d,%d", progName, numberOfLeaks,
+		numberOfLeaksWithRewrite, numberOfLeaksResolvedViaReplay, numberOfPanics, numberOfPanicsVerifiedViaReplay)
+
+	writeStatsFile(fileAnalysisPath, headerAnalysis, dataAnalysis)
+
+	headerDetails := "TestName," +
+		"NumberOfEvents,NumberOfGoroutines,NumberOfNotEmptyGoroutines,NumberOfSpawnEvents,NumberOfRoutineEndEvents," +
+		"NumberOfAtomics,NumberOfAtomicEvents,NumberOfChannels,NumberOfBufferedChannels,NumberOfUnbufferedChannels," +
+		"NumberOfChannelEvents,NumberOfBufferedChannelEvents,NumberOfUnbufferedChannelEvents,NumberOfSelectEvents," +
+		"NumberOfSelectCases,NumberOfSelectNonDefaultEvents,NumberOfSelectDefaultEvents,NumberOfMutex,NumberOfMutexEvents," +
+		"NumberOfWaitgroup,NumberOfWaitgroupEvent,NumberOfCondVariables,NumberOfCondVariablesEvents,NumberOfOnce,NumberOfOnceOperations,"
+	dataDetails := fmt.Sprintf("%s,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,",
+		progName, statsTraces["numberElements"],
+		statsTraces["numberRoutines"], statsTraces["numberNonEmptyRoutines"],
+		statsTraces["numberOfSpawns"], statsTraces["numberRoutineEnds"],
+		statsTraces["numberAtomics"], statsTraces["numberAtomicOperations"],
+		statsTraces["numberChannels"], statsTraces["numberBufferedChannels"],
+		statsTraces["numberUnbufferedChannels"], statsTraces["numberChannelOperations"],
 		statsTraces["numberBufferedOps"], statsTraces["numberUnbufferedOps"],
+		statsTraces["numberSelects"], statsTraces["numberSelectCases"],
 		statsTraces["numberSelectChanOps"], statsTraces["numberSelectDefaultOps"],
-		statsTraces["numberMutexOperations"], statsTraces["numberWaitGroupOperations"],
-		statsTraces["numberCondVarOperations"], statsTraces["numberOnceOperations"])
+		statsTraces["numberMutexes"], statsTraces["numberMutexOperations"],
+		statsTraces["numberWaitGroups"], statsTraces["numberWaitGroupOperations"],
+		statsTraces["numberCondVars"], statsTraces["numberCondVarOperations"],
+		statsTraces["numberOnce"], statsTraces["numberOnceOperations"])
 
-	totalAmount := map[string]map[string]int{
-		"detected": {
-			"actual":    0,
-			"potential": 0,
-			"leak":      0,
-		},
-		"replayWritten": {
-			"actual":    0,
-			"potential": 0,
-			"leak":      0,
-		},
-		"replaySuccessful": {
-			"actual":    0,
-			"potential": 0,
-			"leak":      0,
-		},
-	}
-
-	dataString := map[string]string{
-		"detected":         "",
-		"replayWritten":    "",
-		"replaySuccessful": "",
-	}
-
-	statType := []string{"detected", "replayWritten", "replaySuccessful"}
-	bugCodes := []string{"A01", "A02", "A03", "A04", "A05",
-		"P01", "P02", "P03", "P04",
-		"L00", "L01", "L02", "L03", "L04", "L05", "L06", "L07", "L08", "L09", "L10"}
-
-	for _, c := range statType {
-		m := statsAnalyzer[c]
-		for _, key := range bugCodes {
-			amount := m[key]
-			dataString[c] += fmt.Sprintf(",%d", amount)
-			switch string([]rune(key)[0]) {
-			case "A":
-				totalAmount[c]["actual"] += amount
-			case "P":
-				totalAmount[c]["potential"] += amount
-			case "L":
-				totalAmount[c]["leak"] += amount
-			default:
-				return fmt.Errorf("Unknown bug code %s", key)
-			}
+	headers := make([]string, 0)
+	data := make([]string, 0)
+	for _, mode := range []string{"detected", "replayWritten", "replaySuccessful"} {
+		for _, code := range []string{"A01", "A02", "A03", "A04", "A05", "P01", "P02", "P03", "P04", "L00", "L01", "L02", "L03", "L04", "L05", "L06", "L07", "L08", "L09", "L10"} {
+			headers = append(headers, "NumberOf"+strings.ToUpper(string(mode[0]))+mode[1:]+code)
+			data = append(data, strconv.Itoa(statsAnalyzer[mode][code]))
 		}
 	}
+	headerDetails += strings.Join(headers, ",")
+	dataDetails += strings.Join(data, ",")
 
-	statsAnalyzerStr1 := fmt.Sprintf("%d,%d,%d%s\n",
-		totalAmount["detected"]["actual"], totalAmount["detected"]["potential"],
-		totalAmount["detected"]["leak"], dataString["detected"])
-	statsAnalyzerStr2 := fmt.Sprintf("%d,%d,%d%s\n",
-		totalAmount["replayWritten"]["actual"], totalAmount["replayWritten"]["potential"],
-		totalAmount["replayWritten"]["leak"], dataString["replayWritten"])
-	statsAnalyzerStr3 := fmt.Sprintf("%d,%d,%d%s\n",
-		totalAmount["replaySuccessful"]["actual"], totalAmount["replaySuccessful"]["potential"],
-		totalAmount["replaySuccessful"]["leak"], dataString["replaySuccessful"])
-
-	f.WriteString(statsProgStr)
-	f.WriteString(statsTraceStr1)
-	f.WriteString(statsTraceStr2)
-	f.WriteString(statsTraceStr3)
-	f.WriteString(statsAnalyzerStr1)
-	f.WriteString(statsAnalyzerStr2)
-	f.WriteString(statsAnalyzerStr3)
+	writeStatsFile(fileAllPath, headerDetails, dataDetails)
 
 	return nil
+}
+
+func writeStatsFile(path, header, data string) {
+	newFile := false
+	_, err := os.Stat(path)
+	if os.IsNotExist(err) {
+		newFile = true
+	}
+
+	file, err := os.OpenFile(path, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		fmt.Println("Error opening or creating file:", err)
+		return
+	}
+	defer file.Close()
+
+	if newFile {
+		file.WriteString(header)
+		file.WriteString("\n")
+	}
+	file.WriteString(data)
+	file.WriteString("\n")
 }

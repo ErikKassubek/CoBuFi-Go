@@ -47,7 +47,6 @@ func main() {
 	ignoreAtomics := flag.Bool("a", false, "Ignore atomic operations (default false). Use to reduce memory header for large traces.")
 	resultFolderTool := flag.String("R", "", "Path where the advocateResult folder created by the pipeline is located")
 	programPath := flag.String("P", "", "Path to the program folder")
-	preventCopyRewrittenTrace := flag.Bool("n", false, "Do not copy the rewritten trace in the explanation")
 	progName := flag.String("N", "", "Name of the program")
 	rewriteAll := flag.Bool("S", false, "If a the same position is flagged multiple times, run the replay for each of them. "+
 		"If not set, only the first occurence is rewritten")
@@ -108,9 +107,9 @@ func main() {
 
 	switch mode {
 	case "stats":
-		modeStats(programPath, resultFolderTool, progName)
+		modeStats(*pathTrace, *progName)
 	case "explain":
-		modeExplain(pathTrace, preventCopyRewrittenTrace, !*rewriteAll)
+		modeExplain(pathTrace, !*rewriteAll)
 	case "check":
 		modeCheck(resultFolderTool, programPath)
 	case "run":
@@ -124,34 +123,28 @@ func main() {
 	}
 }
 
-func modeStats(programPath, resultFolder, progName *string) {
+func modeStats(pathFolder string, progName string) {
 	// instead of the normal program, create statistics for the trace
-	if programPath == nil || *programPath == "" {
-		fmt.Println("Provide the path to the program. Set with -P [path]")
+	if pathFolder == "" {
+		fmt.Println("Provide the path to the folder containing the results_machine file. Set with -t [path]")
 		return
 	}
 
-	if resultFolder == nil || *resultFolder == "" {
-		fmt.Println("Provide the path to the result folder. Set with -R [path]")
-		return
-	}
-
-	if progName == nil || *progName == "" {
+	if progName == "" {
 		fmt.Println("Provide a name for the analyzed program. Set with -N [name]")
 		return
 	}
 
-	stats.CreateStats(*programPath, *resultFolder, *progName)
+	stats.CreateStats(pathFolder, progName)
 }
 
-func modeExplain(pathTrace *string,
-	preventCopyRewrittenTrace *bool, ignoreDouble bool) {
+func modeExplain(pathTrace *string, ignoreDouble bool) {
 	if *pathTrace == "" {
 		fmt.Println("Please provide a path to the trace files for the explanation. Set with -t [file]")
 		return
 	}
 
-	err := explanation.CreateOverview(*pathTrace, *preventCopyRewrittenTrace, ignoreDouble)
+	err := explanation.CreateOverview(*pathTrace, ignoreDouble)
 	if err != nil {
 		fmt.Println("Error creating explanation: ", err.Error())
 	}
@@ -543,7 +536,8 @@ func printHelp() {
 	println("4. Create statistics about a program")
 	println("This creates some statistics about the program and the trace")
 	println("Usage: ./analyzer stats [options]")
-	println("  -P [folder] Path to the program folder (required)")
-	println("  -t [file]   Path to the trace folder (required)")
+	// println("  -P [folder] Path to the program folder (required)")
+	println("  -t [file]   Path to the folder containing the results_machine file (required)")
+	println("  -N [name]   Name of the test")
 	println("\n")
 }
