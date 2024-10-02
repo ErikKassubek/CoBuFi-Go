@@ -81,6 +81,7 @@ func getOutputCodes(path string) map[string]string {
 	exitCodePrefix := "Exit Replay with code"
 
 	lastReplayIndex := ""
+	lastReplayIndexInfoFound := true
 
 	for _, line := range lines {
 		if strings.HasPrefix(line, bugrepPrefix) {
@@ -101,11 +102,16 @@ func getOutputCodes(path string) map[string]string {
 				}
 			}
 		} else if strings.HasPrefix(line, replayReadPrefix) {
+			if !lastReplayIndexInfoFound {
+				replayCode[lastReplayIndex] = "panic"
+			}
 			lastReplayIndex = strings.TrimPrefix(line, replayReadPrefix)
+			lastReplayIndexInfoFound = false
 		} else if strings.HasPrefix(line, exitCodePrefix) {
 			line = strings.TrimPrefix(line, exitCodePrefix)
 			line = strings.TrimSpace(line)
 			replayCode[lastReplayIndex] = strings.Split(line, " ")[0]
+			lastReplayIndexInfoFound = true
 		}
 	}
 
@@ -125,7 +131,10 @@ func getReplayInfo(replayCode map[string]string, index int) (string, string, str
 		return "double", "", replaySuc, nil
 	}
 	if exitCode == "fail" {
-		return "fail", exitCodeExplanation["-1"], "was not run", nil
+		return "fail", exitCodeExplanation["fail"], "was not run", nil
+	}
+	if exitCode == "panic" {
+		return "panic", exitCodeExplanation["panic"], "was terminated unexpectedly", nil
 	}
 
 	exitCodeInt, err := strconv.Atoi(exitCode)

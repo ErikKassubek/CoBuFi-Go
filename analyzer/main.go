@@ -28,6 +28,7 @@ import (
 	"analyzer/logging"
 	"analyzer/rewriter"
 	"analyzer/stats"
+	timemeasurement "analyzer/timeMeasurement"
 	"analyzer/utils"
 
 	"github.com/shirou/gopsutil/mem"
@@ -238,7 +239,11 @@ func modeRun(pathTrace *string, noPrint *bool, noRewrite *bool,
 			}
 		}
 
+		timemeasurement.Start("analysis")
 		analysis.RunAnalysis(*fifo, *ignoreCriticalSection, analysisCases)
+		timemeasurement.End("analysis")
+
+		timemeasurement.Print()
 	}()
 
 	if timeout != nil && *timeout > 0 {

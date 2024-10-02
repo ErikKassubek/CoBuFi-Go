@@ -320,7 +320,8 @@ var rewriteType = map[string]string{
 }
 
 var exitCodeExplanation = map[string]string{
-	"-1": "The analyzer was not able to rewrite the bug.\nThis can be because the bug is an actual bug, " +
+	"panic": "The replay was started but was terminated unexpectedly.\nThe main reason could be, that the runtime exceeded the timeout of the test",
+	"fail": "The analyzer was not able to rewrite the bug.\nThis can be because the bug is an actual bug, " +
 		"because the bug is a leak without a possible partner or blocking operations " +
 		"or because the analyzer was not able to rewrite the trace for other reasons.",
 	"0": "The replay finished without ever encountering a replay finished element " +

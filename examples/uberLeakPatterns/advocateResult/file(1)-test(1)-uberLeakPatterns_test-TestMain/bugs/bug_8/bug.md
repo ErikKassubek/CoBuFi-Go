@@ -28,32 +28,32 @@ The full trace of the recording can be found in the `advocateTrace` folder.
 The elements involved in the found leak are located at the following positions:
 
 ###  Routine
--> /home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns/uberLeakPatterns_test.go:100
+-> /home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns/uberLeakPatterns_test.go:69
 ```go
-89 ...
-90 
-91  (message contention)
-92    Fix is to have multiple receivers, increase buffer space of data channel, ...
-93 
-94 */
-95 
-96 func communicationContention() {
-97 	n := 5
-98 	data := make(chan int)
-99 	for i := 0; i < n; i++ {
-100 		go func() {           // <-------
-101 			data <- i
-102 		}()
-103 
-104 	}
-105 
-106 	<-data
-107 
-108 }
-109 
-110 // Channel Iteration Misuse
-111 
-112 ...
+58 ...
+59 
+60 5. This is useful information to lead to the fix
+61    where we use buffered (done) channel.
+62 
+63 */
+64 
+65 func timeOutBug() {
+66 
+67 	done := make(chan int)
+68 
+69 	go func() {           // <-------
+70 		time.Sleep(2 * time.Second)
+71 		done <- 1
+72 		fmt.Printf("done")
+73 	}()
+74 
+75 	select {
+76 	case <-done:
+77 	case <-time.After(1 * time.Second):
+78 
+79 	}
+80 
+81 ...
 ```
 
 

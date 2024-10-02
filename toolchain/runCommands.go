@@ -25,15 +25,17 @@ func runCommand(name string, args ...string) error {
 	return cmd.Run()
 }
 
-func runCommandWithOutput(name, outputFile string, args ...string) error {
+func runCommandWithOutput(name, outputFile string, args ...string) (string, error) {
 	cmd := exec.Command(name, args...)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
 	output, err := cmd.CombinedOutput()
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	// Write output to the specified file
-	return os.WriteFile(outputFile, output, 0644)
+	return string(output), os.WriteFile(outputFile, output, 0644)
 }
 
 // runCommandWithTee runs a command and writes output to a file

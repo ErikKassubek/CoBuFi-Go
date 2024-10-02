@@ -29,49 +29,14 @@ func createCsv(fileName string) {
 		timeReplay += tInfo.timeReplay
 	}
 
-	table += getCsvAvgTime(timeRun, timeRecord, timeAnalysis, timeReplay, float64(len(progs)))
-
 	writeToFile(fileName, table)
-}
-
-func getCsvAvgTime(timeRun, timeRecord, timeAnalysis, timeReplay, numProgs float64) string {
-	timeRunAvg := timeRun / numProgs
-	timeRecordingAvg := timeRecord / numProgs
-	timeAnalysisAvg := timeAnalysis / numProgs
-	timeReplayAvg := timeReplay / numProgs
-
-	overheadRecording := -1.
-	overheadReplay := -1.
-	rationTimeRunAnalysis := -1.
-
-	if timeRunAvg != 0 {
-		overheadRecording = (timeRecordingAvg - timeRunAvg) / timeRunAvg * 100.
-	}
-
-	if timeRunAvg != 0 {
-		overheadReplay = (timeReplayAvg - timeRunAvg) / timeRunAvg * 100.
-	}
-
-	if timeRunAvg != 0 {
-		rationTimeRunAnalysis = timeAnalysisAvg / timeRunAvg * 100
-	}
-
-	line := "Avg.,"
-	line += "-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-"
-	line += "-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,"
-	line += "-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,"
-	line += "-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-"
-	line += fmt.Sprintf("%f,%f,%f,%f,%f,%f,%f", timeRunAvg, timeRecordingAvg, timeAnalysisAvg, timeReplayAvg, rationTimeRunAnalysis, overheadRecording, overheadReplay)
-	line += "\n"
-
-	return line
 }
 
 func getCsvTopLine() string {
 
 	line := "name,"
 	line += "numberTests,numberFiles,numberLines,numberNonEmptyLines,"
-	line += "numberTraces,numberRoutines,numberNonEmptyRoutines,"
+	line += "numberRoutines,numberNonEmptyRoutines,"
 	line += "numberAtomics,numberChannels,numberBufferedChannels,numberUnbufferedChannels,numberSelects,numberSelectCases,numberMutexes,numberWaitGroups,numberCondVar,numberOnce,"
 	line += "numberOpsTotal,numberOpsSpawn,numberOpsRoutineTerm,numberOpsAtomic,numberOpsChan,numberOpsChanBuf,numberOpsChanUnbuf,numberOpsSelectCase,numberOpsSelectDefault,numberOpsMutex,numberOpsWait,numberOpsCondVar,numberOpsWait,"
 	line += "numberDetectedA,numberDetectedP,numberDetectedL,"
@@ -102,7 +67,7 @@ func getCsvLine(data progData) (string, timeInfo) {
 	values := []string{
 		data.name,
 		data.numberTests, data.numberFiles, data.numberLines, data.numberNonEmptyLines,
-		data.numberTraces, data.numberRoutines, data.numberNonEmptyRoutines,
+		data.numberRoutines, data.numberNonEmptyRoutines,
 		data.numberAtomics, data.numberChannels, data.numberBuffereChannels, data.numberUnbufferedChannels,
 		data.numberSelects, data.numberSelectCases, data.numberMutexes, data.numberWaitGroups, data.numberCondVariables, data.numberOnce,
 		data.numberOperations, data.numberSpawnOps, data.numberRoutineTermOps, data.numberAtomicOps, data.numberChannelOps, data.numberBuffereChannelOps,
@@ -114,30 +79,12 @@ func getCsvLine(data progData) (string, timeInfo) {
 		}
 	}
 
+	avgTimeReplay := data.timeReplay / float64(data.numberReplay)
+
 	values = append(values, fmt.Sprintf("%f", data.timeRun))
 	values = append(values, fmt.Sprintf("%f", data.timeRecord))
 	values = append(values, fmt.Sprintf("%f", data.timeAnalysis))
-	values = append(values, fmt.Sprintf("%f", data.timeReplay))
-
-	overheadRecord := -1.
-	overheadReplay := -1.
-	rationTimeRunAnalysis := -1.
-
-	if data.timeRun != 0 {
-		overheadRecord = (data.timeRecord - data.timeRun) / data.timeRun * 100.
-	}
-
-	if data.timeRun != 0 {
-		overheadReplay = (data.timeReplay - data.timeRun) / data.timeRun * 100.
-	}
-
-	if data.timeRun != 0 {
-		rationTimeRunAnalysis = data.timeAnalysis / data.timeRun * 100
-	}
-
-	values = append(values, fmt.Sprintf("%.4f", rationTimeRunAnalysis))
-	values = append(values, fmt.Sprintf("%.4f", overheadRecord))
-	values = append(values, fmt.Sprintf("%.4f", overheadReplay))
+	values = append(values, fmt.Sprintf("%f", avgTimeReplay))
 
 	res := strings.Join(values, ",")
 	res += "\n"
@@ -151,5 +98,3 @@ func getCsvLine(data progData) (string, timeInfo) {
 
 	return res, tInfo
 }
-
-func getCsvAvg() {}

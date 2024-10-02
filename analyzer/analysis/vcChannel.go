@@ -14,6 +14,7 @@ package analysis
 import (
 	"analyzer/clock"
 	"analyzer/logging"
+	timemeasurement "analyzer/timeMeasurement"
 	"strconv"
 )
 
@@ -40,7 +41,9 @@ type bufferedVC struct {
 func Unbuffered(ch *TraceElementChannel, routSend int, routRecv int, tIDSend string,
 	tIDRecv string, vc map[int]clock.VectorClock) {
 	if analysisCases["concurrentRecv"] {
+		timemeasurement.Start("other")
 		checkForConcurrentRecv(ch, routRecv, tIDRecv, vc)
+		timemeasurement.Start("End")
 	}
 
 	if ch.tPost != 0 {
@@ -73,25 +76,33 @@ func Unbuffered(ch *TraceElementChannel, routSend int, routRecv int, tIDSend str
 	}
 
 	if analysisCases["sendOnClosed"] {
+		timemeasurement.Start("panic")
 		if _, ok := closeData[ch.id]; ok {
 			foundSendOnClosedChannel(routSend, ch.id, tIDSend)
 		}
+		timemeasurement.End("panic")
 	}
 
 	if analysisCases["mixedDeadlock"] {
+		timemeasurement.Start("other")
 		CheckForSelectCaseWithoutPartnerChannel(ch.id, vc[routSend], tIDSend, true, false)
 		CheckForSelectCaseWithoutPartnerChannel(ch.id, vc[routRecv], tIDRecv, false, false)
 		checkForMixedDeadlock(routSend, routRecv, tIDSend, tIDRecv)
+		timemeasurement.End("other")
 	}
 
 	if analysisCases["selectWithoutPartner"] {
+		timemeasurement.Start("other")
 		CheckForSelectCaseWithoutPartnerChannel(ch.id, vc[routSend], tIDSend, true, false)
 		CheckForSelectCaseWithoutPartnerChannel(ch.id, vc[routRecv], tIDRecv, false, false)
+		timemeasurement.End("other")
 	}
 
 	if analysisCases["leak"] {
+		timemeasurement.Start("leak")
 		CheckForLeakChannelRun(routSend, ch.id, VectorClockTID{vc[routSend].Copy(), tIDSend, routSend}, 0, false)
 		CheckForLeakChannelRun(routRecv, ch.id, VectorClockTID{vc[routRecv].Copy(), tIDRecv, routRecv}, 1, false)
+		timemeasurement.End("leak")
 	}
 
 }
@@ -165,7 +176,9 @@ func Send(ch *TraceElementChannel, vc map[int]clock.VectorClock, fifo bool) {
 	}
 
 	if analysisCases["leak"] {
+		timemeasurement.Start("leak")
 		CheckForLeakChannelRun(ch.routine, ch.id, VectorClockTID{vc[ch.routine].Copy(), ch.tID, ch.routine}, 0, true)
+		timemeasurement.End("leak")
 	}
 
 	for i, hold := range holdRecv {
@@ -188,7 +201,9 @@ func Send(ch *TraceElementChannel, vc map[int]clock.VectorClock, fifo bool) {
 func Recv(ch *TraceElementChannel, vc map[int]clock.VectorClock, fifo bool) {
 
 	if analysisCases["concurrentRecv"] {
+		timemeasurement.Start("other")
 		checkForConcurrentRecv(ch, ch.routine, ch.tID, vc)
+		timemeasurement.End("other")
 	}
 
 	if ch.tPost == 0 {
@@ -244,14 +259,20 @@ func Recv(ch *TraceElementChannel, vc map[int]clock.VectorClock, fifo bool) {
 	vc[ch.routine] = vc[ch.routine].Inc(ch.routine)
 
 	if analysisCases["selectWithoutPartner"] {
+		timemeasurement.Start("other")
 		CheckForSelectCaseWithoutPartnerChannel(ch.id, vc[ch.routine], ch.tID, true, true)
+		timemeasurement.End("other")
 	}
 
 	if analysisCases["mixedDeadlock"] {
+		timemeasurement.Start("other")
 		checkForMixedDeadlock(routSend, ch.routine, tIDSend, ch.tID)
+		timemeasurement.End("other")
 	}
 	if analysisCases["leak"] {
+		timemeasurement.Start("leak")
 		CheckForLeakChannelRun(ch.routine, ch.id, VectorClockTID{vc[ch.routine].Copy(), ch.tID, ch.routine}, 1, true)
+		timemeasurement.End("leak")
 	}
 
 	for i, hold := range holdSend {
@@ -285,7 +306,9 @@ func Close(ch *TraceElementChannel, vc map[int]clock.VectorClock) {
 	}
 
 	if analysisCases["closeOnClosed"] {
+		timemeasurement.Start("other")
 		checkForClosedOnClosed(ch) // must be called before closePos is updated
+		timemeasurement.End("other")
 	}
 
 	vc[ch.routine] = vc[ch.routine].Inc(ch.routine)
@@ -297,18 +320,24 @@ func Close(ch *TraceElementChannel, vc map[int]clock.VectorClock) {
 	}
 
 	if analysisCases["selectWithoutPartner"] {
+		timemeasurement.Start("other")
 		CheckForSelectCaseWithoutPartnerClose(ch.id, vc[ch.routine])
+		timemeasurement.Start("other")
 	}
 
 	if analysisCases["leak"] {
+		timemeasurement.Start("leak")
 		CheckForLeakChannelRun(ch.routine, ch.id, VectorClockTID{vc[ch.routine].Copy(), ch.tID, ch.routine}, 2, true)
+		timemeasurement.End("leak")
 	}
 }
 
 func SendC(ch *TraceElementChannel) {
+	timemeasurement.Start("other")
 	if analysisCases["sendOnClosed"] {
 		foundSendOnClosedChannel(ch.routine, ch.id, ch.tID)
 	}
+	timemeasurement.End("other")
 }
 
 /*
@@ -340,7 +369,9 @@ func RecvC(ch *TraceElementChannel, vc map[int]clock.VectorClock, buffered bool)
 		checkForMixedDeadlock(closeData[ch.id].routine, ch.routine, closeData[ch.id].tID, ch.tID)
 	}
 	if analysisCases["leak"] {
+		timemeasurement.Start("leak")
 		CheckForLeakChannelRun(ch.routine, ch.id, VectorClockTID{vc[ch.routine].Copy(), ch.tID, ch.routine}, 1, buffered)
+		timemeasurement.End("leak")
 	}
 }
 

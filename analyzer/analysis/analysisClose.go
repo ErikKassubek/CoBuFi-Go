@@ -13,6 +13,7 @@ package analysis
 import (
 	"analyzer/clock"
 	"analyzer/logging"
+	timemeasurement "analyzer/timeMeasurement"
 	"strconv"
 )
 
@@ -26,6 +27,9 @@ func checkForCommunicationOnClosedChannel(ch *TraceElementChannel) {
 	// check if there is an earlier send, that could happen concurrently to close
 	// println("Check for possible send on closed channel ", analysisCases["sendOnClosed"], hasSend[id])
 	if analysisCases["sendOnClosed"] && hasSend[ch.id] {
+		timemeasurement.Start("panic")
+		defer timemeasurement.End("panic")
+
 		for routine, mrs := range mostRecentSend {
 			logging.Debug("Check for possible send on closed channel "+
 				strconv.Itoa(ch.id)+" with "+
@@ -72,6 +76,9 @@ func checkForCommunicationOnClosedChannel(ch *TraceElementChannel) {
 	}
 	// check if there is an earlier receive, that could happen concurrently to close
 	if analysisCases["receiveOnClosed"] && hasReceived[ch.id] {
+		timemeasurement.Start("other")
+		defer timemeasurement.End("other")
+
 		for routine, mrr := range mostRecentReceive {
 			logging.Debug("Check for possible receive on closed channel "+
 				strconv.Itoa(ch.id)+" with "+
@@ -115,6 +122,7 @@ func checkForCommunicationOnClosedChannel(ch *TraceElementChannel) {
 					"recv", []logging.ResultElem{arg1}, "close", []logging.ResultElem{arg2})
 			}
 		}
+
 	}
 
 }
@@ -127,6 +135,9 @@ func checkForCommunicationOnClosedChannel(ch *TraceElementChannel) {
  *  posSend (string): code location of the send
  */
 func foundSendOnClosedChannel(routineID int, id int, posSend string) {
+	timemeasurement.Start("panic")
+	defer timemeasurement.End("panic")
+
 	if _, ok := closeData[id]; !ok {
 		return
 	}
@@ -177,6 +188,9 @@ func foundSendOnClosedChannel(routineID int, id int, posSend string) {
  *  ch (*TraceElementChannel): The trace element
  */
 func foundReceiveOnClosedChannel(ch *TraceElementChannel) {
+	timemeasurement.Start("panic")
+	defer timemeasurement.End("panic")
+
 	if _, ok := closeData[ch.id]; !ok {
 		return
 	}
@@ -227,6 +241,9 @@ func foundReceiveOnClosedChannel(ch *TraceElementChannel) {
  *  ch (*TraceElementChannel): The trace element
  */
 func checkForClosedOnClosed(ch *TraceElementChannel) {
+	timemeasurement.Start("panic")
+	defer timemeasurement.End("panic")
+
 	if oldClose, ok := closeData[ch.id]; ok {
 		if oldClose.tID == "" || oldClose.tID == "\n" || ch.tID == "" || ch.tID == "\n" {
 			return

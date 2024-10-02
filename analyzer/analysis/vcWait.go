@@ -11,7 +11,10 @@
 
 package analysis
 
-import "analyzer/clock"
+import (
+	"analyzer/clock"
+	timemeasurement "analyzer/timeMeasurement"
+)
 
 // vector clock for each wait group
 var wg map[int]clock.VectorClock = make(map[int]clock.VectorClock)
@@ -40,7 +43,9 @@ func Change(wa *TraceElementWait, vc map[int]clock.VectorClock) {
 	vc[wa.routine] = vc[wa.routine].Inc(wa.routine)
 
 	if analysisCases["doneBeforeAdd"] {
+		timemeasurement.Start("panic")
 		checkForDoneBeforeAddChange(wa)
+		timemeasurement.End("panic")
 	}
 }
 

@@ -68,7 +68,7 @@ func getTableRows(data progData, size string) string {
 		return fmt.Sprintf("%s & %s & %s & %s & %s & %s & %s & %s & %s & %s & %s  \\\\ \\hline\n",
 			data.name,
 			gv(data.numberLines),
-			gv(data.numberTraces),
+			gv(data.numberTests),
 			gv(data.numberOperations),
 			gv(data.numberDetected["A"]),
 			gv(data.numberDetected["P"]),
@@ -82,7 +82,7 @@ func getTableRows(data progData, size string) string {
 		return fmt.Sprintf("%s & %s & %s & %s   \\\\ \\hline\n",
 			data.name,
 			gv(data.numberLines),
-			gv(data.numberTraces),
+			gv(data.numberTests),
 			gv(data.numberOperations),
 		)
 	case "dataActual":

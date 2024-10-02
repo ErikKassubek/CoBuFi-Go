@@ -28,33 +28,31 @@ The full trace of the recording can be found in the `advocateTrace` folder.
 
 The elements involved in the found leak are located at the following positions:
 
-###  Channel: Send
--> /home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns/uberLeakPatterns_test.go:38
+###  Channel: Receive
+-> /home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns/uberLeakPatterns_test.go:134
 ```go
-27 ...
-28 
-29 
-30 */
-31 
-32 func unbalancedConditionalCommunication() {
-33 	c := make(chan int)
-34 
-35 	go func() {
-36 		err := rand.Intn(2) == 1
-37 		if err {
-38 			c <- 1           // <-------
-39 		} else {
-40 			c <- 0
-41 		}
-42 
-43 	}()
-44 
-45 	return // early
-46 
-47 	<-c
-48 
-49 
-50 ...
+123 ...
+124 
+125 	for i := 0; i < 5; i++ {
+126 		wg.Add(1)
+127 		go func() {
+128 			queueJobs <- 1
+129 		}()
+130 	}
+131 
+132 	// Consumer
+133 	go func() {
+134 		for e := range queueJobs {           // <-------
+135 			fmt.Printf("%d", e)
+136 			wg.Done()
+137 		}
+138 
+139 	}()
+140 
+141 	wg.Wait()
+142 	// close(queueJobs)
+143 }
+144 
 ```
 
 

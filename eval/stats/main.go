@@ -29,7 +29,6 @@ type progData struct {
 	numberLines         string
 	numberNonEmptyLines string
 
-	numberTraces           string
 	numberRoutines         string
 	numberNonEmptyRoutines string
 
@@ -62,11 +61,11 @@ type progData struct {
 	numberRewritten map[string]string
 	numberReplayed  map[string]string
 
-	timeRun              float64
-	timeRecord           float64
-	timeAnalysis         float64
-	timeReplay           float64
-	numberTestWithReplay int
+	timeRun      float64
+	timeRecord   float64
+	timeAnalysis float64
+	timeReplay   float64
+	numberReplay int
 }
 
 var progs = make(map[string]progData)
@@ -142,7 +141,7 @@ func readStats(path string) error {
 		val.numberLines = infoProg[1]
 		val.numberNonEmptyLines = infoProg[2]
 
-		val.numberTraces = infoTrace[0]
+		val.numberTests = infoTrace[0]
 		val.numberRoutines = infoTrace[1]
 		val.numberNonEmptyRoutines = infoTrace[2]
 
@@ -184,7 +183,7 @@ func readStats(path string) error {
 			numberLines:         infoProg[1],
 			numberNonEmptyLines: infoProg[2],
 
-			numberTraces:           infoTrace[0],
+			numberTests:            infoTrace[0],
 			numberRoutines:         infoTrace[1],
 			numberNonEmptyRoutines: infoTrace[2],
 
@@ -232,17 +231,22 @@ func readTime(path string) error {
 	dataSplit := strings.Split(data, "\n")
 
 	for _, test := range dataSplit {
+		if test == "" {
+			continue
+		}
 		lineSplit := strings.Split(test, "#")
 		timeRun, _ := strconv.ParseFloat(lineSplit[0], 64)
 		timeRecord, _ := strconv.ParseFloat(lineSplit[1], 64)
 		timeAnalysis, _ := strconv.ParseFloat(lineSplit[2], 64)
 		timeReplay, _ := strconv.ParseFloat(lineSplit[3], 64)
+		numberReplay, _ := strconv.Atoi(lineSplit[4])
 
 		if val, ok := progs[name]; ok {
 			val.timeRun += timeRun
 			val.timeRecord += timeRecord
 			val.timeAnalysis += timeAnalysis
 			val.timeReplay += timeReplay
+			val.numberReplay += numberReplay
 			progs[name] = val
 		} else {
 			progs[name] = progData{
@@ -251,6 +255,7 @@ func readTime(path string) error {
 				timeRecord:   timeRecord,
 				timeAnalysis: timeAnalysis,
 				timeReplay:   timeReplay,
+				numberReplay: numberReplay,
 			}
 		}
 	}
@@ -273,7 +278,7 @@ func mapCodes(data []string) map[string]string {
 		"P02": data[9],
 		"P03": data[10],
 		"P04": data[11],
-		"l00": data[12],
+		"L00": data[12],
 		"L01": data[13],
 		"L02": data[14],
 		"L03": data[15],

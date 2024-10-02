@@ -14,6 +14,7 @@ package rewriter
 import (
 	"analyzer/analysis"
 	"analyzer/bugs"
+	timemeasurement "analyzer/timeMeasurement"
 	"errors"
 )
 
@@ -45,6 +46,9 @@ const (
  *   error: An error if the trace could not be created
  */
 func RewriteTrace(bug bugs.Bug) (rewriteNeeded bool, code int, err error) {
+	timemeasurement.Start("rewrite")
+	defer timemeasurement.End("rewrite")
+
 	rewriteNeeded = false
 	code = exitCodeNone
 	switch bug.Type {

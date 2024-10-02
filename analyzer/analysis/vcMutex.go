@@ -11,7 +11,10 @@
 
 package analysis
 
-import "analyzer/clock"
+import (
+	"analyzer/clock"
+	timemeasurement "analyzer/timeMeasurement"
+)
 
 /*
  * Create a new relW and relR if needed
@@ -47,11 +50,15 @@ func Lock(mu *TraceElementMutex, vc map[int]clock.VectorClock, wVc map[int]clock
 	vc[mu.routine] = vc[mu.routine].Inc(mu.routine)
 
 	if analysisCases["leak"] {
+		timemeasurement.Start("leak")
 		addMostRecentAcquireTotal(mu, vc[mu.routine], 0)
+		timemeasurement.End("leak")
 	}
 
 	if analysisCases["mixedDeadlock"] {
+		timemeasurement.Start("other")
 		lockSetAddLock(mu.routine, mu.id, mu.tID, wVc[mu.routine])
+		timemeasurement.End("other")
 	}
 }
 
@@ -72,7 +79,9 @@ func Unlock(mu *TraceElementMutex, vc map[int]clock.VectorClock) {
 	vc[mu.routine] = vc[mu.routine].Inc(mu.routine)
 
 	if analysisCases["mixedDeadlock"] {
+		timemeasurement.Start("other")
 		lockSetRemoveLock(mu.routine, mu.id)
+		timemeasurement.End("other")
 	}
 }
 
@@ -96,11 +105,15 @@ func RLock(mu *TraceElementMutex, vc map[int]clock.VectorClock, wVc map[int]cloc
 	vc[mu.routine] = vc[mu.routine].Inc(mu.routine)
 
 	if analysisCases["leak"] {
+		timemeasurement.Start("leak")
 		addMostRecentAcquireTotal(mu, vc[mu.routine], 1)
+		timemeasurement.End("leak")
 	}
 
 	if analysisCases["mixedDeadlock"] {
+		timemeasurement.Start("other")
 		lockSetAddLock(mu.routine, mu.id, mu.tID, wVc[mu.routine])
+		timemeasurement.End("other")
 	}
 }
 
@@ -121,6 +134,8 @@ func RUnlock(mu *TraceElementMutex, vc map[int]clock.VectorClock) {
 	vc[mu.routine] = vc[mu.routine].Inc(mu.routine)
 
 	if analysisCases["mixedDeadlock"] {
+		timemeasurement.Start("other")
 		lockSetRemoveLock(mu.routine, mu.id)
+		timemeasurement.End("other")
 	}
 }

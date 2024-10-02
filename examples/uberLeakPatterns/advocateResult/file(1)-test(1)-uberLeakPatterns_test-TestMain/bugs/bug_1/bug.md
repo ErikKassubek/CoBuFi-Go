@@ -37,62 +37,62 @@ The full trace of the recording can be found in the `advocateTrace` folder.
 The elements involved in the found leak are located at the following positions:
 
 ###  Channel: Send
--> /home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns/uberLeakPatterns_test.go:101
+-> /home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns/uberLeakPatterns_test.go:71
 ```go
-90 ...
-91 
-92    Fix is to have multiple receivers, increase buffer space of data channel, ...
-93 
-94 */
-95 
-96 func communicationContention() {
-97 	n := 5
-98 	data := make(chan int)
-99 	for i := 0; i < n; i++ {
-100 		go func() {
-101 			data <- i           // <-------
-102 		}()
-103 
-104 	}
-105 
-106 	<-data
-107 
-108 }
-109 
-110 // Channel Iteration Misuse
-111 
-112 
-113 ...
+60 ...
+61 
+62 
+63 */
+64 
+65 func timeOutBug() {
+66 
+67 	done := make(chan int)
+68 
+69 	go func() {
+70 		time.Sleep(2 * time.Second)
+71 		done <- 1           // <-------
+72 		fmt.Printf("done")
+73 	}()
+74 
+75 	select {
+76 	case <-done:
+77 	case <-time.After(1 * time.Second):
+78 
+79 	}
+80 
+81 }
+82 
+83 ...
 ```
 
 
 ###  Channel: Receive
--> /home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns/uberLeakPatterns_test.go:106
+-> /home/erik/Uni/HiWi/ADVOCATE/examples/uberLeakPatterns/uberLeakPatterns_test.go:75
 ```go
-95 ...
-96 
-97 	n := 5
-98 	data := make(chan int)
-99 	for i := 0; i < n; i++ {
-100 		go func() {
-101 			data <- i
-102 		}()
-103 
-104 	}
-105 
-106 	<-data           // <-------
-107 
-108 }
-109 
-110 // Channel Iteration Misuse
-111 
-112 /*
-113 
-114 1. Once no messages are sent the consumer will block.
-115 2. There's a single blocked receiver and all potential senders are not stuck.
-116 3. To resolve the leak, the solution is to close the channel.
-117 
-118 ...
+64 ...
+65 
+66 
+67 	done := make(chan int)
+68 
+69 	go func() {
+70 		time.Sleep(2 * time.Second)
+71 		done <- 1
+72 		fmt.Printf("done")
+73 	}()
+74 
+75 	select {           // <-------
+76 	case <-done:
+77 	case <-time.After(1 * time.Second):
+78 
+79 	}
+80 
+81 }
+82 
+83 // The NCast Leak
+84 
+85 /*
+86 
+87 ...
 ```
 
 

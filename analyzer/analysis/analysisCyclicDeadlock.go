@@ -12,6 +12,7 @@ package analysis
 
 import (
 	"analyzer/clock"
+	timemeasurement "analyzer/timeMeasurement"
 	"strconv"
 )
 
@@ -127,6 +128,9 @@ var nodesPerID = make(map[int]map[int][]*lockGraphNode) // id -> routine -> []*l
  *   vc (VectorClock): The vector clock of the lock event
  */
 func CyclicDeadlockMutexLock(mu *TraceElementMutex, rLock bool, vc clock.VectorClock) {
+	timemeasurement.Start("panic")
+	defer timemeasurement.End("panic")
+
 	if mu.tPost == 0 {
 		return
 	}
@@ -158,6 +162,9 @@ func CyclicDeadlockMutexLock(mu *TraceElementMutex, rLock bool, vc clock.VectorC
  *   mu (*TraceElementMutex): The trace element
  */
 func CyclicDeadlockMutexUnLock(mu *TraceElementMutex) {
+	timemeasurement.Start("panic")
+	defer timemeasurement.End("panic")
+
 	if mu.tPost == 0 {
 		return
 	}
@@ -175,6 +182,9 @@ func CyclicDeadlockMutexUnLock(mu *TraceElementMutex) {
  * If there are cycles, log the results
  */
 func checkForCyclicDeadlock() {
+	timemeasurement.Start("panic")
+	defer timemeasurement.End("panic")
+
 	findOutsideConnections()
 	found, cycles := findCycles() // find all cycles in the lock graph
 

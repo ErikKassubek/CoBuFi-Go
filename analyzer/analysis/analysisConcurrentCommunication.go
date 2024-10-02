@@ -13,6 +13,7 @@ package analysis
 import (
 	"analyzer/clock"
 	"analyzer/logging"
+	timemeasurement "analyzer/timeMeasurement"
 )
 
 /*
@@ -27,6 +28,9 @@ import (
  *  vc (int): vector clock of the recv operation
  */
 func checkForConcurrentRecv(ch *TraceElementChannel, routine int, tID string, vc map[int]clock.VectorClock) {
+	timemeasurement.Start("other")
+	defer timemeasurement.End("other")
+
 	for r, elem := range lastRecvRoutine {
 		if r == routine {
 			continue

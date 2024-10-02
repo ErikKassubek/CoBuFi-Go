@@ -178,9 +178,6 @@ func runWorkflowMain(pathToAdvocate string, pathToFile string, executableName st
 	}
 
 	durationReplay = time.Since(timeStart)
-	if len(rewrittenTraces) > 0 {
-		durationReplay = durationReplay / time.Duration(len(rewrittenTraces))
-	}
 
 	resultPath := filepath.Join(dir, "advocateResult")
 
@@ -190,8 +187,15 @@ func runWorkflowMain(pathToAdvocate string, pathToFile string, executableName st
 	fmt.Println("Generate Bug Reports")
 	generateBugReports(resultPath, pathToAdvocate)
 
+	resTimes := map[string]time.Duration{
+		"run":      durationRun,
+		"record":   durationRecord,
+		"analyzer": durationAnalysis,
+		"replay":   durationReplay,
+	}
+
 	if measureTime {
-		updateTimeFiles(progName, resultPath, durationRun, durationRecord, durationAnalysis, durationReplay)
+		updateTimeFiles(progName, "Main", resultPath, resTimes, len(rewrittenTraces))
 	}
 
 	if notExecuted {

@@ -13,6 +13,7 @@ package analysis
 import (
 	"analyzer/clock"
 	"analyzer/logging"
+	timemeasurement "analyzer/timeMeasurement"
 	"analyzer/utils"
 	"errors"
 	"fmt"
@@ -384,6 +385,8 @@ func RunAnalysis(assumeFifo bool, ignoreCriticalSections bool, analysisCasesMap 
 
 		// check for leak
 		if analysisCases["leak"] && elem.getTpost() == 0 {
+			timemeasurement.Start("leak")
+
 			switch e := elem.(type) {
 			case *TraceElementChannel:
 				CheckForLeakChannelStuck(e, currentVCHb[e.routine])
@@ -412,30 +415,42 @@ func RunAnalysis(assumeFifo bool, ignoreCriticalSections bool, analysisCasesMap 
 			case *TraceElementCond:
 				CheckForLeakCond(e)
 			}
+
+			timemeasurement.End("leak")
 		}
 
 	}
 
 	if analysisCases["selectWithoutPartner"] {
+		timemeasurement.Start("other")
 		rerunCheckForSelectCaseWithoutPartnerChannel()
 		CheckForSelectCaseWithoutPartner()
+		timemeasurement.End("other")
 	}
 
 	if analysisCases["leak"] {
+		timemeasurement.Start("leak")
 		checkForLeak()
 		checkForStuckRoutine()
+		timemeasurement.End("leak")
 	}
 
 	if analysisCases["doneBeforeAdd"] {
+		timemeasurement.Start("panic")
 		checkForDoneBeforeAdd()
+		timemeasurement.End("panic")
 	}
 
 	if analysisCases["cyclicDeadlock"] {
+		timemeasurement.Start("other")
 		checkForCyclicDeadlock()
+		timemeasurement.End("other")
 	}
 
 	if analysisCases["unlockBeforeLock"] {
+		timemeasurement.Start("panic")
 		checkForUnlockBeforeLock()
+		timemeasurement.End("panic")
 	}
 
 	logging.Debug("Analysis completed", logging.INFO)
