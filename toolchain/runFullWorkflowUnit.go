@@ -121,7 +121,7 @@ func runWorkflowUnit(pathToAdvocate, dir, progName string,
 			generateBugReports(directoryPath, pathToAdvocate)
 
 			if stats {
-				updateStatsFiles(pathToAnalyzer, progName, directoryPath)
+				updateStatsFiles(pathToAnalyzer, progName, testFunc, directoryPath)
 				// create statistics
 			}
 		}
@@ -180,7 +180,7 @@ func updateTimeFiles(progName string, testName string, folderName string, times 
 	}
 
 	timeInfo := fmt.Sprintf(
-		"%s,%.5f#%.5f#%.5f#%.5f#%.5f#%.5f#%.5f#%.5f#%d\n", testName,
+		"%s,%.5f,%.5f,%.5f,%.5f,%.5f,%.5f,%.5f,%.5f,%d\n", testName,
 		times["run"].Seconds(), times["record"].Seconds(),
 		times["analyzer"].Seconds(), times["analysis"].Seconds(),
 		times["hb"].Seconds(), times["leak"].Seconds(), times["panic"].Seconds(), times["replay"].Seconds(),

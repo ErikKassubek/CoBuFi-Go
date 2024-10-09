@@ -24,8 +24,9 @@ import (
  *     pathToProgram (string): path to the program
  *     pathToTrace (string): path to the traces
  *     progName (string): name of the analyzed program
+ *     testName (string): name of the test
  */
-func CreateStats(pathFolder, progName string) error {
+func CreateStats(pathFolder, progName string, testName string) error {
 	// statsProg, err := statsProgram(pathToProgram)
 	// if err != nil {
 	// 	return err
@@ -41,7 +42,7 @@ func CreateStats(pathFolder, progName string) error {
 		return err
 	}
 
-	err = writeStatsToFile(filepath.Dir(pathFolder), progName, statsTrace, statsAnalyzer)
+	err = writeStatsToFile(filepath.Dir(pathFolder), progName, testName, statsTrace, statsAnalyzer)
 	if err != nil {
 		return err
 	}
@@ -55,13 +56,14 @@ func CreateStats(pathFolder, progName string) error {
 * Args:
 *     path (string): path to where the stats file should be created
 *     progName (string): name of the program
+*     testName (string): name of the test
 *     statsProg (map[string]int): statistics about the program
 *     statsTraces (map[string]int): statistics about the trace
 *     statsAnalyzer (map[string]map[string]int): statistics about the analysis and replay
 * Returns:
 *     error
  */
-func writeStatsToFile(path string, progName string, statsTraces map[string]int,
+func writeStatsToFile(path string, progName string, testName string, statsTraces map[string]int,
 	statsAnalyzer map[string]map[string]int) error {
 
 	fileTracingPath := filepath.Join(path, "statsTrace_"+progName+".csv")
@@ -71,7 +73,7 @@ func writeStatsToFile(path string, progName string, statsTraces map[string]int,
 	headerTracing := "TestName,NumberOfEvents,NumberOfGoroutines,NumberOfAtomicEvents," +
 		"NumberOfChannelEvents,NumberOfSelectEvents,NumberOfMutexEvents,NumberOfWaitgroupEvents," +
 		"NumberOfCondVariablesEvents,NumberOfOnceOperations"
-	dataTracing := fmt.Sprintf("%s,%d,%d,%d,%d,%d,%d,%d,%d,%d", progName,
+	dataTracing := fmt.Sprintf("%s,%d,%d,%d,%d,%d,%d,%d,%d,%d", testName,
 		statsTraces["numberElements"], statsTraces["numberRoutines"],
 		statsTraces["numberAtomicOperations"], statsTraces["numberChannelOperations"],
 		statsTraces["numberSelects"], statsTraces["numberMutexOperations"],

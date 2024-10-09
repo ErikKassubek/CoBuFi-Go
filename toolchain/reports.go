@@ -96,8 +96,8 @@ func moveResults(packagePath, destination string) {
 	}
 }
 
-func updateStatsFiles(pathToAnalyzer string, testName string, dir string) {
-	err := runCommand(pathToAnalyzer, "stats", "-t", dir, "-N", testName)
+func updateStatsFiles(pathToAnalyzer string, progName string, testName string, dir string) {
+	err := runCommand(pathToAnalyzer, "stats", "-t", dir, "-N", progName, "-M", testName)
 	if err != nil {
 		fmt.Println("Could not create statistics")
 	}

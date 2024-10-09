@@ -48,6 +48,7 @@ func main() {
 	resultFolderTool := flag.String("R", "", "Path where the advocateResult folder created by the pipeline is located")
 	programPath := flag.String("P", "", "Path to the program folder")
 	progName := flag.String("N", "", "Name of the program")
+	testName := flag.String("M", "", "Name of the test")
 	rewriteAll := flag.Bool("S", false, "If a the same position is flagged multiple times, run the replay for each of them. "+
 		"If not set, only the first occurence is rewritten")
 	timeout := flag.Int("T", -1, "Set a timeout in seconds for the analysis")
@@ -107,7 +108,7 @@ func main() {
 
 	switch mode {
 	case "stats":
-		modeStats(*pathTrace, *progName)
+		modeStats(*pathTrace, *progName, *testName)
 	case "explain":
 		modeExplain(pathTrace, !*rewriteAll)
 	case "check":
@@ -123,7 +124,7 @@ func main() {
 	}
 }
 
-func modeStats(pathFolder string, progName string) {
+func modeStats(pathFolder string, progName string, testName string) {
 	// instead of the normal program, create statistics for the trace
 	if pathFolder == "" {
 		fmt.Println("Provide the path to the folder containing the results_machine file. Set with -t [path]")
@@ -135,7 +136,11 @@ func modeStats(pathFolder string, progName string) {
 		return
 	}
 
-	stats.CreateStats(pathFolder, progName)
+	if testName == "" {
+		testName = progName
+	}
+
+	stats.CreateStats(pathFolder, progName, testName)
 }
 
 func modeExplain(pathTrace *string, ignoreDouble bool) {
@@ -538,6 +543,7 @@ func printHelp() {
 	println("Usage: ./analyzer stats [options]")
 	// println("  -P [folder] Path to the program folder (required)")
 	println("  -t [file]   Path to the folder containing the results_machine file (required)")
-	println("  -N [name]   Name of the test")
+	println("  -N [name]   Name of the program")
+	println("  -M [name]   Name of the test")
 	println("\n")
 }
