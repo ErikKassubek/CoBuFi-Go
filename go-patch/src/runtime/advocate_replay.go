@@ -359,7 +359,7 @@ func WaitForReplayPath(op Operation, file string, line int) (bool, chan ReplayEl
 	routine := GetRoutineID()
 	key := uint64ToString(routine) + ":" + file + ":" + intToString(line)
 
-	ch := make(chan ReplayElement, 1<<16) // 1<<16 makes sure, that the channel is ignored for replay. The actual size is 0
+	ch := make(chan ReplayElement, 1<<62) // 1<<62 makes sure, that the channel is ignored for replay. The actual size is 0
 	waitingOps[key] = ch
 	return false, ch
 }

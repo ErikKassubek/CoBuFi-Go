@@ -83,9 +83,12 @@ func makechan(t *chantype, size int) *hchan {
 
 	// ADVOCATE-CHANGE-START
 	advocateIgnored := false
-	if size == 1<<16 {
+	if size == 1<<62 {
 		advocateIgnored = true
 		size = 0
+	} else if size == 1<<62+1 {
+		advocateIgnored = true
+		size = 1
 	}
 	// ADVOCATE-CHANGE-END
 

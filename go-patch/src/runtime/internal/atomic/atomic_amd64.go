@@ -9,11 +9,6 @@ import "unsafe"
 // Export some functions via linkname to assembly in sync/atomic.
 //
 //go:linkname Load
-// ADVOCATE-CHANGE-START
-//go:linkname LoadAdvocate
-//go:linkname Load64Advocate
-//go:linkname LoadpAdvocate
-// ADVOCATE-CHANGE-END
 //go:linkname Loadp
 //go:linkname Load64
 
@@ -23,50 +18,17 @@ func Load(ptr *uint32) uint32 {
 	return *ptr
 }
 
-// ADVOCATE-CHANGE-START
-//
-//go:nosplit
-//go:noinline
-func LoadAdvocate(ptr *uint32) uint32 {
-	AdvocateAtomic32Load(ptr)
-	return *ptr
-}
-
-// ADVOCATE-CHANGE-END
-
 //go:nosplit
 //go:noinline
 func Loadp(ptr unsafe.Pointer) unsafe.Pointer {
 	return *(*unsafe.Pointer)(ptr)
 }
 
-// ADVOCATE-CHANGE-START
-//
-//go:nosplit
-//go:noinline
-func LoadpAdvocate(ptr unsafe.Pointer) unsafe.Pointer {
-	AdvocateAtomicPtr(ptr)
-	return *(*unsafe.Pointer)(ptr)
-}
-
-// ADVOCATE-CHANGE-END
-
 //go:nosplit
 //go:noinline
 func Load64(ptr *uint64) uint64 {
 	return *ptr
 }
-
-// ADVOCATE-CHANGE-START
-//
-//go:nosplit
-//go:noinline
-func Load64Advocate(ptr *uint64) uint64 {
-	AdvocateAtomic64Load(ptr)
-	return *ptr
-}
-
-// ADVOCATE-CHANGE-END
 
 //go:nosplit
 //go:noinline

@@ -10,6 +10,8 @@ var chanRecording chan<- AtomicElem
 var linked bool
 var counter uint64
 
+var atomicTrace = make(map[int]string)
+
 const (
 	LoadOp = iota
 	StoreOp

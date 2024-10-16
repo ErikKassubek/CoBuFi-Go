@@ -57,15 +57,6 @@ TEXT ·Load(SB),NOSPLIT,$0-12
 	MOVW	R0, ret+8(FP)
 	RET
 
-// ADVOCATE-CHANGE-START
-// uint32 ·Load(uint32 volatile* addr)
-TEXT ·LoadAdvocate(SB),NOSPLIT,$0-12
-	MOVD	ptr+0(FP), R0
-	BL	·AdvocateAtomic32Load(SB)
-	LDARW	(R0), R0
-	MOVW	R0, ret+8(FP)
-	RET
-// ADVOCATE-CAHNGE-END
 
 // uint8 ·Load8(uint8 volatile* addr)
 TEXT ·Load8(SB),NOSPLIT,$0-9
@@ -74,16 +65,6 @@ TEXT ·Load8(SB),NOSPLIT,$0-9
 	MOVB	R0, ret+8(FP)
 	RET
 
-// ADVOCATE-CHANGE-START
-// uint8 ·Load8(uint8 volatile* addr)
-TEXT ·Load8Advocate(SB),NOSPLIT,$0-9
-	MOVD	ptr+0(FP), R0
-	BL	·AdvocateAtomic32Load(SB)
-	LDARB	(R0), R0
-	MOVB	R0, ret+8(FP)
-	RET
-// ADVOCATE-CHANGE-END
-
 // uint64 ·Load64(uint64 volatile* addr)
 TEXT ·Load64(SB),NOSPLIT,$0-16
 	MOVD	ptr+0(FP), R0
@@ -91,32 +72,12 @@ TEXT ·Load64(SB),NOSPLIT,$0-16
 	MOVD	R0, ret+8(FP)
 	RET
 
-// ADVOCATE-CHANGE-START
-// uint64 ·Load64(uint64 volatile* addr)
-TEXT ·Load64Advocate(SB),NOSPLIT,$0-16
-	MOVD	ptr+0(FP), R0
-	BL	·AdvocateAtomic64Load(SB)
-	LDAR	(R0), R0
-	MOVD	R0, ret+8(FP)
-	RET
-// ADVOCATE-CHANGE-END
-
 // void *·Loadp(void *volatile *addr)
 TEXT ·Loadp(SB),NOSPLIT,$0-16
 	MOVD	ptr+0(FP), R0
 	LDAR	(R0), R0
 	MOVD	R0, ret+8(FP)
 	RET
-
-// ADVOCATE-CHANGE-START
-// void *·Loadp(void *volatile *addr)
-TEXT ·LoadpAdvocate(SB),NOSPLIT,$0-16
-	MOVD	ptr+0(FP), R0
-	BL	·AdvocateAtomicPtr(SB)
-	LDAR	(R0), R0
-	MOVD	R0, ret+8(FP)
-	RET
-// ADVOCATE-CHANGE-END
 
 // uint32 ·LoadAcq(uint32 volatile* addr)
 TEXT ·LoadAcq(SB),NOSPLIT,$0-12
@@ -145,27 +106,18 @@ TEXT ·StoreReluintptr(SB), NOSPLIT, $0-16
 TEXT ·Store(SB), NOSPLIT, $0-12
 	MOVD	ptr+0(FP), R0
 	MOVW	val+8(FP), R1
-	// ADVOCATE-CHANGE-START
-	BL	·AdvocateAtomic32Store
-	// ADVOCATE-CHANGE-END
 	STLRW	R1, (R0)
 	RET
 
 TEXT ·Store8(SB), NOSPLIT, $0-9
 	MOVD	ptr+0(FP), R0
 	MOVB	val+8(FP), R1
-	// ADVOCATE-CHANGE-START
-	BL	·AdvocateAtomic32Store
-	// ADVOCATE-CHANGE-END
 	STLRB	R1, (R0)
 	RET
 
 TEXT ·Store64(SB), NOSPLIT, $0-16
 	MOVD	ptr+0(FP), R0
 	MOVD	val+8(FP), R1
-	// ADVOCATE-CHANGE-START
-	BL	·AdvocateAtomic64Store
-	// ADVOCATE-CHANGE-END
 	STLR	R1, (R0)
 	RET
 
@@ -177,9 +129,6 @@ TEXT ·Store64(SB), NOSPLIT, $0-16
 TEXT ·Xchg(SB), NOSPLIT, $0-20
 	MOVD	ptr+0(FP), R0
 	MOVW	new+8(FP), R1
-	// ADVOCATE-CHANGE-START
-	BL	·AdvocateAtomic32CompSwap(SB)
-	// ADVOCATE-CHANGE-END
 	MOVBU	internal∕cpu·ARM64+const_offsetARM64HasATOMICS(SB), R4
 	CBZ 	R4, load_store_loop
 	SWPALW	R1, (R0), R2
@@ -200,9 +149,6 @@ load_store_loop:
 TEXT ·Xchg64(SB), NOSPLIT, $0-24
 	MOVD	ptr+0(FP), R0
 	MOVD	new+8(FP), R1
-	// ADVOCATE-CHANGE-START
-	BL	·AdvocateAtomic64CompSwap(SB)
-	// ADVOCATE-CHANGE-END
 	MOVBU	internal∕cpu·ARM64+const_offsetARM64HasATOMICS(SB), R4
 	CBZ 	R4, load_store_loop
 	SWPALD	R1, (R0), R2
@@ -226,9 +172,6 @@ TEXT ·Cas(SB), NOSPLIT, $0-17
 	MOVD	ptr+0(FP), R0
 	MOVW	old+8(FP), R1
 	MOVW	new+12(FP), R2
-	// ADVOCATE-CHANGE-START
-	BL	·AdvocateAtomic32CompSwap(SB)
-	// ADVOCATE-CHANGE-END
 	MOVBU	internal∕cpu·ARM64+const_offsetARM64HasATOMICS(SB), R4
 	CBZ 	R4, load_store_loop
 	MOVD	R1, R3
@@ -260,9 +203,6 @@ TEXT ·Cas64(SB), NOSPLIT, $0-25
 	MOVD	ptr+0(FP), R0
 	MOVD	old+8(FP), R1
 	MOVD	new+16(FP), R2
-	// ADVOCATE-CHANGE-START
-	BL	·AdvocateAtomic64CompSwap(SB)
-	// ADVOCATE-CHANGE-END
 	MOVBU	internal∕cpu·ARM64+const_offsetARM64HasATOMICS(SB), R4
 	CBZ 	R4, load_store_loop
 	MOVD	R1, R3
@@ -289,9 +229,6 @@ ok:
 TEXT ·Xadd(SB), NOSPLIT, $0-20
 	MOVD	ptr+0(FP), R0
 	MOVW	delta+8(FP), R1
-	// ADVOCATE-CHANGE-START
-	BL	·AdvocateAtomic64CompSwap(SB)
-	// ADVOCATE-CHANGE-END
 	MOVBU	internal∕cpu·ARM64+const_offsetARM64HasATOMICS(SB), R4
 	CBZ 	R4, load_store_loop
 	LDADDALW	R1, (R0), R2
@@ -313,9 +250,6 @@ load_store_loop:
 TEXT ·Xadd64(SB), NOSPLIT, $0-24
 	MOVD	ptr+0(FP), R0
 	MOVD	delta+8(FP), R1
-	// ADVOCATE-CHANGE-START
-	BL	·AdvocateAtomic64CompSwap(SB)
-	// ADVOCATE-CHANGE-END
 	MOVBU	internal∕cpu·ARM64+const_offsetARM64HasATOMICS(SB), R4
 	CBZ 	R4, load_store_loop
 	LDADDALD	R1, (R0), R2

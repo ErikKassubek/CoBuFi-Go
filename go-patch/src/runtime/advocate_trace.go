@@ -330,6 +330,10 @@ func GetNumberOfRoutines() int {
 	return len(AdvocateRoutines)
 }
 
+func AtomicRecord() {
+
+}
+
 /*
  * InitAdvocate enables the collection of the trace
  * Args:
