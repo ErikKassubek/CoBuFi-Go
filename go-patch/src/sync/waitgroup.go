@@ -95,7 +95,7 @@ func (wg *WaitGroup) Add(delta int) {
 		race.Read(unsafe.Pointer(&wg.sema))
 	}
 	if v < 0 {
-		if IsReplayEnabled() {
+		if runtime.IsReplayEnabled() {
 			runtime.IsNextElementReplayEnd(runtime.ExitCodeNegativeWG, true, true)
 		}
 		panic("sync: negative WaitGroup counter")

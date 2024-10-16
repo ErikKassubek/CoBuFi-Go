@@ -1,7 +1,5 @@
 package runtime
 
-import "strconv"
-
 const (
 	ExitCodeDefault          = 0
 	ExitCodePanic            = 3
@@ -208,6 +206,8 @@ func EnableReplay(timeout bool) {
 	// run a background routine to check for timeout if no operation is executed
 	go checkForTimeoutNoOperation()
 
+	go ReleaseWaits()
+
 	replayEnabled = true
 	println("Replay enabled")
 }
@@ -262,7 +262,6 @@ func WaitForReplayFinish() {
 			warningMessage += "If you believe, the program is still running, you can continue to wait.\n"
 			warningMessage += "If you believe, the program is stuck, you can cancel the program.\n"
 			warningMessage += "If you suspect, that one of these causes is the reason for the long wait time, you can try to change the program to avoid the problem.\n"
-			warningMessage += "If the problem persist, this message will be repeated.\n\n"
 			println(warningMessage)
 			if timeOutCancel {
 				panic("ReplayError: Replay stuck")
@@ -281,7 +280,43 @@ func IsReplayEnabled() bool {
  * Function to run in the background and to release the waiting operations
  */
 func ReleaseWaits() {
+	for {
+		routine, replayElem := getNextReplayElement()
 
+		if routine == -1 {
+			println("The program tried to execute an operation, although all elements in the trace have already been executed.\nDisable Replay")
+			DisableReplay()
+			ExitReplayWithCode(ExitCodeElemEmptyTrace)
+		}
+
+		if replayElem.Op == OperationReplayEnd {
+			ExitReplayWithCode(replayElem.Line)
+
+			println("Stop Character Found. Disable Replay.")
+			DisableReplay()
+			foundReplayElement(routine)
+		}
+
+		key := intToString(routine) + ":" + replayElem.File + ":" + intToString(replayElem.Line)
+
+		if ch, ok := waitingOps[key]; ok {
+			ch <- replayElem
+
+			foundReplayElement(routine)
+
+			lock(&timeoutLock)
+			timeoutCounterGlobal = 0 // reset the global timeout counter
+			unlock(&timeoutLock)
+
+			lock(&replayDoneLock)
+			replayDone++
+			unlock(&replayDoneLock)
+		}
+
+		if !replayEnabled {
+			return
+		}
+	}
 }
 
 // Map of all currently waiting operations
@@ -321,10 +356,11 @@ func WaitForReplayPath(op Operation, file string, line int) (bool, chan ReplayEl
 		return false, nil
 	}
 
-	path := file + ":" + strconv.Itoa(line)
+	routine := GetRoutineID()
+	key := uint64ToString(routine) + ":" + file + ":" + intToString(line)
 
 	ch := make(chan ReplayElement, 1<<16) // 1<<16 makes sure, that the channel is ignored for replay. The actual size is 0
-	waitingOps[path] = ch
+	waitingOps[key] = ch
 	return false, ch
 }
 
@@ -394,7 +430,7 @@ func checkForTimeoutNoOperation() {
 		return
 	}
 
-	waitTime := 800 // approx. 20s
+	waitTime := 1000 // approx. 20s
 	warningMessage := "No traced operation has been executed for a long time.\n"
 	warningMessage += "This can be caused by a stuck replay.\n"
 	warningMessage += "Possible causes are:\n"

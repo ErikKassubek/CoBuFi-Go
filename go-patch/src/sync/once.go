@@ -103,10 +103,6 @@ func (o *Once) Do(f func()) {
 		// ADVOCATE-CHANGE-END
 	}
 	// ADVOCATE-CHANGE-START
-	if enabled && valid && res != replayElem.Suc {
-		println("advocate once: replay failed")
-		panic("advocate: replay failed")
-	}
 	runtime.AdvocateOncePost(index, res)
 	// ADVOCATE-CHANGE-END
 }
