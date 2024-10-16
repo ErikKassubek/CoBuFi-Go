@@ -68,8 +68,9 @@ func (o *Once) Do(f func()) {
 	// the o.done.Store must be delayed until after f returns.
 
 	// ADVOCATE-CHANGE-START
-	enabled, valid, replayElem := runtime.WaitForReplay(runtime.OperationOnce, 2)
-	if enabled && valid {
+	wait, ch := runtime.WaitForReplay(runtime.OperationOnce, 2)
+	if wait {
+		replayElem := <-ch
 		if replayElem.Blocked {
 			if o.id == 0 {
 				o.id = runtime.GetAdvocateObjectID()

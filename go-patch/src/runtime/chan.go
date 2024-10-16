@@ -218,11 +218,10 @@ func chansend(c *hchan, ep unsafe.Pointer, block bool, callerpc uintptr, ignored
 	// ADVOCATE-CHANGE-START
 	// wait until the replay has reached the current point
 	var replayElem ReplayElement
-	var enabled bool
-	var valid bool
 	if !ignored && !c.advocateIgnore {
-		enabled, valid, replayElem = WaitForReplay(OperationChannelSend, 3)
-		if enabled && valid {
+		wait, ch := WaitForReplay(OperationChannelSend, 3)
+		if wait {
+			replayElem = <-ch
 			if replayElem.Blocked {
 				lock(&c.numberSendMutex)
 				c.numberSend++
@@ -284,7 +283,7 @@ func chansend(c *hchan, ep unsafe.Pointer, block bool, callerpc uintptr, ignored
 
 	if c.closed != 0 {
 		unlock(&c.lock)
-		if enabled {
+		if IsReplayEnabled() {
 			IsNextElementReplayEnd(ExitCodeSendClose, true, false)
 		}
 
@@ -407,7 +406,7 @@ func chansend(c *hchan, ep unsafe.Pointer, block bool, callerpc uintptr, ignored
 		if c.closed == 0 {
 			throw("chansend: spurious wakeup")
 		}
-		if enabled {
+		if IsReplayEnabled() {
 			IsNextElementReplayEnd(ExitCodeSendClose, true, false)
 		}
 
@@ -502,7 +501,10 @@ func closechan(c *hchan) {
 	// AdvocateChanClose is called when a channel is closed. It creates a close event
 	// in the trace.
 	if !c.advocateIgnore {
-		_, _, _ = WaitForReplay(OperationChannelClose, 2)
+		wait, ch := WaitForReplay(OperationChannelClose, 2)
+		if wait {
+			<-ch
+		}
 		AdvocateChanClose(c.id, c.dataqsiz)
 	}
 	// ADVOCATE-CHANGE-END
@@ -630,11 +632,10 @@ func chanrecv(c *hchan, ep unsafe.Pointer, block bool, ignored bool) (selected, 
 	// ADVOCATE-CHANGE-START
 	// wait until the replay has reached the current point
 	var replayElem ReplayElement
-	var enabled bool
-	var valid bool
 	if !ignored && !c.advocateIgnore {
-		enabled, valid, replayElem = WaitForReplay(OperationChannelRecv, 3)
-		if enabled && valid {
+		wait, ch := WaitForReplay(OperationChannelRecv, 3)
+		if wait {
+			replayElem = <-ch
 			if replayElem.Blocked {
 				lock(&c.numberRecvMutex)
 				c.numberRecv++
@@ -919,24 +920,10 @@ func chanparkcommit(gp *g, chanLock unsafe.Pointer) bool {
 func selectnbsend(c *hchan, elem unsafe.Pointer) (selected bool) {
 	// ADVOCATE-CHANGE-START
 	var replayElem ReplayElement
-	var enabled bool
-	var valid bool
 	if c != nil && !c.advocateIgnore {
-		if c != nil && !c.advocateIgnore {
-			enabled, valid, replayElem = WaitForReplay(OperationSelect, 2)
-			if enabled && valid {
-				if replayElem.Blocked {
-					lock(&c.numberSendMutex)
-					c.numberSend++
-					unlock(&c.numberSendMutex)
-					_ = AdvocateChanSendPre(c.id, c.numberSend, c.dataqsiz, false)
-					BlockForever()
-				}
-			}
-		}
-	} else {
-		enabled, valid, replayElem = WaitForReplay(OperationSelect, 2)
-		if enabled && valid {
+		wait, ch := WaitForReplay(OperationSelect, 2)
+		if wait {
+			replayElem = <-ch
 			if replayElem.Blocked {
 				lock(&c.numberSendMutex)
 				c.numberSend++
@@ -979,24 +966,10 @@ func selectnbrecv(elem unsafe.Pointer, c *hchan) (selected, received bool) {
 	// ADVOCATE-CHANGE-START
 	// see selectnbsend
 	var replayElem ReplayElement
-	var enabled bool
-	var valid bool
 	if c != nil && !c.advocateIgnore {
-		if !c.advocateIgnore {
-			enabled, valid, replayElem = WaitForReplay(OperationSelect, 2)
-			if enabled && valid {
-				if replayElem.Blocked {
-					lock(&c.numberSendMutex)
-					c.numberSend++
-					unlock(&c.numberSendMutex)
-					_ = AdvocateSelectPreOneNonDef(c, false)
-					BlockForever()
-				}
-			}
-		}
-	} else {
-		enabled, valid, replayElem = WaitForReplay(OperationSelect, 2)
-		if enabled && valid {
+		wait, ch := WaitForReplay(OperationSelect, 2)
+		if wait {
+			replayElem = <-ch
 			if replayElem.Blocked {
 				lock(&c.numberSendMutex)
 				c.numberSend++
@@ -1006,6 +979,7 @@ func selectnbrecv(elem unsafe.Pointer, c *hchan) (selected, received bool) {
 			}
 		}
 	}
+
 	advocateIndex := AdvocateSelectPreOneNonDef(c, false)
 	res, recv := chanrecv(c, elem, false, true)
 	if c != nil {
@@ -1086,16 +1060,14 @@ func (q *waitq) dequeue(rElem ReplayElement) *sudog {
 
 		// ADVOCATE-CHANGE-START
 		// if the channel partner is not correct, the goroutine is not woken up
-		// TODO: durch die ganze Queue durchgehen, ob partner vorhanden, um
-		// zu verhindern, das Umordnung zu Block führt
-		// TODO: oder ganz raus schmeißen, wenn nicht notwendig
-		if replayEnabled && !sgp.replayEnabled {
-			if !(rElem.File == "") && !sgp.c.advocateIgnore {
-				if sgp.pFile != rElem.File || sgp.pLine != rElem.Line {
-					return nil
-				}
-			}
-		}
+		// TODO: is this necessary
+		// if replayEnabled && sgp.replayEnabled {
+		// 	if !(rElem.File == "") && !sgp.c.advocateIgnore {
+		// 		if sgp.pFile != rElem.File || sgp.pLine != rElem.Line {
+		// 			return nil
+		// 		}
+		// 	}
+		// }
 		// ADVOCATE-CHANE-END
 
 		y := sgp.next

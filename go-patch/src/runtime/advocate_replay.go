@@ -1,5 +1,7 @@
 package runtime
 
+import "strconv"
+
 const (
 	ExitCodeDefault          = 0
 	ExitCodePanic            = 3
@@ -276,63 +278,29 @@ func IsReplayEnabled() bool {
 }
 
 /*
+ * Function to run in the background and to release the waiting operations
+ */
+func ReleaseWaits() {
+
+}
+
+// Map of all currently waiting operations
+var waitingOps = make(map[string]chan ReplayElement)
+
+/*
  * Wait until the correct operation is about to be executed.
  * Arguments:
  * 	op: the operation type that is about to be executed
  * 	skip: number of stack frames to skip
  * Return:
- * 	bool: true if trace replay is enabled, false otherwise
- * 	bool: true if the wait was released regularly, false if it was released
- * 		because replay is disables, the operation is ignored or the operation is invalid
- * 	chan ReplayElement: channel to receive the next replay element
+ * 	bool: true if the operation should wait, false otherwise
+ * 	chan ReplayElement: channel to wait on
  */
-func WaitForReplay(op Operation, skip int) (bool, bool, ReplayElement) {
-	if !replayEnabled {
-		return false, false, ReplayElement{}
-	}
-
+func WaitForReplay(op Operation, skip int) (bool, chan ReplayElement) {
 	_, file, line, _ := Caller(skip)
 
 	return WaitForReplayPath(op, file, line)
 }
-
-/*
- * Wait until the correct atomic operation is about to be executed.
- * Args:
- * 	op: the operation type that is about to be executed
- * 	index: index of the atomic operation
- * Return:
- * 	bool: true if trace replay is enabled, false otherwise
- * 	ReplayElement: the next replay element
- */
-// func WaitForReplayAtomic(op int, index uint64) (bool, ReplayElement) {
-// 	lock(&advocateAtomicMapLock)
-// 	routine := advocateAtomicMapRoutine[index]
-// 	unlock(&advocateAtomicMapLock)
-
-// 	if !replayEnabled {
-// 		return false, ReplayElement{}
-// 	}
-
-// 	for {
-// 		next := getNextReplayElement()
-// 		// print("Replay: ", next.Time, " ", next.Op, " ", op, " ", next.File, " ", file, " ", next.Line, " ", line, "\n")
-
-// 		if next.Time != 0 {
-// 			if int(next.Op) != op || uint64(next.Routine) != routine {
-// 				continue
-// 			}
-// 		}
-
-// 		lock(&replayLock)
-// 		replayIndex++
-// 		unlock(&replayLock)
-// 		// println("Replay: ", next.Time, op, file, line)
-// 		return true, next
-// 	}
-// }
-
-// var lastNextTime int = 0
 
 /*
  * Wait until the correct operation is about to be executed.
@@ -341,82 +309,23 @@ func WaitForReplay(op Operation, skip int) (bool, bool, ReplayElement) {
  * 		file: file in which the operation is executed
  * 		line: line number of the operation
  * Return:
- * 	bool: true if trace replay is enabled, false otherwise
- * 	bool: true if the wait was released regularly, false if it was released
- * 		because replay is disables, the operation is ignored or the operation is invalid
- * 	chan ReplayElement: channel to receive the next replay element
+ * 	bool: true if the operation should wait, false otherwise
+ * 	chan ReplayElement: channel to wait on
  */
-func WaitForReplayPath(op Operation, file string, line int) (bool, bool, ReplayElement) {
+func WaitForReplayPath(op Operation, file string, line int) (bool, chan ReplayElement) {
 	if !replayEnabled {
-		return false, false, ReplayElement{}
+		return false, nil
 	}
 
 	if AdvocateIgnoreReplay(op, file, line) {
-		return true, false, ReplayElement{}
+		return false, nil
 	}
 
-	// println("Wait: ", op.ToString(), file, line)
-	timeoutCounter := 0
-	for {
-		if !replayEnabled { // check again if disabled by command
-			return false, false, ReplayElement{}
-		}
+	path := file + ":" + strconv.Itoa(line)
 
-		nextRoutine, next := getNextReplayElement()
-
-		if AdvocateIgnoreReplay(next.Op, next.File, next.Line) {
-			// println("Igno: ", next.Op.ToString(), next.File, next.Line)
-			foundReplayElement(nextRoutine)
-			continue
-		}
-
-		// disable the replay, if the next operation is the disable replay operation
-		if next.Op == OperationReplayEnd {
-			ExitReplayWithCode(next.Line)
-
-			println("Stop Character Found. Disable Replay.")
-			DisableReplay()
-			foundReplayElement(nextRoutine)
-			return false, false, ReplayElement{}
-		}
-
-		timeoutCounter++
-		// all elements in the trace have been executed
-		if nextRoutine == -1 {
-			println("The program tried to execute an operation, although all elements in the trace have already been executed.\nDisable Replay")
-			DisableReplay()
-			ExitReplayWithCode(ExitCodeElemEmptyTrace)
-			return false, false, ReplayElement{}
-		}
-
-		// if lastNextTime != next.Time {
-		// 	println("Next: ", next.Time, next.Op.ToString(), next.File, next.Line)
-		// 	lastNextTime = next.Time
-		// }
-
-		if next.Time != 0 && replayEnabled {
-			if (next.Op != op && !correctSelect(next.Op, op)) ||
-				next.File != file || next.Line != line {
-
-				checkForTimeout(timeoutCounter, file, line)
-				slowExecution()
-				continue
-			}
-		}
-
-		// println("Run : ", next.Time, next.Op.ToString(), next.File, next.Line)
-		foundReplayElement(nextRoutine)
-
-		lock(&timeoutLock)
-		timeoutCounterGlobal = 0 // reset the global timeout counter
-		unlock(&timeoutLock)
-
-		lock(&replayDoneLock)
-		replayDone++
-		unlock(&replayDoneLock)
-
-		return true, true, next
-	}
+	ch := make(chan ReplayElement, 1<<16) // 1<<16 makes sure, that the channel is ignored for replay. The actual size is 0
+	waitingOps[path] = ch
+	return false, ch
 }
 
 /*
