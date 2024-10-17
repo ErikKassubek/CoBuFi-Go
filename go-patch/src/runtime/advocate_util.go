@@ -2,6 +2,10 @@
 
 package runtime
 
+import (
+	"unsafe"
+)
+
 // MARK: INT -> STR
 
 /*
@@ -17,6 +21,39 @@ func uint64ToString(n uint64) string {
 	} else {
 		return uint64ToString(n/10) + string(rune(n%10+'0'))
 	}
+}
+
+func pointerAddressAsString[T any](ptr *T, size bool) string {
+	address := uintptr(unsafe.Pointer(ptr))
+
+	// Handle zero case explicitly
+	if address == 0 {
+		return "0"
+	}
+
+	// Convert uintptr to string
+	var str string
+	for address > 0 {
+		digit := address % 10         // Get the last digit
+		str = string('0'+digit) + str // Prepend the digit
+		address /= 10                 // Remove the last digit
+	}
+
+	if !size {
+		return str
+	}
+
+	const desiredLength = 11
+
+	// Get the length of the input string
+	strLen := len(str)
+
+	if strLen >= desiredLength {
+		// If the string has 11 or more letters, return the last 11
+		return str[strLen-desiredLength:]
+	}
+
+	return str
 }
 
 /*

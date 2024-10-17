@@ -93,7 +93,7 @@ func AdvocateSelectPre(cases *[]scase, nsends int, ncases int, block bool, locko
 	elem := "S," + uint64ToString(timer) + ",0," + uint64ToString(id) + "," +
 		caseElements + ",0," + file + ":" + intToString(line)
 
-	return insertIntoTrace(elem, false)
+	return insertIntoTrace(elem)
 }
 
 /*
@@ -190,7 +190,7 @@ func AdvocateSelectPreOneNonDef(c *hchan, send bool) int {
 	elem := "S," + uint64ToString(timer) + ",0," + uint64ToString(id) + "," +
 		caseElements + "~d,0," + file + ":" + intToString(line)
 
-	return insertIntoTrace(elem, false)
+	return insertIntoTrace(elem)
 }
 
 /*

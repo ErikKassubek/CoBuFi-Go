@@ -25,14 +25,6 @@ func AdvocateChanSendPre(id uint64, opID uint64, qSize uint, isNil bool) int {
 	timer := GetNextTimeStep()
 
 	_, file, line, _ := Caller(3)
-	// internal channels to record atomic operations
-	if isSuffix(file, "advocate_atomic.go") {
-		advocateCounterAtomic++
-		AdvocateAtomicPre(advocateCounterAtomic)
-
-		// they are not recorded in the trace
-		return -1
-	}
 
 	elem := "C," + uint64ToString(timer) + ",0,"
 	if isNil {
@@ -43,7 +35,7 @@ func AdvocateChanSendPre(id uint64, opID uint64, qSize uint, isNil bool) int {
 			file + ":" + intToString(line)
 	}
 
-	return insertIntoTrace(elem, false)
+	return insertIntoTrace(elem)
 }
 
 /*
@@ -88,7 +80,7 @@ func AdvocateChanRecvPre(id uint64, opID uint64, qSize uint, isNil bool) int {
 			uint64ToString(opID) + "," + uint32ToString(uint32(qSize)) + "," +
 			file + ":" + intToString(line)
 	}
-	return insertIntoTrace(elem, false)
+	return insertIntoTrace(elem)
 }
 
 // MARK: Close
@@ -107,7 +99,7 @@ func AdvocateChanClose(id uint64, qSize uint) int {
 	elem := "C," + timer + "," + timer + "," + uint64ToString(id) + ",C,f,0," +
 		uint32ToString(uint32(qSize)) + "," + file + ":" + intToString(line)
 
-	return insertIntoTrace(elem, false)
+	return insertIntoTrace(elem)
 }
 
 // MARK: Post

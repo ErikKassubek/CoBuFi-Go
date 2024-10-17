@@ -22,5 +22,5 @@ func AdvocateSpawnCaller(callerRoutine *AdvocateRoutine, newID uint64, file stri
 func AdvocatRoutineExit() {
 	timer := GetNextTimeStep()
 	elem := "E," + uint64ToString(timer)
-	insertIntoTrace(elem, false)
+	insertIntoTrace(elem)
 }

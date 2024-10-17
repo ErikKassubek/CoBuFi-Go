@@ -1,196 +1,216 @@
-// Copyright 2011 The Go Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style
-// license that can be found in the LICENSE file.
-
-// Package atomic provides low-level atomic memory primitives
-// useful for implementing synchronization algorithms.
-//
-// These functions require great care to be used correctly.
-// Except for special, low-level applications, synchronization is better
-// done with channels or the facilities of the [sync] package.
-// Share memory by communicating;
-// don't communicate by sharing memory.
-//
-// The swap operation, implemented by the SwapT functions, is the atomic
-// equivalent of:
-//
-//	old = *addr
-//	*addr = new
-//	return old
-//
-// The compare-and-swap operation, implemented by the CompareAndSwapT
-// functions, is the atomic equivalent of:
-//
-//	if *addr == old {
-//		*addr = new
-//		return true
-//	}
-//	return false
-//
-// The add operation, implemented by the AddT functions, is the atomic
-// equivalent of:
-//
-//	*addr += delta
-//	return *addr
-//
-// The load and store operations, implemented by the LoadT and StoreT
-// functions, are the atomic equivalents of "return *addr" and
-// "*addr = val".
-//
-// In the terminology of the Go memory model, if the effect of
-// an atomic operation A is observed by atomic operation B,
-// then A “synchronizes before” B.
-// Additionally, all the atomic operations executed in a program
-// behave as though executed in some sequentially consistent order.
-// This definition provides the same semantics as
-// C++'s sequentially consistent atomics and Java's volatile variables.
 package atomic
 
-import (
-	"unsafe"
-)
-
-// BUG(rsc): On 386, the 64-bit functions use instructions unavailable before the Pentium MMX.
-//
-// On non-Linux ARM, the 64-bit functions use instructions unavailable before the ARMv6k core.
-//
-// On ARM, 386, and 32-bit MIPS, it is the caller's responsibility to arrange
-// for 64-bit alignment of 64-bit words accessed atomically via the primitive
-// atomic functions (types [Int64] and [Uint64] are automatically aligned).
-// The first word in an allocated struct, array, or slice; in a global
-// variable; or in a local variable (because the subject of all atomic operations
-// will escape to the heap) can be relied upon to be 64-bit aligned.
-
-//ADVOCATE-CHANGE-START
+import "runtime"
 
 // SwapInt32 atomically stores new into *addr and returns the previous *addr value.
 // Consider using the more ergonomic and less error-prone [Int32.Swap] instead.
-func SwapInt32Advocate(addr *int32, new int32) (old int32)
+func SwapInt32(addr *int32, new int32) (old int32) {
+	runtime.AdvocateAtomic(addr, runtime.SwapOp)
+	return SwapInt32Advocate(addr, new)
+}
 
 // SwapInt64 atomically stores new into *addr and returns the previous *addr value.
 // Consider using the more ergonomic and less error-prone [Int64.Swap] instead
 // (particularly if you target 32-bit platforms; see the bugs section).
-func SwapInt64Advocate(addr *int64, new int64) (old int64)
+func SwapInt64(addr *int64, new int64) (old int64) {
+	runtime.AdvocateAtomic(addr, runtime.SwapOp)
+	return SwapInt64Advocate(addr, new)
+}
 
 // SwapUint32 atomically stores new into *addr and returns the previous *addr value.
 // Consider using the more ergonomic and less error-prone [Uint32.Swap] instead.
-func SwapUint32Advocate(addr *uint32, new uint32) (old uint32)
+func SwapUint32(addr *uint32, new uint32) (old uint32) {
+	runtime.AdvocateAtomic(addr, runtime.SwapOp)
+	return SwapUint32Advocate(addr, new)
+}
 
 // SwapUint64 atomically stores new into *addr and returns the previous *addr value.
 // Consider using the more ergonomic and less error-prone [Uint64.Swap] instead
 // (particularly if you target 32-bit platforms; see the bugs section).
-func SwapUint64Advocate(addr *uint64, new uint64) (old uint64)
+func SwapUint64(addr *uint64, new uint64) (old uint64) {
+	runtime.AdvocateAtomic(addr, runtime.SwapOp)
+	return SwapUint64Advocate(addr, new)
+}
 
 // SwapUintptr atomically stores new into *addr and returns the previous *addr value.
 // Consider using the more ergonomic and less error-prone [Uintptr.Swap] instead.
-func SwapUintptrAdvocate(addr *uintptr, new uintptr) (old uintptr)
+func SwapUintptr(addr *uintptr, new uintptr) (old uintptr) {
+	runtime.AdvocateAtomic(addr, runtime.SwapOp)
+	return SwapUintptrAdvocate(addr, new)
+}
 
 // SwapPointer atomically stores new into *addr and returns the previous *addr value.
 // Consider using the more ergonomic and less error-prone [Pointer.Swap] instead.
-func SwapPointer(addr *unsafe.Pointer, new unsafe.Pointer) (old unsafe.Pointer)
+// func SwapPointer(addr *unsafe.Pointer, new unsafe.Pointer) (old unsafe.Pointer) {
+// 	return SwapPointerAdvocate(addr, new)
+// }
 
 // CompareAndSwapInt32 executes the compare-and-swap operation for an int32 value.
 // Consider using the more ergonomic and less error-prone [Int32.CompareAndSwap] instead.
-func CompareAndSwapInt32Advocate(addr *int32, old, new int32) (swapped bool)
+func CompareAndSwapInt32(addr *int32, old, new int32) (swapped bool) {
+	runtime.AdvocateAtomic(addr, runtime.CompSwapOp)
+	return CompareAndSwapInt32Advocate(addr, old, new)
+}
 
 // CompareAndSwapInt64 executes the compare-and-swap operation for an int64 value.
 // Consider using the more ergonomic and less error-prone [Int64.CompareAndSwap] instead
 // (particularly if you target 32-bit platforms; see the bugs section).
-func CompareAndSwapInt64Advocate(addr *int64, old, new int64) (swapped bool)
+func CompareAndSwapInt64(addr *int64, old, new int64) (swapped bool) {
+	runtime.AdvocateAtomic(addr, runtime.CompSwapOp)
+	return CompareAndSwapInt64Advocate(addr, old, new)
+}
 
 // CompareAndSwapUint32 executes the compare-and-swap operation for a uint32 value.
 // Consider using the more ergonomic and less error-prone [Uint32.CompareAndSwap] instead.
-func CompareAndSwapUint32Advocate(addr *uint32, old, new uint32) (swapped bool)
+func CompareAndSwapUint32(addr *uint32, old, new uint32) (swapped bool) {
+	runtime.AdvocateAtomic(addr, runtime.CompSwapOp)
+	return CompareAndSwapUint32Advocate(addr, old, new)
+}
 
 // CompareAndSwapUint64 executes the compare-and-swap operation for a uint64 value.
 // Consider using the more ergonomic and less error-prone [Uint64.CompareAndSwap] instead
 // (particularly if you target 32-bit platforms; see the bugs section).
-func CompareAndSwapUint64Advocate(addr *uint64, old, new uint64) (swapped bool)
+func CompareAndSwapUint64(addr *uint64, old, new uint64) (swapped bool) {
+	runtime.AdvocateAtomic(addr, runtime.CompSwapOp)
+	return CompareAndSwapUint64Advocate(addr, old, new)
+}
 
 // CompareAndSwapUintptr executes the compare-and-swap operation for a uintptr value.
 // Consider using the more ergonomic and less error-prone [Uintptr.CompareAndSwap] instead.
-func CompareAndSwapUintptrAdvocate(addr *uintptr, old, new uintptr) (swapped bool)
+func CompareAndSwapUintptr(addr *uintptr, old, new uintptr) (swapped bool) {
+	runtime.AdvocateAtomic(addr, runtime.CompSwapOp)
+	return CompareAndSwapUintptrAdvocate(addr, old, new)
+}
 
-// CompareAndSwapPointer executes the compare-and-swap operation for a unsafe.Pointer value.
-// Consider using the more ergonomic and less error-prone [Pointer.CompareAndSwap] instead.
-func CompareAndSwapPointer(addr *unsafe.Pointer, old, new unsafe.Pointer) (swapped bool)
+// // CompareAndSwapPointer executes the compare-and-swap operation for a unsafe.Pointer value.
+// // Consider using the more ergonomic and less error-prone [Pointer.CompareAndSwap] instead.
+// func CompareAndSwapPointer(addr *unsafe.Pointer, old, new unsafe.Pointer) (swapped bool) {
+// 	return CompareAndSwapPointerAdvocate(addr, old, new)
+// }
 
 // AddInt32 atomically adds delta to *addr and returns the new value.
 // Consider using the more ergonomic and less error-prone [Int32.Add] instead.
-func AddInt32Advocate(addr *int32, delta int32) (new int32)
+func AddInt32(addr *int32, delta int32) (new int32) {
+	runtime.AdvocateAtomic(addr, runtime.AddOp)
+	return AddInt32Advocate(addr, delta)
+}
 
 // AddUint32 atomically adds delta to *addr and returns the new value.
 // To subtract a signed positive constant value c from x, do AddUint32(&x, ^uint32(c-1)).
 // In particular, to decrement x, do AddUint32(&x, ^uint32(0)).
 // Consider using the more ergonomic and less error-prone [Uint32.Add] instead.
-func AddUint32Advocate(addr *uint32, delta uint32) (new uint32)
+func AddUint32(addr *uint32, delta uint32) (new uint32) {
+	runtime.AdvocateAtomic(addr, runtime.AddOp)
+	return AddUint32Advocate(addr, delta)
+}
 
 // AddInt64 atomically adds delta to *addr and returns the new value.
 // Consider using the more ergonomic and less error-prone [Int64.Add] instead
 // (particularly if you target 32-bit platforms; see the bugs section).
-func AddInt64Advocate(addr *int64, delta int64) (new int64)
+func AddInt64(addr *int64, delta int64) (new int64) {
+	runtime.AdvocateAtomic(addr, runtime.AddOp)
+	return AddInt64Advocate(addr, delta)
+}
 
 // AddUint64 atomically adds delta to *addr and returns the new value.
 // To subtract a signed positive constant value c from x, do AddUint64(&x, ^uint64(c-1)).
 // In particular, to decrement x, do AddUint64(&x, ^uint64(0)).
 // Consider using the more ergonomic and less error-prone [Uint64.Add] instead
 // (particularly if you target 32-bit platforms; see the bugs section).
-func AddUint64Advocate(addr *uint64, delta uint64) (new uint64)
+func AddUint64(addr *uint64, delta uint64) (new uint64) {
+	runtime.AdvocateAtomic(addr, runtime.AddOp)
+	return AddUint64Advocate(addr, delta)
+}
 
 // AddUintptr atomically adds delta to *addr and returns the new value.
 // Consider using the more ergonomic and less error-prone [Uintptr.Add] instead.
-func AddUintptrAdvocate(addr *uintptr, delta uintptr) (new uintptr)
+func AddUintptr(addr *uintptr, delta uintptr) (new uintptr) {
+	runtime.AdvocateAtomic(addr, runtime.AddOp)
+	return AddUintptrAdvocate(addr, delta)
+}
 
 // LoadInt32 atomically loads *addr.
 // Consider using the more ergonomic and less error-prone [Int32.Load] instead.
-func LoadInt32Advocate(addr *int32) (val int32)
+func LoadInt32(addr *int32) (val int32) {
+	runtime.AdvocateAtomic(addr, runtime.LoadOp)
+	return LoadInt32Advocate(addr)
+}
 
 // LoadInt64 atomically loads *addr.
 // Consider using the more ergonomic and less error-prone [Int64.Load] instead
 // (particularly if you target 32-bit platforms; see the bugs section).
-func LoadInt64Advocate(addr *int64) (val int64)
+func LoadInt64(addr *int64) (val int64) {
+	runtime.AdvocateAtomic(addr, runtime.LoadOp)
+	return LoadInt64Advocate(addr)
+}
 
 // LoadUint32 atomically loads *addr.
 // Consider using the more ergonomic and less error-prone [Uint32.Load] instead.
-func LoadUint32Advocate(addr *uint32) (val uint32)
+func LoadUint32(addr *uint32) (val uint32) {
+	runtime.AdvocateAtomic(addr, runtime.LoadOp)
+	return LoadUint32Advocate(addr)
+}
 
 // LoadUint64 atomically loads *addr.
 // Consider using the more ergonomic and less error-prone [Uint64.Load] instead
 // (particularly if you target 32-bit platforms; see the bugs section).
-func LoadUint64Advocate(addr *uint64) (val uint64)
+func LoadUint64(addr *uint64) (val uint64) {
+	runtime.AdvocateAtomic(addr, runtime.LoadOp)
+	return LoadUint64Advocate(addr)
+}
 
 // LoadUintptr atomically loads *addr.
 // Consider using the more ergonomic and less error-prone [Uintptr.Load] instead.
-func LoadUintptrAdvocate(addr *uintptr) (val uintptr)
+func LoadUintptr(addr *uintptr) (val uintptr) {
+	runtime.AdvocateAtomic(addr, runtime.LoadOp)
+	return LoadUintptrAdvocate(addr)
+}
 
-// LoadPointer atomically loads *addr.
-// Consider using the more ergonomic and less error-prone [Pointer.Load] instead.
-func LoadPointer(addr *unsafe.Pointer) (val unsafe.Pointer)
+// // LoadPointer atomically loads *addr.
+// // Consider using the more ergonomic and less error-prone [Pointer.Load] instead.
+// func LoadPointer(addr *unsafe.Pointer) (val unsafe.Pointer) {
+// 	return LoadPointerAdvocate(addr)
+// }
 
 // StoreInt32 atomically stores val into *addr.
 // Consider using the more ergonomic and less error-prone [Int32.Store] instead.
-func StoreInt32Advocate(addr *int32, val int32)
+func StoreInt32(addr *int32, val int32) {
+	runtime.AdvocateAtomic(addr, runtime.StoreOp)
+	StoreInt32Advocate(addr, val)
+}
 
 // StoreInt64 atomically stores val into *addr.
 // Consider using the more ergonomic and less error-prone [Int64.Store] instead
 // (particularly if you target 32-bit platforms; see the bugs section).
-func StoreInt64Advocate(addr *int64, val int64)
+func StoreInt64(addr *int64, val int64) {
+	runtime.AdvocateAtomic(addr, runtime.StoreOp)
+	StoreInt64Advocate(addr, val)
+}
 
 // StoreUint32 atomically stores val into *addr.
 // Consider using the more ergonomic and less error-prone [Uint32.Store] instead.
-func StoreUint32Advocate(addr *uint32, val uint32)
+func StoreUint32(addr *uint32, val uint32) {
+	runtime.AdvocateAtomic(addr, runtime.StoreOp)
+	StoreUint32Advocate(addr, val)
+}
 
 // StoreUint64 atomically stores val into *addr.
 // Consider using the more ergonomic and less error-prone [Uint64.Store] instead
 // (particularly if you target 32-bit platforms; see the bugs section).
-func StoreUint64Advocate(addr *uint64, val uint64)
+func StoreUint64(addr *uint64, val uint64) {
+	runtime.AdvocateAtomic(addr, runtime.StoreOp)
+	StoreUint64Advocate(addr, val)
+}
 
 // StoreUintptr atomically stores val into *addr.
 // Consider using the more ergonomic and less error-prone [Uintptr.Store] instead.
-func StoreUintptrAdvocate(addr *uintptr, val uintptr)
+func StoreUintptr(addr *uintptr, val uintptr) {
+	runtime.AdvocateAtomic(addr, runtime.StoreOp)
+	StoreUintptrAdvocate(addr, val)
+}
 
-// StorePointer atomically stores val into *addr.
-// Consider using the more ergonomic and less error-prone [Pointer.Store] instead.
-func StorePointer(addr *unsafe.Pointer, val unsafe.Pointer)
-
-//ADVOCATE-CHANGE-END
+// // StorePointer atomically stores val into *addr.
+// // Consider using the more ergonomic and less error-prone [Pointer.Store] instead.
+// func StorePointer(addr *unsafe.Pointer, val unsafe.Pointer) {
+// 	StorePointerAdvocate(addr, val)
+// }

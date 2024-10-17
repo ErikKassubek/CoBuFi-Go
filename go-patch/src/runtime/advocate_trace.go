@@ -2,10 +2,6 @@
 
 package runtime
 
-import (
-	at "runtime/internal/atomic"
-)
-
 type Operation int // enum for operation
 
 const (
@@ -53,25 +49,7 @@ const (
 	none
 )
 
-// type advocateTraceElement interface {
-// 	isAdvocateTraceElement()
-// 	toString() string
-// 	getOperation() Operation
-// 	getFile() string
-// 	getLine() int
-// }
-
-type advocateAtomicMapElem struct {
-	addr      uint64
-	operation int
-}
-
 var advocateDisabled = true
-var advocateAtomicMap = make(map[uint64]advocateAtomicMapElem)
-var advocateAtomicMapToID = make(map[uint64]uint64)
-var advocateAtomicMapIDCounter uint64 = 1
-var advocateAtomicMapLock mutex
-var advocateAtomicMapToIDLock mutex
 var advocatePanicWriteBlock chan struct{}
 var advocatePanicDone chan struct{}
 
@@ -116,36 +94,6 @@ func traceToString(trace *[]string, atomics *[]string) string {
 	res := ""
 
 	println("TraceToString", len(*trace), len(*atomics), len(*trace)+len(*atomics))
-	if !atomicRecordingDisabled {
-		traceIndex := 0
-		atomicIndex := 0
-
-		// merge trace and atomics based on the time
-		for i := 0; i < len(*trace)+len(*atomics); i++ {
-			if i != 0 {
-				res += "\n"
-			}
-			if traceIndex < len(*trace) && atomicIndex < len(*atomics) {
-				traceTime := getTpre((*trace)[traceIndex])
-				atomicTime := getTpre((*atomics)[atomicIndex])
-				if traceTime < atomicTime {
-					res += (*trace)[traceIndex]
-					traceIndex++
-				} else {
-					res += addAtomicInfo((*atomics)[atomicIndex])
-					atomicIndex++
-				}
-			} else if traceIndex < len(*trace) {
-				res += (*trace)[traceIndex]
-				traceIndex++
-			} else {
-				res += addAtomicInfo((*atomics)[atomicIndex])
-				atomicIndex++
-			}
-		}
-
-		return res
-	}
 
 	// if atomic recording is disabled
 	for i, elem := range *trace {
@@ -166,15 +114,10 @@ func getTpre(elem string) int {
  * Add an operation to the trace
  * Args:
  *  elem: element to add to the trace
- *  atomic: if true, the operation is atomic
  * Return:
  * 	index of the element in the trace
  */
-func insertIntoTrace(elem string, atomic bool) int {
-	if atomic {
-		currentGoRoutine().addAtomicToTrace(elem)
-		return -1
-	}
+func insertIntoTrace(elem string) int {
 	return currentGoRoutine().addToTrace(elem)
 }
 
@@ -235,42 +178,6 @@ func TraceToStringByIDChannel(id int, c chan<- string) {
 		unlock(&AdvocateRoutinesLock)
 		res := ""
 
-		if !atomicRecordingDisabled {
-			traceIndex := 0
-			atomicIndex := 0
-
-			// merge trace and atomics based on the time
-			for i := 0; i < len(routine.Trace)+len(routine.Atomics); i++ {
-				if i != 0 {
-					res += "\n"
-				}
-				if traceIndex < len(routine.Trace) && atomicIndex < len(routine.Atomics) {
-					traceTime := getTpre(routine.Trace[traceIndex])
-					atomicTime := getTpre(routine.Atomics[atomicIndex])
-					if traceTime < atomicTime {
-						res += (routine.Trace)[traceIndex]
-						traceIndex++
-					} else {
-						res += addAtomicInfo(routine.Atomics[atomicIndex])
-						atomicIndex++
-					}
-				} else if traceIndex < len(routine.Trace) {
-					res += (routine.Trace)[traceIndex]
-					traceIndex++
-				} else {
-					res += addAtomicInfo(routine.Atomics[atomicIndex])
-					atomicIndex++
-				}
-
-				if i%1000 == 0 {
-					c <- res
-					res = ""
-				}
-			}
-			c <- res
-			return
-		}
-
 		// if atomic recording is disabled
 		for i, elem := range routine.Trace {
 			if i != 0 {
@@ -330,42 +237,13 @@ func GetNumberOfRoutines() int {
 	return len(AdvocateRoutines)
 }
 
-func AtomicRecord() {
-
-}
-
 /*
  * InitAdvocate enables the collection of the trace
  * Args:
  * 	size: size of the channel used to link the atomic recording to the main
  *    recording.
  */
-func InitAdvocate(size int) {
-	disableAtomics := false
-	if size < 0 {
-		size = 0
-		disableAtomics = true
-	}
-	chanSize := (size + 1) * 10000000
-	// link runtime with atomic via channel to receive information about
-	// atomic events
-	c := make(chan at.AtomicElem, chanSize)
-
-	if !disableAtomics {
-		at.AdvocateAtomicLink(c)
-	}
-
-	go func() {
-		for atomic := range c {
-			AdvocateAtomicPost(atomic)
-
-			// go func() {
-			// 	WaitForReplayAtomic(atomic.Operation, atomic.Index)
-			// 	atomic.ChanReturn <- true
-			// }()
-		}
-	}()
-
+func InitAdvocate(_ int) {
 	advocateDisabled = false
 }
 
@@ -373,7 +251,6 @@ func InitAdvocate(size int) {
  * DisableTrace disables the collection of the trace
  */
 func DisableTrace() {
-	at.AdvocateAtomicUnlink()
 	advocateDisabled = true
 }
 
