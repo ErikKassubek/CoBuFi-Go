@@ -183,7 +183,7 @@ func addMainHeader(fileName string, replay bool, replayNumber string) error {
   // ======= Preamble End =======`, replayNumber))
 			} else {
 				lines = append(lines, `	// ======= Preamble Start =======
-  advocate.InitTracing(0)
+  advocate.InitTracing()
   defer advocate.Finish()
   // ======= Preamble End =======`)
 			}

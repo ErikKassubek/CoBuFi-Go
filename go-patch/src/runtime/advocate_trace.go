@@ -243,7 +243,7 @@ func GetNumberOfRoutines() int {
  * 	size: size of the channel used to link the atomic recording to the main
  *    recording.
  */
-func InitAdvocate(_ int) {
+func InitAdvocate() {
 	advocateDisabled = false
 }
 

@@ -150,7 +150,7 @@ func (t TraceElementResult) stringReadable() string {
 }
 
 func (t TraceElementResult) isInvalid() bool {
-	return t.ObjType == ""
+	return t.ObjType == "" || t.Line == -1
 }
 
 type SelectCaseResult struct {
@@ -172,6 +172,12 @@ func (s SelectCaseResult) isInvalid() bool {
 	return s.ObjType == ""
 }
 
+func ignore(file string) bool {
+	return strings.Contains(file, "signal_unix.go") ||
+		strings.Contains(file, "src/advocate/advocate.go")
+
+}
+
 /*
  * Print a result message
  * Args:
@@ -183,21 +189,18 @@ func Result(level resultLevel, resType ResultType, argType1 string, arg1 []Resul
 		return
 	}
 
-	if arg1[0].isInvalid() {
-		return
-	}
-
-	// ignore signal_unix.go
-	if strings.Contains(arg1[0].stringReadable(), "signal_unix.go") {
-		return
-	}
-
 	foundBug = true
 
 	resultReadable := resultTypeMap[resType] + "\n\t" + argType1 + ": "
 	resultMachine := string(resType) + ","
 
 	for i, arg := range arg1 {
+		if arg.isInvalid() {
+			return
+		}
+		if ignore(arg.stringMachine()) {
+			return
+		}
 		if i != 0 {
 			resultReadable += ";"
 			resultMachine += ";"
@@ -211,6 +214,12 @@ func Result(level resultLevel, resType ResultType, argType1 string, arg1 []Resul
 		resultReadable += "\t" + argType2 + ": "
 		resultMachine += ","
 		for i, arg := range arg2 {
+			if arg.isInvalid() {
+				return
+			}
+			if ignore(arg.stringMachine()) {
+				return
+			}
 			if i != 0 {
 				resultReadable += ";"
 				resultMachine += ";"

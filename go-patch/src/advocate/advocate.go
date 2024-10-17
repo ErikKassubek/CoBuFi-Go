@@ -187,9 +187,8 @@ func deleteEmptyFiles() {
  * InitTracing initializes the tracing.
  * The function creates the trace folder and starts the background memory test.
  * Args:
- * 	- size: The size of the channel used for recording atomic events.
  */
-func InitTracing(size int) {
+func InitTracing() {
 	advocateStartTimer = time.Now()
 	// remove the trace folder if it exists
 	err := os.RemoveAll(tracePathRecorded)
@@ -236,8 +235,8 @@ func InitTracing(size int) {
 	}()
 
 	// go writeTraceIfFull()
-	go removeAtomicsIfFull()
-	runtime.InitAdvocate(size)
+	// go removeAtomicsIfFull()
+	runtime.InitAdvocate()
 }
 
 // ============== Reading =================

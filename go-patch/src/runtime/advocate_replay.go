@@ -290,11 +290,10 @@ func ReleaseWaits() {
 		}
 
 		if replayElem.Op == OperationReplayEnd {
-			ExitReplayWithCode(replayElem.Line)
-
-			println("Stop Character Found. Disable Replay.")
+			// ExitReplayWithCode(replayElem.Line)
 			DisableReplay()
-			foundReplayElement(routine)
+			// foundReplayElement(routine)
+			return
 		}
 
 		key := intToString(routine) + ":" + replayElem.File + ":" + intToString(replayElem.Line)

@@ -120,7 +120,7 @@ The code snippet you need is
 import "advocate"
 ...
 // ======= Preamble Start =======
-    advocate.InitTracing(0)
+    advocate.InitTracing()
     defer advocate.Finish()
 // ======= Preamble End =======
 ...
@@ -130,7 +130,7 @@ Eg. like this
 import "advocate"
 func main(){
     // ======= Preamble Start =======
-    advocate.InitTracing(0)
+    advocate.InitTracing()
     defer advocate.Finish()
     // ======= Preamble End =======
 ...
@@ -142,7 +142,7 @@ import "advocate"
 ...
 func TestImportantThings(t *testing.T){
     // ======= Preamble Start =======
-    advocate.InitTracing(0)
+    advocate.InitTracing()
     defer advocate.Finish()
     // ======= Preamble End =======
 ...
