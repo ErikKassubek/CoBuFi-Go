@@ -214,12 +214,12 @@ Instead want to use this overhead
 
 ```go
 // ======= Preamble Start =======
-advocate.EnableReplay(n)
+advocate.EnableReplay(n, false)
 defer advocate.WaitForReplayFinish()
 // ======= Preamble End =======
 ```
 
-where the variable `n` is the rewritten trace you want to use.
+where the variable `n` is the rewritten trace you want to use. To replay the recording, set `n=0`.
 Note that the method looks for the `rewritten_trace` folder in the same directory as the file is located
 
 A more detailed description of how replays work and a list of what bugs are currently supported for replay can be found under [TraceReplay.md](./doc/TraceReplay.md) and [TraceReconstruciton.md](./doc/TraceReconstruction.md).

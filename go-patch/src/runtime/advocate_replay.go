@@ -280,6 +280,7 @@ func IsReplayEnabled() bool {
  * Function to run in the background and to release the waiting operations
  */
 func ReleaseWaits() {
+	defer println("Wait finished")
 	for {
 		routine, replayElem := getNextReplayElement()
 
@@ -296,16 +297,36 @@ func ReleaseWaits() {
 			return
 		}
 
-		key := intToString(routine) + ":" + replayElem.File + ":" + intToString(replayElem.Line)
+		// key := intToString(routine) + ":" + replayElem.File + ":" + intToString(replayElem.Line)
+		key := replayElem.File + ":" + intToString(replayElem.Line)
+
+		println("Try: ", key)
+		for i := 0; i < 1000000000; i++ {
+			_ = i
+		}
 
 		if ch, ok := waitingOps[key]; ok {
+			println("Release: ", key)
 			ch <- replayElem
 
 			foundReplayElement(routine)
 
-			lock(&timeoutLock)
+			// lock(&timeoutLock)
 			timeoutCounterGlobal = 0 // reset the global timeout counter
-			unlock(&timeoutLock)
+			// unlock(&timeoutLock)
+
+			lock(&replayDoneLock)
+			replayDone++
+			unlock(&replayDoneLock)
+		}
+
+		if replayElem.Op == OperationSpawn {
+			println("Release: ", key)
+			foundReplayElement(routine)
+
+			// lock(&timeoutLock)
+			timeoutCounterGlobal = 0 // reset the global timeout counter
+			// unlock(&timeoutLock)
 
 			lock(&replayDoneLock)
 			replayDone++
@@ -355,12 +376,15 @@ func WaitForReplayPath(op Operation, file string, line int) (bool, chan ReplayEl
 		return false, nil
 	}
 
-	routine := GetRoutineID()
-	key := uint64ToString(routine) + ":" + file + ":" + intToString(line)
+	// routine := GetRoutineID()
+	// key := uint64ToString(routine+1) + ":" + file + ":" + intToString(line)
+	key := file + ":" + intToString(line)
 
 	ch := make(chan ReplayElement, 1<<62) // 1<<62 makes sure, that the channel is ignored for replay. The actual size is 0
+	println("Wait: ", key)
+
 	waitingOps[key] = ch
-	return false, ch
+	return true, ch
 }
 
 /*
@@ -443,10 +467,10 @@ func checkForTimeoutNoOperation() {
 	warningMessage += "If the problem persist, this message will be repeated.\n\n"
 
 	for {
-		lock(&timeoutLock)
+		// lock(&timeoutLock)
 		timeoutCounterGlobal++
 		timeoutCounter := timeoutCounterGlobal
-		unlock(&timeoutLock)
+		// unlock(&timeoutLock)
 
 		if !replayEnabled {
 			break
