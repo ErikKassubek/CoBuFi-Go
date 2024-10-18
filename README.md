@@ -19,16 +19,24 @@ AdvocateGo tries to detect the following situations:
 - P02: Possible receive on closed channel
 - P03: Possible negative waitgroup counter
 - P04: Possible unlock of not locked mutex
-- L: Leaking routines
+- L00: Leak on routine without blocking element
+- L01: Leak on unbuffered channel with possible partner
+- L02: Leak on unbuffered channel without possible partner
+- L03: Leak on buffered channel with possible partner
+- L04: Leak on buffered channel without possible partner
+- L05: Leak on nil channel
+- L06: Leak on select with possible partner
+- L07: Leak on select without possible partner
+- L08: Leak on mutex
+- L09: Leak on waitgroup
+- L10: Leak on cond
 
 A more in detail explanation of how it works can be found [here](./doc/Analysis.md).
-### AdvocateGo Step by Step
-Simplified flowchart of the AdvocateGo Process
-![Flowchart of AdvocateGoProcess](doc/img/flow2.png "Title")
+## Usage
+![Flowchart of AdvocateGoProcess](doc/img/architecture.png "Architecture")
 
-For more detail see this [in depth diagram](./doc/img/architecture_without_time.png)
 
-## Preparation
+### Preparation
 Before Advocate can be used, it must first be build.
 
 First you need to build the [analyzer](https://github.com/ErikKassubek/ADVOCATE/tree/rewriteToolchain/analyzer)
@@ -56,7 +64,7 @@ export GOROOT=$HOME/ADVOCATE/go-patch/
 If you use the toolchain script, this will be done automatically.
 
 
-## Using AdvocateGo with the toolchain scipt
+### Using AdvocateGo with the toolchain scipt
 There is a script that will come in handy when working with AdvocateGo.
 The script can be found [here](./toolchain/toolchain/).
 
@@ -110,10 +118,10 @@ If either `-t` or `-s` is set, the following arg must be set:
 Its result and additional information (rewritten traces, logs, etc) will be written to `advocateResult`.
 
 
-## Using AdvocateGo with Manual Analysis
+### Using AdvocateGo with Manual Analysis
 <!-- These steps can also be done automatically with scripts. If you want to know more about using them you can skip straight to the [Tooling](#tooling) section. -->
 To run the analysis manual, you need to perform the following steps:
-### Step 1: Add Overhead
+#### Step 1: Add Overhead
 You need to adjust the main method or unit test you want to analyze slightly in order to analyze them.
 The code snippet you need is
 ```go
@@ -149,7 +157,7 @@ func TestImportantThings(t *testing.T){
 }
 ```
 
-### Step 2: Run your go program
+#### Step 2: Run your go program
 Now you can finally run your go program with the binary that was build in the preparation step.
 It is located under `./go-patch/bin/go`
 Eg. like so
@@ -160,7 +168,7 @@ or like this for your tests
 ```shell
 ./go-patch/bin/go test
 ```
-### Step 3: Analyzing Traces
+#### Step 3: Analyzing Traces
 After you run your program you will find that it generated the folder `advocateTrace`.
 If you are curious about the structure of said trace, you can find an in depth explanation [here](./doc/Trace.md)
 It contains a record of what operation ran in what thread during the execution of your program.
@@ -178,31 +186,9 @@ Running the analyzer will generate 3 files for you
 
 A more detailed explanation of the file contents can be found under [AnalysisResult.md](./doc/AnalysisResult.md)
 
-#### What bugs can be found
-AdvocateGo currently supports following bugs
 
-- A01: Send on closed channel
-- A02: Receive on closed channel
-- A03: Close on closed channel
-- A04: Concurrent recv
-- A05: Select case without partner
-- P01: Possible send on closed channel
-- P02: Possible receive on closed channel
-- P03: Possible negative waitgroup counter
-- P04: Possible unlock of not locked mutex
-- L00: Leak on routine without blocking element
-- L01: Leak on unbuffered channel with possible partner
-- L02: Leak on unbuffered channel without possible partner
-- L03: Leak on buffered channel with possible partner
-- L04: Leak on buffered channel without possible partner
-- L05: Leak on nil channel
-- L06: Leak on select with possible partner
-- L07: Leak on select without possible partner
-- L08: Leak on mutex
-- L09: Leak on waitgroup
-- L10: Leak on cond
 
-### Step 4: Replay
+#### Step 4: Replay
 For some of the bugs, the analyzer will create rewritten traces, that may
 contain the bug. If run, they could lead to the program crashing or in the case
 of leaks to run could resolve the leak. This can be used to confirm a reported
