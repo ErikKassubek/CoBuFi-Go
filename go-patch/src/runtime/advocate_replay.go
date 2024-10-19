@@ -320,19 +320,6 @@ func ReleaseWaits() {
 			unlock(&replayDoneLock)
 		}
 
-		if replayElem.Op == OperationSpawn {
-			println("Release: ", key)
-			foundReplayElement(routine)
-
-			// lock(&timeoutLock)
-			timeoutCounterGlobal = 0 // reset the global timeout counter
-			// unlock(&timeoutLock)
-
-			lock(&replayDoneLock)
-			replayDone++
-			unlock(&replayDoneLock)
-		}
-
 		if !replayEnabled {
 			return
 		}

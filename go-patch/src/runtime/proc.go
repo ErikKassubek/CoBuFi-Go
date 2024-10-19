@@ -4886,16 +4886,14 @@ func newproc(fn *funcval) {
 	}
 	file, line := funcline(f, tracepc)
 
-	// ADVOCATE-CHANGE-END
+	wait, ch := WaitForReplayPath(OperationSpawn, file, int(line))
+	if wait {
+		<-ch
+	}
 
 	systemstack(func() {
 		newg := newproc1(fn, gp, pc)
 
-		// ADVOCATE-CHANGE-START
-		// wait, ch := WaitForReplayPath(OperationSpawn, file, int(line))
-		// if wait {
-		// 	<-ch
-		// }
 		newg.goInfo = newAdvocateRoutine(newg)
 		if gp != nil && gp.goInfo != nil {
 			AdvocateSpawnCaller(gp.goInfo, newg.goInfo.id, file, line)
