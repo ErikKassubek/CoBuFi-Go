@@ -200,12 +200,32 @@ Instead want to use this overhead
 
 ```go
 // ======= Preamble Start =======
-advocate.EnableReplay(n, false)
+advocate.EnableReplay(n, true, m)
 defer advocate.WaitForReplayFinish()
 // ======= Preamble End =======
 ```
 
-where the variable `n` is the rewritten trace you want to use. To replay the recording, set `n=0`.
+where the variable `n` is the rewritten trace you want to use (to replay the recording, set `n=0`) and
+`m` is a timeout in second (to disable timeout set `m=0`).
+The replay will end with one of the following error codes:
+```
+0:  "The replay terminated without finding a Replay element",
+3:  "The program panicked unexpectedly",
+10: "Timeout",
+20: "Leak: Leaking unbuffered channel or select was unstuck",
+21: "Leak: Leaking buffered channel was unstuck",
+22: "Leak: Leaking Mutex was unstuck",
+23: "Leak: Leaking Cond was unstuck",
+24: "Leak: Leaking WaitGroup was unstuck",
+30: "Send on close",
+31: "Receive on close",
+32: "Negative WaitGroup counter",
+33: "Unlock of unlocked mutex",
+```
+If you do not want an error code, you can set the `true` in the arguments to
+`false`.
+
+
 Note that the method looks for the `rewritten_trace` folder in the same directory as the file is located
 
 A more detailed description of how replays work and a list of what bugs are currently supported for replay can be found under [TraceReplay.md](./doc/TraceReplay.md) and [TraceReconstruciton.md](./doc/TraceReconstruction.md).

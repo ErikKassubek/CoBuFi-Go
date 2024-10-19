@@ -29,10 +29,11 @@ import (
  *    pathToFile (string): path to the file containing the main function
  *    executableName (string): name of the executable
  *    timeoutAna (int): timeout for the analyzer
+ *    timeoutReplay (int): timeout for replay
  * Returns:
  *    error
  */
-func runWorkflowMain(pathToAdvocate string, pathToFile string, executableName string, timeoutAna int) error {
+func runWorkflowMain(pathToAdvocate string, pathToFile string, executableName string, timeoutAna int, timeoutReplay int) error {
 	if _, err := os.Stat(pathToFile); os.IsNotExist(err) {
 		return fmt.Errorf("file %s does not exist", pathToFile)
 	}
@@ -111,7 +112,7 @@ func runWorkflowMain(pathToAdvocate string, pathToFile string, executableName st
 
 	// Add header
 	fmt.Printf("Add header to %s\n", pathToFile)
-	if err := headerInserterMain(pathToFile, false, "1"); err != nil {
+	if err := headerInserterMain(pathToFile, false, "1", timeoutReplay); err != nil {
 		return fmt.Errorf("Error in adding header: %v", err)
 	}
 
@@ -151,11 +152,18 @@ func runWorkflowMain(pathToAdvocate string, pathToFile string, executableName st
 	}
 
 	// Apply replay header and run tests for each trace
+	timeoutRepl := time.Duration(0)
+	if timeoutReplay == -1 {
+		timeoutRepl = 100 * durationRecord
+	} else {
+		timeoutRepl = time.Duration(timeoutReplay) * time.Second
+	}
+
 	timeStart = time.Now()
 	for _, trace := range rewrittenTraces {
 		rtraceNum := extractTraceNum(trace)
 		fmt.Printf("Apply replay header for file f %s and trace %s\n", pathToFile, rtraceNum)
-		if err := headerInserterMain(pathToFile, true, rtraceNum); err != nil {
+		if err := headerInserterMain(pathToFile, true, rtraceNum, int(timeoutRepl.Seconds())); err != nil {
 			return err
 		}
 

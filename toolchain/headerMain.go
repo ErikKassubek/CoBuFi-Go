@@ -27,10 +27,11 @@ import (
  *    fileName (string): path to the main file
  *    replay (bool): true for replay, false for only recording
  *    replayNumber (string): id of the trace to replay
+ *    replayTimeout (int): replay for timeout
  * Returns:
  *    error
  */
-func headerInserterMain(fileName string, replay bool, replayNumber string) error {
+func headerInserterMain(fileName string, replay bool, replayNumber string, replayTimeout int) error {
 	if fileName == "" {
 		return errors.New("Please provide a file  name")
 	}
@@ -39,7 +40,7 @@ func headerInserterMain(fileName string, replay bool, replayNumber string) error
 		return fmt.Errorf("File %s does not exist", fileName)
 	}
 
-	return addMainHeader(fileName, replay, replayNumber)
+	return addMainHeader(fileName, replay, replayNumber, replayTimeout)
 }
 
 /*
@@ -137,10 +138,11 @@ func mainMethodExists(fileName string) (bool, error) {
  *    fileName (string): name of the file containing the main routine
  *    replay (bool): true for replay, false for just recording
  *    replayNumber (int): id of the trace to replay
+ *    replayTimeout (int): replay for timeout
  * Return:
  *    error
  */
-func addMainHeader(fileName string, replay bool, replayNumber string) error {
+func addMainHeader(fileName string, replay bool, replayNumber string, replayTimeout int) error {
 	exists, err := mainMethodExists(fileName)
 	if err != nil {
 		return err
@@ -178,9 +180,9 @@ func addMainHeader(fileName string, replay bool, replayNumber string) error {
 		if strings.Contains(line, "func main() {") {
 			if replay {
 				lines = append(lines, fmt.Sprintf(`	// ======= Preamble Start =======
-  advocate.EnableReplay(%s, true)
+  advocate.EnableReplay(%s, true, %d)
   defer advocate.WaitForReplayFinish()
-  // ======= Preamble End =======`, replayNumber))
+  // ======= Preamble End =======`, replayNumber, replayTimeout))
 			} else {
 				lines = append(lines, `	// ======= Preamble Start =======
   advocate.InitTracing()

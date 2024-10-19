@@ -3,10 +3,7 @@ package runtime
 const (
 	ExitCodeDefault          = 0
 	ExitCodePanic            = 3
-	ExitCodeStuckFinish      = 10
-	ExitCodeStuckWaitElem    = 11
-	ExitCodeStuckNoElem      = 12
-	ExitCodeElemEmptyTrace   = 13
+	ExitCodeTimeout          = 10
 	ExitCodeLeakUnbuf        = 20
 	ExitCodeLeakBuf          = 21
 	ExitCodeLeakMutex        = 22
@@ -22,10 +19,7 @@ const (
 var ExitCodeNames = map[int]string{
 	0:  "The replay terminated without finding a Replay element",
 	3:  "The program panicked unexpectedly",
-	10: "Replay Stuck: Long wait time for finishing replay",
-	11: "Replay Stuck: Long wait time for running element",
-	12: "Replay Stuck: No traced operation has been executed for approx. 20s",
-	13: "The program tried to execute an operation, although all elements in the trace have already been executed.",
+	10: "Timeout",
 	20: "Leak: Leaking unbuffered channel or select was unstuck",
 	21: "Leak: Leaking buffered channel was unstuck",
 	22: "Leak: Leaking Mutex was unstuck",
@@ -142,12 +136,6 @@ var replayData = make(AdvocateReplayTraces, 0)
 var numberElementsInTrace int
 var traceElementPositions = make(map[string][]int) // file -> []line
 
-// timeout
-var timeoutLock mutex
-var timeoutCounterGlobal = 0
-var timeoutMessageCycle = 1000 // approx. 20s
-var timeOutCancel = false
-
 // exit code
 var replayExitCode bool
 var expectedExitCode int
@@ -197,15 +185,8 @@ func (t AdvocateReplayTrace) Print() {
 
 /*
  * Enable the replay.
- * Arguments:
- * 	timeout: true if the replay should be canceled after a timeout, false otherwise
  */
-func EnableReplay(timeout bool) {
-	timeOutCancel = timeout
-
-	// run a background routine to check for timeout if no operation is executed
-	go checkForTimeoutNoOperation()
-
+func EnableReplay() {
 	go ReleaseWaits()
 
 	replayEnabled = true
@@ -230,9 +211,7 @@ func DisableReplay() {
  * the program to terminate before the trace is finished.
  */
 func WaitForReplayFinish() {
-	timeoutCounter := 0
 	for {
-		timeoutCounter++
 		lock(&replayDoneLock)
 		if replayDone >= numberElementsInTrace {
 			unlock(&replayDoneLock)
@@ -244,32 +223,10 @@ func WaitForReplayFinish() {
 			break
 		}
 
-		// check for timeout
-		if timeoutCounter%timeoutMessageCycle == 0 {
-			ExitReplayWithCode(ExitCodeStuckFinish)
-
-			waitTime := intToString(int(10 * timeoutCounter / timeoutMessageCycle))
-			warningMessage := "\nReplayWarning: Long wait time for finishing replay."
-			warningMessage += "The main routine has already finished approx. "
-			warningMessage += waitTime
-			warningMessage += "s ago, but the trace still contains not executed operations.\n"
-			warningMessage += "This can be caused by a stuck replay.\n"
-			warningMessage += "Possible causes are:\n"
-			warningMessage += "    - The program was altered between recording and replay\n"
-			warningMessage += "    - The program execution path is not deterministic, e.g. its execution path is determined by a random number\n"
-			warningMessage += "    - The program execution path depends on the order of not tracked operations\n"
-			warningMessage += "    - The program execution depends on outside input, that was not exactly reproduced\n"
-			warningMessage += "If you believe, the program is still running, you can continue to wait.\n"
-			warningMessage += "If you believe, the program is stuck, you can cancel the program.\n"
-			warningMessage += "If you suspect, that one of these causes is the reason for the long wait time, you can try to change the program to avoid the problem.\n"
-			println(warningMessage)
-			if timeOutCancel {
-				panic("ReplayError: Replay stuck")
-			}
-		}
-
 		slowExecution()
 	}
+
+	ExitReplayWithCode(ExitCodeDefault)
 }
 
 func IsReplayEnabled() bool {
@@ -280,14 +237,11 @@ func IsReplayEnabled() bool {
  * Function to run in the background and to release the waiting operations
  */
 func ReleaseWaits() {
-	defer println("Wait finished")
 	for {
 		routine, replayElem := getNextReplayElement()
 
 		if routine == -1 {
-			println("The program tried to execute an operation, although all elements in the trace have already been executed.\nDisable Replay")
-			DisableReplay()
-			ExitReplayWithCode(ExitCodeElemEmptyTrace)
+			continue
 		}
 
 		if replayElem.Op == OperationReplayEnd {
@@ -300,24 +254,18 @@ func ReleaseWaits() {
 		// key := intToString(routine) + ":" + replayElem.File + ":" + intToString(replayElem.Line)
 		key := replayElem.File + ":" + intToString(replayElem.Line)
 
-		println("Try: ", key)
-		for i := 0; i < 1000000000; i++ {
-			_ = i
-		}
-
+		lock(&waitingOpsMutex)
 		if ch, ok := waitingOps[key]; ok {
-			println("Release: ", key)
+			unlock(&waitingOpsMutex)
 			ch <- replayElem
 
 			foundReplayElement(routine)
 
-			// lock(&timeoutLock)
-			timeoutCounterGlobal = 0 // reset the global timeout counter
-			// unlock(&timeoutLock)
-
 			lock(&replayDoneLock)
 			replayDone++
 			unlock(&replayDoneLock)
+		} else {
+			unlock(&waitingOpsMutex)
 		}
 
 		if !replayEnabled {
@@ -328,6 +276,7 @@ func ReleaseWaits() {
 
 // Map of all currently waiting operations
 var waitingOps = make(map[string]chan ReplayElement)
+var waitingOpsMutex mutex
 
 /*
  * Wait until the correct operation is about to be executed.
@@ -367,114 +316,12 @@ func WaitForReplayPath(op Operation, file string, line int) (bool, chan ReplayEl
 	// key := uint64ToString(routine+1) + ":" + file + ":" + intToString(line)
 	key := file + ":" + intToString(line)
 
-	ch := make(chan ReplayElement, 1<<62) // 1<<62 makes sure, that the channel is ignored for replay. The actual size is 0
-	println("Wait: ", key)
+	ch := make(chan ReplayElement, 1<<62+1) // 1<<62 + 1 makes sure, that the channel is ignored for replay. The actual size is 1
 
+	lock(&waitingOpsMutex)
 	waitingOps[key] = ch
+	unlock(&waitingOpsMutex)
 	return true, ch
-}
-
-/*
- * At specified timeoutCounter values, do some checks or messages.
- * At the first timeout, check if the position is in the trace.
- * At following timeouts, print a warning message.
- * At the last timeout, panic.
- * Args:
- * 	timeoutCounter: the current timeout counter
- * 	file: file in which the operation is executed
- * 	line: line number of the operation
- * Return:
- * 	bool: false
- */
-func checkForTimeout(timeoutCounter int, file string, line int) {
-	if !replayEnabled {
-		return
-	}
-
-	messageCauses := "Possible causes are:\n"
-	messageCauses += "    - The program was altered between recording and replay\n"
-	messageCauses += "    - The program execution path is not deterministic, e.g. its execution path is determined by a random number\n"
-	messageCauses += "    - The program execution path depends on the order of not tracked operations\n"
-	messageCauses += "    - The program execution depends on outside input, that was not exactly reproduced\n"
-
-	if timeoutCounter == 500 { // ca. 10s
-		// res := isPositionInTrace(file, line)
-		// if !res {
-		// 	errorMessage := "ReplayError: Program tried to execute an operation that is not in the trace:\n"
-		// 	errorMessage += "    File: " + file + "\n"
-		// 	errorMessage += "    Line: " + intToString(line) + "\n"
-		// 	errorMessage += "This means, that the program replay was not successful.\n"
-		// 	errorMessage += messageCauses
-		// 	errorMessage += "If you suspect, that one of these causes is the reason for the error, you can try to change the program to avoid the problem.\n"
-		// 	errorMessage += "If this is not possible, you can try to rerun the replay, hoping the error does not occur again.\n"
-		// 	errorMessage += "If this is not possible or does not work, the program replay is currently not possible.\n\n"
-
-		// 	panic(errorMessage)
-		// }
-		// } else
-		if timeoutCounter%timeoutMessageCycle == 0 { // approx. every 20s
-			warningMessage := "\nReplayWarning: Long wait time\n"
-			warningMessage += "The following operation is taking a long time to execute:\n"
-			warningMessage += "    File: " + file + "\n"
-			warningMessage += "    Line: " + intToString(line) + "\n"
-			warningMessage += "This can be caused by a stuck replay.\n"
-			warningMessage += messageCauses
-			warningMessage += "If you believe, the program is still running, you can continue to wait.\n"
-			warningMessage += "If you believe, the program is stuck, you can cancel the program.\n"
-			warningMessage += "If you suspect, that one of these causes is the reason for the long wait time, you can try to change the program to avoid the problem.\n"
-			warningMessage += "If the problem persist, this message will be repeated.\n\n"
-
-			println(warningMessage)
-
-			ExitReplayWithCode(ExitCodeStuckWaitElem)
-
-			if timeOutCancel {
-				panic("ReplayError: Replay stuck")
-			}
-		}
-	}
-}
-
-func checkForTimeoutNoOperation() {
-	if !replayEnabled {
-		return
-	}
-
-	waitTime := 1000 // approx. 20s
-	warningMessage := "No traced operation has been executed for a long time.\n"
-	warningMessage += "This can be caused by a stuck replay.\n"
-	warningMessage += "Possible causes are:\n"
-	warningMessage += "    - The program was altered between recording and replay\n"
-	warningMessage += "    - The program execution path is not deterministic, e.g. its execution path is determined by a random number\n"
-	warningMessage += "    - The program execution path depends on the order of not tracked operations\n"
-	warningMessage += "    - The program execution depends on outside input, that was not exactly reproduced\n"
-	warningMessage += "If you believe, the program is still running, you can continue to wait.\n"
-	warningMessage += "If you believe, the program is stuck, you can cancel the program.\n"
-	warningMessage += "If you suspect, that one of these causes is the reason for the long wait time, you can try to change the program to avoid the problem.\n"
-	warningMessage += "If the problem persist, this message will be repeated.\n\n"
-
-	for {
-		// lock(&timeoutLock)
-		timeoutCounterGlobal++
-		timeoutCounter := timeoutCounterGlobal
-		// unlock(&timeoutLock)
-
-		if !replayEnabled {
-			break
-		}
-
-		if timeoutCounter%waitTime == 0 {
-			message := "\nReplayWarning: Long wait time\n"
-			message += warningMessage
-
-			println(message)
-			ExitReplayWithCode(ExitCodeStuckNoElem)
-			if timeOutCancel {
-				panic("ReplayError: Replay stuck")
-			}
-		}
-		slowExecution()
-	}
 }
 
 /*

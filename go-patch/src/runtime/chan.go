@@ -498,8 +498,6 @@ func closechan(c *hchan) {
 		panic(plainError("close of nil channel"))
 	}
 
-	lock(&c.lock)
-
 	// ADVOCATE-CHANGE-START
 	// AdvocateChanClose is called when a channel is closed. It creates a close event
 	// in the trace.
@@ -511,6 +509,8 @@ func closechan(c *hchan) {
 		AdvocateChanClose(c.id, c.dataqsiz)
 	}
 	// ADVOCATE-CHANGE-END
+
+	lock(&c.lock)
 
 	if c.closed != 0 {
 		unlock(&c.lock)

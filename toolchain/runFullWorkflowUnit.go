@@ -39,11 +39,12 @@ const (
  *    notExecuted (bool): if true, check for never executed operations
  *    stats (bool): create a stats file
  *    timeout (int): Set a timeout in seconds for the analysis
+ *    timeoutReplay (int): timeout for replay
  * Returns:
  *    error
  */
 func runWorkflowUnit(pathToAdvocate, dir, progName string,
-	measureTime, notExecuted, stats bool, timeoutAna int) error {
+	measureTime, notExecuted, stats bool, timeoutAna int, timeoutReplay int) error {
 	// Validate required inputs
 	if pathToAdvocate == "" {
 		return errors.New("Path to advocate is empty")
@@ -104,7 +105,7 @@ func runWorkflowUnit(pathToAdvocate, dir, progName string,
 			}
 
 			// Execute full workflow
-			times, nrReplay, err := unitTestFullWorkflow(pathToAdvocate, dir, testFunc, adjustedPackagePath, file, directoryName, measureTime, timeoutAna)
+			times, nrReplay, err := unitTestFullWorkflow(pathToAdvocate, dir, testFunc, adjustedPackagePath, file, directoryName, measureTime, timeoutAna, timeoutReplay)
 
 			if measureTime {
 				updateTimeFiles(progName, testFunc, resultPath, times, nrReplay)
@@ -249,7 +250,8 @@ func findTestFiles(dir string) ([]string, error) {
  *    file (string): file with the test
  *    output (string): write all outputs to this file
  *    measureTime (bool): if true, run the test once without recording/replay to measure time
- *    timeout (int): Set a timeout in seconds for the analysis
+ *    timeoutAna (int): Set a timeout in seconds for the analysis
+ *    timeoutReplay (int): timeout for replay
  * Returns:
  *    map[string]time.Duration
  *    int: number of run replays
@@ -257,7 +259,7 @@ func findTestFiles(dir string) ([]string, error) {
  */
 func unitTestFullWorkflow(pathToAdvocate string, dir string,
 	testName string, pkg string, file string, outputDir string,
-	measureTime bool, timeoutAna int) (map[string]time.Duration, int, error) {
+	measureTime bool, timeoutAna int, timeoutReplay int) (map[string]time.Duration, int, error) {
 
 	resTimes := make(map[string]time.Duration)
 
@@ -340,7 +342,7 @@ func unitTestFullWorkflow(pathToAdvocate string, dir string,
 
 	// Add header
 	fmt.Println(fmt.Sprintf("Add header for %s: %s", file, testName))
-	if err := headerInserterUnit(file, testName, false, "0"); err != nil {
+	if err := headerInserterUnit(file, testName, false, "0", timeoutReplay); err != nil {
 		fmt.Printf("Error in adding header: %v\n", err)
 		return resTimes, 0, fmt.Errorf("Error in adding header: %v", err)
 	}
@@ -417,11 +419,18 @@ func unitTestFullWorkflow(pathToAdvocate string, dir string,
 	rewrittenTraces, _ := filepath.Glob(filepath.Join(pathPkg, "rewritten_trace_*"))
 	fmt.Printf("Found %d rewritten traces\n", len(rewrittenTraces))
 
+	timeoutRepl := time.Duration(0)
+	if timeoutReplay == -1 {
+		timeoutRepl = 100 * resTimes["record"]
+	} else {
+		timeoutRepl += time.Duration(timeoutReplay) * time.Second
+	}
+
 	resTimes["replay"] = time.Duration(0)
 	for i, trace := range rewrittenTraces {
 		traceNum := extractTraceNumber(trace)
 		fmt.Printf("Insert replay header or %s: %s for trace %s\n", file, testName, traceNum)
-		headerInserterUnit(file, testName, true, traceNum)
+		headerInserterUnit(file, testName, true, traceNum, int(timeoutRepl.Seconds()))
 
 		os.Setenv("GOROOT", pathToGoRoot)
 		fmt.Println("GOROOT = " + pathToGoRoot + " exported")

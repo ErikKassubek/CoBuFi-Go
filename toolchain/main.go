@@ -29,6 +29,7 @@ var (
 	notExecuted    bool
 	stats          bool
 	timeoutAna     int
+	timeoutReplay  int
 )
 
 func init() {
@@ -43,6 +44,7 @@ func init() {
 	flag.BoolVar(&notExecuted, "m", false, "check for not executed operations")
 	flag.BoolVar(&stats, "s", false, "create statistic files")
 	flag.IntVar(&timeoutAna, "T", -1, "Set a timeout in seconds for each run of the analyzer")
+	flag.IntVar(&timeoutReplay, "R", 0, "Set a timeout for each replay")
 }
 
 func main() {
@@ -93,7 +95,7 @@ func main() {
 			printHelpMain()
 			return
 		}
-		err = runWorkflowMain(pathToAdvocate, pathToFile, executableName, timeoutAna)
+		err = runWorkflowMain(pathToAdvocate, pathToFile, executableName, timeoutAna, timeoutReplay)
 	case "test", "tests":
 		if pathToAdvocate == "" {
 			fmt.Println("Path to advocate required")
@@ -110,7 +112,7 @@ func main() {
 			printHelpUnit()
 			return
 		}
-		err = runWorkflowUnit(pathToAdvocate, pathToFile, progName, measureTime, notExecuted, stats, timeoutAna)
+		err = runWorkflowUnit(pathToAdvocate, pathToFile, progName, measureTime, notExecuted, stats, timeoutAna, timeoutReplay)
 	case "explain":
 		if pathToAdvocate == "" {
 			fmt.Println("Path to advocate required")
@@ -151,6 +153,8 @@ func printHelpMain() {
 	fmt.Println("  -m       : check for never executed operations")
 	fmt.Println("  -s       : create statistics about the analyzed program")
 	fmt.Println("  -N [name]: give a name for the analyzed program. Only required if -s or -t is set")
+	fmt.Println("  -T [sec] : set a time limit for each analyzer run")
+	fmt.Println("  -R [sec] : set a time limit for each replay run, if 0 there is no timeout, if -1, the timeout is set to 100 times the recording time")
 }
 
 func printHelpUnit() {
@@ -162,4 +166,6 @@ func printHelpUnit() {
 	fmt.Println("  -m       : check for never executed operations")
 	fmt.Println("  -s       : create statistics about the analyzed program")
 	fmt.Println("  -N [name]: give a name for the analyzed program. Only required if -s or -t is set")
+	fmt.Println("  -T [sec] : set a time limit for each analyzer run")
+	fmt.Println("  -R [sec] : set a time limit for each replay run, if 0 there is no timeout, if -1, the timeout is set to 100 times the recording time")
 }

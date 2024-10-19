@@ -51,8 +51,6 @@ func WaitForReplayFinish() {
 	}
 
 	runtime.WaitForReplayFinish()
-
-	runtime.ExitReplayWithCode(runtime.ExitCodeDefault)
 }
 
 /*
@@ -251,8 +249,9 @@ var tracePathRewritten = "rewritten_trace_"
  * Args:
  * 	- index: The index of the replay case
  * 	- exitCode: Whether the program should exit after the important replay part passed
+ * 	- timeout: Timeout in seconds, 0: no timeout
  */
-func EnableReplay(index int, exitCode bool) {
+func EnableReplay(index int, exitCode bool, timeout int) {
 	// use first as default
 	if index < 0 {
 		index = 0
@@ -300,12 +299,14 @@ func EnableReplay(index int, exitCode bool) {
 		}
 	}
 
-	runtime.EnableReplay(timeout)
-}
+	if timeout > 0 {
+		go func() {
+			time.Sleep(time.Duration(timeout) * time.Second)
+			runtime.ExitReplayWithCode(runtime.ExitCodeTimeout)
+		}()
+	}
 
-func EnableReplayWithTimeout(index int, exitCode bool) {
-	timeout = true
-	EnableReplay(index, exitCode)
+	runtime.EnableReplay()
 }
 
 /*

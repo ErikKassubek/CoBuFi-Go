@@ -313,26 +313,15 @@ func AdvocateIgnore(operation Operation, file string, line int) bool {
 		hasSuffix(file, "advocate/advocate_utile.go") ||
 		hasSuffix(file, "advocate/advocate_atomic.go") { // internal
 		return true
-	}
-
-	// if hasSuffix(file, "testing/testing.go") {
-	// 	return true
-	// }
-
-	if hasSuffix(file, "syscall/env_unix.go") {
+	} else if hasSuffix(file, "syscall/env_unix.go") {
 		return true
-	}
-
-	if hasSuffix(file, "runtime/signal_unix.go") {
+	} else if hasSuffix(file, "runtime/signal_unix.go") {
+		return true
+	} else if hasSuffix(file, "runtime/mgc.go") { // garbage collector
 		return true
 	}
 
 	switch operation {
-	case OperationSpawn:
-		// garbage collection can cause the replay to get stuck
-		if hasSuffix(file, "runtime/mgc.go") && line == 1215 {
-			return true
-		}
 	case OperationMutexLock, OperationMutexUnlock:
 		// mutex operations in the once can cause the replay to get stuck,
 		// if the once was called by the poll/fd_poll_runtime.go init.
