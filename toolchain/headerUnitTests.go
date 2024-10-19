@@ -155,7 +155,7 @@ func addHeaderUnit(fileName string, testName string, replay bool, replayNumber s
 			} else {
 				lines = append(lines, `	// ======= Preamble Start =======
   advocate.InitTracing()
-  defer advocate.Finish()
+  defer advocate.FinishTracing()
   // ======= Preamble End =======`)
 			}
 			fmt.Println("Header added at line:", currentLine)

@@ -110,16 +110,16 @@ func (o *Once) Do(f func()) {
 // ADVOCATE-CHANGE-START
 func (o *Once) doSlow(f func()) bool {
 	// ADVOCATE-CHANGE-END
-	o.m.Lock()         // MUST BE LINE 116, OTHERWISE CHANGE IN advocate_trace.go:AdvocateIgnore
-	defer o.m.Unlock() // MUST BE LINE 117, OTHERWISE CHANGE IN advocate_trace.go:AdvocateIgnore
+	o.m.Lock()         // MUST BE LINE 113, OTHERWISE CHANGE IN advocate_trace.go:AdvocateIgnore
+	defer o.m.Unlock() // MUST BE LINE 114, OTHERWISE CHANGE IN advocate_trace.go:AdvocateIgnore
 	if o.done.Load() == 0 {
 		defer o.done.Store(1)
 		f()
 		// ADVOCATE-CHANGE-START
-		return true // MUST BE LINE 122, OTHERWISE CHANGE IN advocate_trace.go:AdvocateIgnore
+		return true // MUST BE LINE 119, OTHERWISE CHANGE IN advocate_trace.go:AdvocateIgnore
 		// ADVOCATE-CHANGE-END
 	}
 	// ADVOCATE-CHANGE-START
-	return false // MUST BE LINE 126, OTHERWISE CHANGE IN advocate_trace.go:AdvocateIgnore
+	return false // MUST BE LINE 123, OTHERWISE CHANGE IN advocate_trace.go:AdvocateIgnore
 	// ADVOCATE-CHANGE-END
 }

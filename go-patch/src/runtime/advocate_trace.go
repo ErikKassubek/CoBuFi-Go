@@ -307,11 +307,11 @@ func DeleteTrace() {
  */
 func AdvocateIgnore(operation Operation, file string, line int) bool {
 	if hasSuffix(file, "advocate/advocate.go") ||
-		hasSuffix(file, "advocate/advocate_replay.go") ||
-		hasSuffix(file, "advocate/advocate_routine.go") ||
-		hasSuffix(file, "advocate/advocate_trace.go") ||
-		hasSuffix(file, "advocate/advocate_utile.go") ||
-		hasSuffix(file, "advocate/advocate_atomic.go") { // internal
+		hasSuffix(file, "runtime/advocate_replay.go") ||
+		hasSuffix(file, "runtime/advocate_routine.go") ||
+		hasSuffix(file, "runtime/advocate_trace.go") ||
+		hasSuffix(file, "runtime/advocate_utile.go") ||
+		hasSuffix(file, "runtime/advocate_atomic.go") { // internal
 		return true
 	} else if hasSuffix(file, "syscall/env_unix.go") {
 		return true
@@ -319,14 +319,16 @@ func AdvocateIgnore(operation Operation, file string, line int) bool {
 		return true
 	} else if hasSuffix(file, "runtime/mgc.go") { // garbage collector
 		return true
+	} else if hasSuffix(file, "runtime/panic.go") {
+		return true
 	}
 
 	switch operation {
 	case OperationMutexLock, OperationMutexUnlock:
 		// mutex operations in the once can cause the replay to get stuck,
 		// if the once was called by the poll/fd_poll_runtime.go init.
-		if hasSuffix(file, "sync/once.go") && (line == 116 || line == 117 ||
-			line == 122 || line == 126) {
+		if hasSuffix(file, "sync/once.go") && (line == 113 || line == 114 ||
+			line == 119 || line == 123) {
 			return true
 		}
 		// pools
@@ -348,6 +350,8 @@ func AdvocateIgnore(operation Operation, file string, line int) bool {
 
 func AdvocateIgnoreReplay(operation Operation, file string, line int) bool {
 	if hasSuffix(file, "time/sleep.go") {
+		return true
+	} else if hasSuffix(file, "signal/signal.go") && line == 238 { // ctrl+c
 		return true
 	}
 

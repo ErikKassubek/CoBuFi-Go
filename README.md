@@ -129,7 +129,7 @@ import "advocate"
 ...
 // ======= Preamble Start =======
     advocate.InitTracing()
-    defer advocate.Finish()
+    defer advocate.FinishTracing()
 // ======= Preamble End =======
 ...
 ```
@@ -139,7 +139,7 @@ import "advocate"
 func main(){
     // ======= Preamble Start =======
     advocate.InitTracing()
-    defer advocate.Finish()
+    defer advocate.FinishTracing()
     // ======= Preamble End =======
 ...
 }
@@ -151,7 +151,7 @@ import "advocate"
 func TestImportantThings(t *testing.T){
     // ======= Preamble Start =======
     advocate.InitTracing()
-    defer advocate.Finish()
+    defer advocate.FinishTraing()
     // ======= Preamble End =======
 ...
 }
@@ -200,8 +200,8 @@ Instead want to use this overhead
 
 ```go
 // ======= Preamble Start =======
-advocate.EnableReplay(n, true, m)
-defer advocate.WaitForReplayFinish()
+advocate.InitReplay(n, true, m)
+defer advocate.FinishReplay()
 // ======= Preamble End =======
 ```
 

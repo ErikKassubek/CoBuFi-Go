@@ -12,8 +12,8 @@ The following is a step py step guid on how to use advocate.
 ## Running the program / record the trace
 - Add the following header at the beginning of your program:
   ```go
-  advocate.InitTracing(0)
-  defer advocate.Finish()
+  advocate.InitTracing()
+  defer advocate.FinishTracing()
   ```
   In most cases the beginning is either the beginning of the main function, or the beginning of a
 test function.
@@ -60,7 +60,7 @@ the rewritten trace for each bug found, where a rewrite is possible/implemented.
 
 - To replay a rewritten trace, replace the header in the program with:
   ```go
-  advocate.EnableReplay(1, true)
+  advocate.InitReplay(1, true, 60)
   defer advocate.WaitForReplayFinish()
   ```
 
@@ -68,6 +68,7 @@ the rewritten trace for each bug found, where a rewrite is possible/implemented.
 - If a rewritten trace should not return exit codes, but e.g. panic if a
 negative waitGroup counter is detected, of send on a closed channel occurs,
 the second argument can be set to `false`.
+- `60` is the timeout in seconds
 - Build the program using the new runtime and run the executable, e.g.
   ```bash
   ~/ADVOCATE/go-patch/bin/go build && ./main

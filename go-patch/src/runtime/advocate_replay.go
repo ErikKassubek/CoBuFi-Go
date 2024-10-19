@@ -17,7 +17,7 @@ const (
 )
 
 var ExitCodeNames = map[int]string{
-	0:  "The replay terminated without finding a Replay element",
+	0:  "The replay terminated",
 	3:  "The program panicked unexpectedly",
 	10: "Timeout",
 	20: "Leak: Leaking unbuffered channel or select was unstuck",
@@ -210,7 +210,7 @@ func DisableReplay() {
  * This function should be called after the main routine is finished, to prevent
  * the program to terminate before the trace is finished.
  */
-func WaitForReplayFinish() {
+func WaitForReplayFinish(exit bool) {
 	for {
 		lock(&replayDoneLock)
 		if replayDone >= numberElementsInTrace {
@@ -226,7 +226,9 @@ func WaitForReplayFinish() {
 		slowExecution()
 	}
 
-	ExitReplayWithCode(ExitCodeDefault)
+	if exit {
+		ExitReplayWithCode(ExitCodeDefault)
+	}
 }
 
 func IsReplayEnabled() bool {
@@ -237,11 +239,19 @@ func IsReplayEnabled() bool {
  * Function to run in the background and to release the waiting operations
  */
 func ReleaseWaits() {
+	lastFile := ""
+	lastLine := -1
 	for {
 		routine, replayElem := getNextReplayElement()
 
 		if routine == -1 {
 			continue
+		}
+
+		if lastFile != replayElem.File || lastLine != replayElem.Line {
+			lastFile = replayElem.File
+			lastLine = replayElem.Line
+			println("Try :", replayElem.File, replayElem.Line)
 		}
 
 		if replayElem.Op == OperationReplayEnd {
@@ -258,6 +268,7 @@ func ReleaseWaits() {
 		if ch, ok := waitingOps[key]; ok {
 			unlock(&waitingOpsMutex)
 			ch <- replayElem
+			println("Rel : ", replayElem.File, replayElem.Line)
 
 			foundReplayElement(routine)
 
@@ -311,6 +322,8 @@ func WaitForReplayPath(op Operation, file string, line int) (bool, chan ReplayEl
 	if AdvocateIgnoreReplay(op, file, line) {
 		return false, nil
 	}
+
+	println("Wait: ", file, line)
 
 	// routine := GetRoutineID()
 	// key := uint64ToString(routine+1) + ":" + file + ":" + intToString(line)

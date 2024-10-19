@@ -10,16 +10,11 @@ import (
 	"strconv"
 	"strings"
 	"sync"
-	"syscall"
 	"time"
 )
 
-// ============== Recording =================
-
 var traceFileCounter = 0
 var tracePathRecorded = "advocateTrace"
-var advocateStartTimer time.Time // start time of the program
-var advocateReplayStartTime time.Time
 
 var hasFinished = false
 
@@ -28,11 +23,27 @@ var hasFinished = false
  * The trace is written in the file named file_name.
  * The trace is written in the format of advocate.
  */
-func Finish() {
+func FinishTracing() {
 	if hasFinished {
 		return
 	}
 	hasFinished = true
+
+	// remove the trace folder if it exists
+	err := os.RemoveAll(tracePathRecorded)
+	if err != nil {
+		if !os.IsNotExist(err) {
+			panic(err)
+		}
+	}
+
+	// create the trace folder
+	err = os.Mkdir(tracePathRecorded, 0755)
+	if err != nil {
+		if !os.IsExist(err) {
+			panic(err)
+		}
+	}
 
 	runtime.AdvocatRoutineExit()
 
@@ -43,59 +54,15 @@ func Finish() {
 }
 
 /*
- * WaitForReplayFinish waits for the replay to finish.
+ * FinishReplay waits for the replay to finish.
  */
-func WaitForReplayFinish() {
+func FinishReplay() {
 	if r := recover(); r != nil {
 		println("Replay failed.")
 	}
 
-	runtime.WaitForReplayFinish()
+	runtime.WaitForReplayFinish(true)
 }
-
-/*
- * Ignore atomics if there is not enough memory
- * The function checks the available memory every 5 seconds.
- * If the available memory is less than 10%, the recorder will ignore atomic operations.
- * If there are less then 1% available, the program will panic.
- */
-func removeAtomicsIfFull() {
-	var stat syscall.Sysinfo_t
-
-	for {
-		time.Sleep(2 * time.Second)
-		err := syscall.Sysinfo(&stat)
-		if err != nil {
-			panic(err)
-		}
-
-		freeRAM := stat.Freeram * uint64(stat.Unit)
-
-		if freeRAM < 300000000 {
-			panic("Not enough memory.")
-		}
-
-		if !runtime.GetIgnoreAtomicOperations() && !runtime.GetAdvocateDisabled() && freeRAM < 1200000000 {
-			println("Not enough memory. Ignore atomic operations.")
-			runtime.IgnoreAtomicOperations()
-		}
-	}
-}
-
-func toGB(bytes uint64) float64 {
-	return float64(bytes) / 1024 / 1024 / 1024
-}
-
-// BUG: crashes bug
-// func cleanTrace() {
-// println("Cleaning trace")
-// // stop new element from been added to the trace
-// runtime.BlockTrace()
-// writeToTraceFiles()
-// runtime.DeleteTrace()
-// runtime.UnblockTrace()
-// runtime.GC()
-// }
 
 /*
  * Write the trace to a set of files. The traces are written into a folder
@@ -187,23 +154,6 @@ func deleteEmptyFiles() {
  * Args:
  */
 func InitTracing() {
-	advocateStartTimer = time.Now()
-	// remove the trace folder if it exists
-	err := os.RemoveAll(tracePathRecorded)
-	if err != nil {
-		if !os.IsNotExist(err) {
-			panic(err)
-		}
-	}
-
-	// create the trace folder
-	err = os.Mkdir(tracePathRecorded, 0755)
-	if err != nil {
-		if !os.IsExist(err) {
-			panic(err)
-		}
-	}
-
 	// if the program panics, but is not in the main routine, no trace is written
 	// to prevent this, the following is done. The corresponding send/recv are in the panic definition
 	blocked := make(chan struct{})
@@ -211,7 +161,7 @@ func InitTracing() {
 	runtime.GetAdvocatePanicChannels(blocked, writingDone)
 	go func() {
 		<-blocked
-		Finish()
+		FinishTracing()
 		writingDone <- struct{}{}
 	}()
 
@@ -227,7 +177,7 @@ func InitTracing() {
 			os.Exit(1)
 		}()
 		if !runtime.GetAdvocateDisabled() {
-			Finish()
+			FinishTracing()
 		}
 		os.Exit(1)
 	}()
@@ -236,8 +186,6 @@ func InitTracing() {
 	// go removeAtomicsIfFull()
 	runtime.InitAdvocate()
 }
-
-// ============== Reading =================
 
 var timeout = false
 var tracePathRewritten = "rewritten_trace_"
@@ -251,15 +199,13 @@ var tracePathRewritten = "rewritten_trace_"
  * 	- exitCode: Whether the program should exit after the important replay part passed
  * 	- timeout: Timeout in seconds, 0: no timeout
  */
-func EnableReplay(index int, exitCode bool, timeout int) {
+func InitReplay(index int, exitCode bool, timeout int) {
 	// use first as default
 	if index < 0 {
 		index = 0
 	}
 
 	runtime.SetExitCode(exitCode)
-
-	advocateStartTimer = time.Now()
 
 	if index == 0 {
 		tracePathRewritten = "advocateTrace"
@@ -303,10 +249,55 @@ func EnableReplay(index int, exitCode bool, timeout int) {
 		go func() {
 			time.Sleep(time.Duration(timeout) * time.Second)
 			runtime.ExitReplayWithCode(runtime.ExitCodeTimeout)
+			panic("Timeout")
 		}()
 	}
 
 	runtime.EnableReplay()
+}
+
+func InitReplayTracing(index int, exitCode bool, timeout int) {
+	// ========== Init Tracing ================
+	tracePathRecorded = "advocateTraceReplay_" + strconv.Itoa(index)
+
+	// if the program panics, but is not in the main routine, no trace is written
+	// to prevent this, the following is done. The corresponding send/recv are in the panic definition
+	blocked := make(chan struct{})
+	writingDone := make(chan struct{})
+	runtime.GetAdvocatePanicChannels(blocked, writingDone)
+	go func() {
+		<-blocked
+		FinishReplayTracing()
+		writingDone <- struct{}{}
+	}()
+
+	// if the program is terminated by the user, the defer in the header
+	// is not executed. Therefore capture the signal and write the trace.
+	interuptSignal := make(chan os.Signal, 1)
+	signal.Notify(interuptSignal, os.Interrupt)
+	go func() {
+		<-interuptSignal
+		println("\nCancel Run. Write trace. Cancel again to force exit.")
+		go func() {
+			<-interuptSignal
+			os.Exit(1)
+		}()
+		if !runtime.GetAdvocateDisabled() {
+			FinishReplayTracing()
+		}
+		os.Exit(1)
+	}()
+
+	// go writeTraceIfFull()
+	// go removeAtomicsIfFull()
+	runtime.InitAdvocate()
+
+	InitReplay(index, exitCode, timeout)
+}
+
+func FinishReplayTracing() {
+	FinishTracing()
+	FinishReplay()
 }
 
 /*
