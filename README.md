@@ -228,6 +228,25 @@ If you do not want an error code, you can set the `true` in the arguments to
 
 Note that the method looks for the `rewritten_trace` folder in the same directory as the file is located
 
+To replay and at the same time record a new trace, you can add the following header
+```go
+// ======= Preamble Start =======
+advocate.InitReplayTracing(n, false, m)
+defer advocate.FinishReplayTracing()
+// ======= Preamble End =======
+```
+where the variable `n` is the rewritten trace you want to use (to replay the recording, set `n=0`) and
+`m` is a timeout in second (to disable timeout set `m=0`).
+If `n` is set to `-1`, no replay will be done. It is therefore equivalent to
+```go
+// ======= Preamble Start =======
+advocate.InitTracing()
+defer advocate.FinishTracing()
+// ======= Preamble End =======
+```
+The replay and tracing at the same time is not yet implemented in the toolchain.
+
+
 A more detailed description of how replays work and a list of what bugs are currently supported for replay can be found under [TraceReplay.md](./doc/TraceReplay.md) and [TraceReconstruciton.md](./doc/TraceReconstruction.md).
 
 

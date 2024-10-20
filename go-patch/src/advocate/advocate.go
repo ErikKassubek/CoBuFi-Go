@@ -5,6 +5,7 @@ import (
 	"math"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"runtime"
 	"sort"
 	"strconv"
@@ -49,8 +50,7 @@ func FinishTracing() {
 
 	runtime.DisableTrace()
 
-	writeToTraceFiles()
-	// deleteEmptyFiles()
+	writeToTraceFiles(tracePathRecorded)
 }
 
 /*
@@ -69,13 +69,13 @@ func FinishReplay() {
  * with name trace. For each routine, a file is created. The file is named
  * trace_routineId.log. The trace of the routine is written into the file.
  */
-func writeToTraceFiles() {
+func writeToTraceFiles(tracePath string) {
 	numRout := runtime.GetNumberOfRoutines()
 	var wg sync.WaitGroup
 	for i := 1; i <= numRout; i++ {
 		// write the trace to the file
 		wg.Add(1)
-		go writeToTraceFile(i, &wg)
+		go writeToTraceFile(i, &wg, tracePath)
 	}
 
 	wg.Wait()
@@ -88,7 +88,7 @@ func writeToTraceFiles() {
  * Args:
  * 	- routine: The id of the routine
  */
-func writeToTraceFile(routine int, wg *sync.WaitGroup) {
+func writeToTraceFile(routine int, wg *sync.WaitGroup, tracePath string) {
 	// create the file if it does not exist and open it
 	defer wg.Done()
 
@@ -96,7 +96,7 @@ func writeToTraceFile(routine int, wg *sync.WaitGroup) {
 	// 	return
 	// }
 
-	fileName := "advocateTrace/trace_" + strconv.Itoa(routine) + ".log"
+	fileName := filepath.Join(tracePath, "trace_"+strconv.Itoa(routine)+".log")
 
 	file, err := os.OpenFile(fileName, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
@@ -257,6 +257,11 @@ func InitReplay(index int, exitCode bool, timeout int) {
 }
 
 func InitReplayTracing(index int, exitCode bool, timeout int) {
+	if index == -1 {
+		InitTracing()
+		return
+	}
+
 	// ========== Init Tracing ================
 	tracePathRecorded = "advocateTraceReplay_" + strconv.Itoa(index)
 
@@ -296,8 +301,20 @@ func InitReplayTracing(index int, exitCode bool, timeout int) {
 }
 
 func FinishReplayTracing() {
+	if !runtime.IsReplayEnabled() {
+		FinishTracing()
+		return
+	}
+
+	if r := recover(); r != nil {
+		println("Replay failed.")
+	}
+
+	runtime.WaitForReplayFinish(false)
+
+	runtime.DisableReplay()
+
 	FinishTracing()
-	FinishReplay()
 }
 
 /*

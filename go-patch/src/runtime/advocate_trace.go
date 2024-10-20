@@ -351,7 +351,7 @@ func AdvocateIgnore(operation Operation, file string, line int) bool {
 func AdvocateIgnoreReplay(operation Operation, file string, line int) bool {
 	if hasSuffix(file, "time/sleep.go") {
 		return true
-	} else if hasSuffix(file, "signal/signal.go") && line == 238 { // ctrl+c
+	} else if hasSuffix(file, "signal/signal.go") { // ctrl+c
 		return true
 	}
 

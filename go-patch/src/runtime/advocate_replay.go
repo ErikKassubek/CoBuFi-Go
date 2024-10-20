@@ -251,7 +251,6 @@ func ReleaseWaits() {
 		if lastFile != replayElem.File || lastLine != replayElem.Line {
 			lastFile = replayElem.File
 			lastLine = replayElem.Line
-			println("Try :", replayElem.File, replayElem.Line)
 		}
 
 		if replayElem.Op == OperationReplayEnd {
@@ -268,7 +267,6 @@ func ReleaseWaits() {
 		if ch, ok := waitingOps[key]; ok {
 			unlock(&waitingOpsMutex)
 			ch <- replayElem
-			println("Rel : ", replayElem.File, replayElem.Line)
 
 			foundReplayElement(routine)
 
@@ -322,8 +320,6 @@ func WaitForReplayPath(op Operation, file string, line int) (bool, chan ReplayEl
 	if AdvocateIgnoreReplay(op, file, line) {
 		return false, nil
 	}
-
-	println("Wait: ", file, line)
 
 	// routine := GetRoutineID()
 	// key := uint64ToString(routine+1) + ":" + file + ":" + intToString(line)
