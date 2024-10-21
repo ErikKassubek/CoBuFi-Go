@@ -632,7 +632,7 @@ func checkForStuckRoutine() {
 		}
 
 		// do not record extra if a leak with a blocked operation is present
-		if len(trace) > 1 && trace[len(trace)-1].getTpost() == 0 {
+		if len(trace) > 0 && trace[len(trace)-1].getTpost() == 0 {
 			continue
 		}
 

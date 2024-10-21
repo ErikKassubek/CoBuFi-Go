@@ -199,18 +199,17 @@ var tracePathRewritten = "rewritten_trace_"
  * 	- exitCode: Whether the program should exit after the important replay part passed
  * 	- timeout: Timeout in seconds, 0: no timeout
  */
-func InitReplay(index int, exitCode bool, timeout int) {
+func InitReplay(index string, exitCode bool, timeout int) {
 	// use first as default
-	if index < 0 {
-		index = 0
-	}
 
 	runtime.SetExitCode(exitCode)
 
-	if index == 0 {
+	println("Set exit code")
+
+	if index == "0" {
 		tracePathRewritten = "advocateTrace"
 	} else {
-		tracePathRewritten = tracePathRewritten + strconv.Itoa(index)
+		tracePathRewritten = tracePathRewritten + index
 	}
 
 	// if trace folder does not exist, panic
@@ -256,14 +255,13 @@ func InitReplay(index int, exitCode bool, timeout int) {
 	runtime.EnableReplay()
 }
 
-func InitReplayTracing(index int, exitCode bool, timeout int) {
-	if index == -1 {
+func InitReplayTracing(index string, exitCode bool, timeout int) {
+	if index == "-1" {
 		InitTracing()
 		return
 	}
 
-	// ========== Init Tracing ================
-	tracePathRecorded = "advocateTraceReplay_" + strconv.Itoa(index)
+	tracePathRecorded = "advocateTraceReplay_" + index
 
 	// if the program panics, but is not in the main routine, no trace is written
 	// to prevent this, the following is done. The corresponding send/recv are in the panic definition

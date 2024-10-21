@@ -49,7 +49,7 @@ const (
 	none
 )
 
-var advocateDisabled = true
+var advocateTracingDisabled = true
 var advocatePanicWriteBlock chan struct{}
 var advocatePanicDone chan struct{}
 
@@ -244,14 +244,14 @@ func GetNumberOfRoutines() int {
  *    recording.
  */
 func InitAdvocate() {
-	advocateDisabled = false
+	advocateTracingDisabled = false
 }
 
 /*
  * DisableTrace disables the collection of the trace
  */
 func DisableTrace() {
-	advocateDisabled = true
+	advocateTracingDisabled = true
 }
 
 /*
@@ -260,7 +260,7 @@ func DisableTrace() {
  * 	true if the trace collection is disabled, false otherwise
  */
 func GetAdvocateDisabled() bool {
-	return advocateDisabled
+	return advocateTracingDisabled
 }
 
 // /*

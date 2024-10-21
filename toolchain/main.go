@@ -20,16 +20,17 @@ import (
 )
 
 var (
-	pathToAdvocate string
-	pathToFile     string
-	progName       string
-	executableName string
-	help           bool
-	measureTime    bool
-	notExecuted    bool
-	stats          bool
-	timeoutAna     int
-	timeoutReplay  int
+	pathToAdvocate  string
+	pathToFile      string
+	progName        string
+	executableName  string
+	help            bool
+	measureTime     bool
+	notExecuted     bool
+	stats           bool
+	timeoutAna      int
+	timeoutReplay   int
+	disableRerecord bool
 )
 
 func init() {
@@ -45,6 +46,7 @@ func init() {
 	flag.BoolVar(&stats, "s", false, "create statistic files")
 	flag.IntVar(&timeoutAna, "T", -1, "Set a timeout in seconds for each run of the analyzer")
 	flag.IntVar(&timeoutReplay, "R", 0, "Set a timeout for each replay")
+	flag.BoolVar(&disableRerecord, "L", false, "Disable the rerecording and analyzing of leaks")
 }
 
 func main() {
@@ -168,4 +170,5 @@ func printHelpUnit() {
 	fmt.Println("  -N [name]: give a name for the analyzed program. Only required if -s or -t is set")
 	fmt.Println("  -T [sec] : set a time limit for each analyzer run")
 	fmt.Println("  -R [sec] : set a time limit for each replay run, if 0 there is no timeout, if -1, the timeout is set to 100 times the recording time")
+	fmt.Println("  -L       : disable the rerecording and analysis of replays of leaks")
 }

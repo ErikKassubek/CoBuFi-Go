@@ -29,10 +29,11 @@ import (
  *    replay (bool): true for replay, false for only recording
  *    replayNumber (string): id of the trace to replay
  *    timeoutReplay (int): timeout for replay
+ *    record (bool): true to rerecord the leaks
  * Returns:
  *    error
  */
-func headerInserterUnit(fileName string, testName string, replay bool, replayNumber string, timeoutReplay int) error {
+func headerInserterUnit(fileName string, testName string, replay bool, replayNumber string, timeoutReplay int, record bool) error {
 	if _, err := os.Stat(fileName); os.IsNotExist(err) {
 		return fmt.Errorf("file %s does not exist", fileName)
 	}
@@ -46,7 +47,7 @@ func headerInserterUnit(fileName string, testName string, replay bool, replayNum
 		return errors.New("Test Method not found in file")
 	}
 
-	return addHeaderUnit(fileName, testName, replay, replayNumber, timeoutReplay)
+	return addHeaderUnit(fileName, testName, replay, replayNumber, timeoutReplay, record)
 }
 
 /*
@@ -116,10 +117,11 @@ func testExists(fileName string, testName string) (bool, error) {
  *    replay (bool): true for replay, false for only recording
  *    replayNumber (string): id of the trace to replay
  *    timeoutReplay (int): timeout for replay
+ *    record (bool): true to rerecord the trace
  * Returns:
  *    error
  */
-func addHeaderUnit(fileName string, testName string, replay bool, replayNumber string, timeoutReplay int) error {
+func addHeaderUnit(fileName string, testName string, replay bool, replayNumber string, timeoutReplay int, record bool) error {
 	importAdded := false
 	file, err := os.OpenFile(fileName, os.O_RDWR, 0644)
 	if err != nil {
@@ -147,11 +149,19 @@ func addHeaderUnit(fileName string, testName string, replay bool, replayNumber s
 		}
 
 		if strings.Contains(line, "func "+testName) {
+
 			if replay {
-				lines = append(lines, fmt.Sprintf(`	// ======= Preamble Start =======
-  advocate.EnableReplay(%s, true, %d)
-  defer advocate.WaitForReplayFinish()
+				if record {
+					lines = append(lines, fmt.Sprintf(`	// ======= Preamble Start =======
+  advocate.InitReplayTracing("%s", false, %d)
+  defer advocate.FinishReplayTracing()
   // ======= Preamble End =======`, replayNumber, timeoutReplay))
+				} else {
+					lines = append(lines, fmt.Sprintf(`	// ======= Preamble Start =======
+  advocate.InitReplay("%s", true, %d)
+  defer advocate.FinishReplay()
+  // ======= Preamble End =======`, replayNumber, timeoutReplay))
+				}
 			} else {
 				lines = append(lines, `	// ======= Preamble Start =======
   advocate.InitTracing()

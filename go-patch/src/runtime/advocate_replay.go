@@ -254,7 +254,7 @@ func ReleaseWaits() {
 		}
 
 		if replayElem.Op == OperationReplayEnd {
-			// ExitReplayWithCode(replayElem.Line)
+			ExitReplayWithCode(replayElem.Line)
 			DisableReplay()
 			// foundReplayElement(routine)
 			return
@@ -461,8 +461,11 @@ func SetExpectedExitCode(code int) {
  * 	code: the exit code
  */
 func ExitReplayWithCode(code int) {
+	println("Exit Replay with code ", code, ExitCodeNames[code])
 	if replayExitCode && ExitCodeNames[code] != "" {
-		println("Exit Replay with code ", code, ExitCodeNames[code])
+		if !advocateTracingDisabled { // do not exit if recording is enabled
+			return
+		}
 		exit(int32(code))
 	}
 }

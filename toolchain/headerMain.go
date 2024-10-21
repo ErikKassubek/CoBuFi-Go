@@ -180,7 +180,7 @@ func addMainHeader(fileName string, replay bool, replayNumber string, replayTime
 		if strings.Contains(line, "func main() {") {
 			if replay {
 				lines = append(lines, fmt.Sprintf(`	// ======= Preamble Start =======
-  advocate.EnableReplay(%s, true, %d)
+  advocate.InitReplay(%s, true, %d)
   defer advocate.FinishReplay()
   // ======= Preamble End =======`, replayNumber, replayTimeout))
 			} else {

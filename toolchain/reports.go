@@ -15,7 +15,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"os/exec"
 	"path/filepath"
 )
 
@@ -28,11 +27,7 @@ import (
 func generateBugReports(folder string, advocateRoot string) {
 	// advocateTraceFolder := filepath.Join(folder, "advocateTrace")
 	analyzerPath := filepath.Join(advocateRoot, "analyzer", "analyzer")
-	cmd := exec.Command(analyzerPath, "explain", "-t", folder)
-	err := cmd.Run()
-	if err != nil {
-		fmt.Println(err)
-	}
+	runCommand(analyzerPath, "explain", "-t", folder)
 }
 
 /*
@@ -78,6 +73,13 @@ func moveResults(packagePath, destination string) {
 		"output.log",
 	}
 
+	pattersToMove := []string{
+		"rewritten_trace*",
+		"advocateTraceReplay_*",
+		"results_machine_*",
+		"results_readable_*",
+	}
+
 	for _, file := range filesToMove {
 		src := filepath.Join(packagePath, file)
 		dest := filepath.Join(destination, file)
@@ -86,14 +88,16 @@ func moveResults(packagePath, destination string) {
 		}
 	}
 
-	// Move any rewritten_trace directories
-	rewrittenTraces, _ := filepath.Glob(filepath.Join(packagePath, "rewritten_trace*"))
-	for _, trace := range rewrittenTraces {
-		dest := filepath.Join(destination, filepath.Base(trace))
-		if err := os.Rename(trace, dest); err != nil {
-			log.Printf("Failed to move %s to %s: %v", trace, dest, err)
+	for _, pattern := range pattersToMove {
+		files, _ := filepath.Glob(filepath.Join(packagePath, pattern))
+		for _, trace := range files {
+			dest := filepath.Join(destination, filepath.Base(trace))
+			if err := os.Rename(trace, dest); err != nil {
+				log.Printf("Failed to move %s to %s: %v", trace, dest, err)
+			}
 		}
 	}
+
 }
 
 func updateStatsFiles(pathToAnalyzer string, progName string, testName string, dir string) {

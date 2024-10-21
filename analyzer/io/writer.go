@@ -64,7 +64,7 @@ func WriteTrace(path string, numberRoutines int) error {
 		}
 	}
 
-	println("Create new trace at " + path + "...")
+	println("Create new trace at " + path)
 
 	// create new folder
 	if err := os.Mkdir(path, 0755); err != nil {

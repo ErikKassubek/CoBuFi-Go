@@ -260,6 +260,8 @@ func InitLogging(level int, outReadable string, outMachine string) {
 	}
 	levelDebug = level
 
+	fmt.Println("Logging: ", outReadable, outMachine)
+
 	outputReadableFile = outReadable
 	outputMachineFile = outMachine
 }

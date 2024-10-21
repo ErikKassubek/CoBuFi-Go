@@ -37,7 +37,7 @@ import (
 func CreateTraceFromFiles(filePath string, ignoreAtomics bool) (int, bool, error) {
 	numberIds := 0
 
-	println("Read trace from " + filePath + "...")
+	println("Read trace from " + filePath)
 
 	// traverse all files in the folder
 	files, err := os.ReadDir(filePath)

@@ -200,12 +200,12 @@ Instead want to use this overhead
 
 ```go
 // ======= Preamble Start =======
-advocate.InitReplay(n, true, m)
+advocate.InitReplay("n", true, m)
 defer advocate.FinishReplay()
 // ======= Preamble End =======
 ```
 
-where the variable `n` is the rewritten trace you want to use (to replay the recording, set `n=0`) and
+where the variable `n` is the rewritten trace you want to use (to replay the recording, set `n=0`, for the rewritten trace `rewritten_trace_1` set `n=1`) and
 `m` is a timeout in second (to disable timeout set `m=0`).
 The replay will end with one of the following error codes:
 ```
@@ -231,7 +231,7 @@ Note that the method looks for the `rewritten_trace` folder in the same director
 To replay and at the same time record a new trace, you can add the following header
 ```go
 // ======= Preamble Start =======
-advocate.InitReplayTracing(n, false, m)
+advocate.InitReplayTracing("n", false, m)
 defer advocate.FinishReplayTracing()
 // ======= Preamble End =======
 ```

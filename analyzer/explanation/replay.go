@@ -19,7 +19,7 @@ import (
 	"strings"
 )
 
-func getRewriteInfo(bugType string, codes map[string]string, index int) map[string]string {
+func getRewriteInfo(bugType string, codes map[string]string, index string) map[string]string {
 	res := make(map[string]string)
 
 	rewPos := rewriteType[bugType]
@@ -106,6 +106,9 @@ func getOutputCodes(path string) map[string]string {
 				replayCode[lastReplayIndex] = "panic"
 			}
 			lastReplayIndex = strings.TrimPrefix(line, replayReadPrefix)
+			if !strings.Contains(lastReplayIndex, "_") {
+				lastReplayIndex = "0_" + lastReplayIndex
+			}
 			lastReplayIndexInfoFound = false
 		} else if strings.HasPrefix(line, exitCodePrefix) {
 			line = strings.TrimPrefix(line, exitCodePrefix)
@@ -118,13 +121,13 @@ func getOutputCodes(path string) map[string]string {
 	return replayCode
 }
 
-func getReplayInfo(replayCode map[string]string, index int) (string, string, string, error) {
+func getReplayInfo(replayCode map[string]string, index string) (string, string, string, error) {
 	if _, ok := replayCode["AdvocateFailExplanationInfo"]; ok {
 		fmt.Println("Could not read")
 		return "", replayCode["AdvocateFailExplanationInfo"], replayCode["AdvocateFailResplaySucInfo"], fmt.Errorf("Could not read output file")
 	}
 
-	exitCode := replayCode[fmt.Sprint(index)]
+	exitCode := replayCode[index]
 	replaySuc := "failed"
 	if exitCode == "double" {
 		replaySuc = "was already performed for this bug in another test"

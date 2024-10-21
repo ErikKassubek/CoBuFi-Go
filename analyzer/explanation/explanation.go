@@ -60,33 +60,46 @@ func CreateOverview(path string, ignoreDouble bool) error {
 		fmt.Println("Cound not read header line: ", err)
 	}
 
-	file, err := os.ReadFile(filepath.Join(path, "results_machine.log"))
-	numberResults := len(strings.Split(string(file), "\n"))
+	resultsMachine, _ := filepath.Glob(filepath.Join(path, "results_machine_*.log"))
+	resultsMachine = append(resultsMachine, filepath.Join(path, "results_machine.log"))
 
-	for index := 1; index < numberResults; index++ {
-		bugType, bugPos, bugElemType, err := readAnalysisResults(path, index, progInfo["file"], hl)
-		if err != nil {
-			continue
+	for _, result := range resultsMachine {
+		file, _ := os.ReadFile(result)
+		numberResults := len(strings.Split(string(file), "\n"))
+
+		for index := 1; index < numberResults; index++ {
+			id := ""
+			if strings.HasSuffix(result, "results_machine.log") {
+				id += "0_" + strconv.Itoa(index)
+			} else {
+				elem := strings.Split(strings.Split(result, ".log")[0], "_")
+				id += elem[len(elem)-1] + "_" + strconv.Itoa(index)
+			}
+
+			bugType, bugPos, bugElemType, err := readAnalysisResults(result, index, progInfo["file"], hl)
+			if err != nil {
+				continue
+			}
+
+			// get the bug type description
+			bugTypeDescription := getBugTypeDescription(bugType)
+
+			// get the code of the bug elements
+			code, err := getBugPositions(bugPos, progInfo)
+			if err != nil {
+				fmt.Println("Error getting bug positions: ", err)
+			}
+
+			// get the replay info
+			replay := getRewriteInfo(bugType, replayCodes, id)
+
+			if ignoreDouble && replay["exitCode"] == "double" {
+				continue
+			}
+
+			err = writeFile(path, id, bugTypeDescription, bugPos, bugElemType, code,
+				replay, progInfo)
 		}
-
-		// get the bug type description
-		bugTypeDescription := getBugTypeDescription(bugType)
-
-		// get the code of the bug elements
-		code, err := getBugPositions(bugPos, progInfo)
-		if err != nil {
-			fmt.Println("Error getting bug positions: ", err)
-		}
-
-		// get the replay info
-		replay := getRewriteInfo(bugType, replayCodes, index)
-
-		if ignoreDouble && replay["exitCode"] == "double" {
-			continue
-		}
-
-		err = writeFile(path, index, bugTypeDescription, bugPos, bugElemType, code,
-			replay, progInfo)
 	}
 
 	return err
@@ -94,7 +107,7 @@ func CreateOverview(path string, ignoreDouble bool) error {
 }
 
 func readAnalysisResults(path string, index int, fileWithHeader string, headerLine int) (string, map[int][]string, map[int]string, error) {
-	file, err := os.ReadFile(filepath.Join(path, "results_machine.log"))
+	file, err := os.ReadFile(path)
 	if err != nil {
 		return "", nil, nil, err
 	}
@@ -155,7 +168,7 @@ func readAnalysisResults(path string, index int, fileWithHeader string, headerLi
 	return bugType, bugPos, bugElemType, nil
 }
 
-func writeFile(path string, index int, description map[string]string,
+func writeFile(path string, index string, description map[string]string,
 	positions map[int][]string, bugElemType map[int]string, code map[int][]string,
 	replay map[string]string, progInfo map[string]string) error {
 
@@ -206,7 +219,6 @@ func writeFile(path string, index int, description map[string]string,
 
 	// write the code of the bug elements
 	res += "## Bug Elements\n"
-	res += "The full trace of the recording can be found in the `advocateTrace` folder.\n\n"
 	res += "The elements involved in the found "
 	res += strings.ToLower(description["crit"])
 	res += " are located at the following positions:\n\n"
@@ -267,7 +279,7 @@ func writeFile(path string, index int, description map[string]string,
 	}
 
 	// create the file
-	file, err := os.Create(folderName + "/bug_" + fmt.Sprint(index) + ".md")
+	file, err := os.Create(folderName + "/bug_" + index + ".md")
 	if err != nil {
 		return err
 	}
