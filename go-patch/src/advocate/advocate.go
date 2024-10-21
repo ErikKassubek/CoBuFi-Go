@@ -520,7 +520,7 @@ func readTraceFile(fileName string, chanWithoutPartner *map[string]int) (int, ru
 		default:
 			panic("Unknown operation " + fields[0] + " in line " + elem + " in file " + fileName + ".")
 		}
-		if time == 0 {
+		if blocked || time == 0 {
 			time = math.MaxInt
 		}
 		if op != runtime.OperationNone && !runtime.AdvocateIgnore(op, file, line) {

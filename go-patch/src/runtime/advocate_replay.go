@@ -202,6 +202,11 @@ func DisableReplay() {
 	defer unlock(&replayLock)
 
 	replayEnabled = false
+
+	for _, ch := range waitingOps {
+		ch <- ReplayElement{}
+	}
+
 	println("Replay disabled")
 }
 
