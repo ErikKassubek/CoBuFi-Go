@@ -203,7 +203,7 @@ func runWorkflowMain(pathToAdvocate string, pathToFile string, executableName st
 	}
 
 	if measureTime {
-		updateTimeFiles(progName, "Main", resultPath, resTimes, len(rewrittenTraces))
+		updateTimeFiles(progName, "Main", resultPath, resTimes, len(rewrittenTraces), 1)
 	}
 
 	if notExecuted {

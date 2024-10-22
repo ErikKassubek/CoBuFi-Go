@@ -107,6 +107,8 @@ var resultsCriticalReadable []string
 var resultsWarningMachine []string
 var resultCriticalMachine []string
 
+var resultWithoutTime []string
+
 /*
 * Print a debug log message if the log level is sufficiant
 * Args:
@@ -130,6 +132,7 @@ type ResultElem interface {
 	isInvalid() bool
 	stringMachine() string
 	stringReadable() string
+	stringMachineShort() string
 }
 
 type TraceElementResult struct {
@@ -139,6 +142,10 @@ type TraceElementResult struct {
 	ObjType   string
 	File      string
 	Line      int
+}
+
+func (t TraceElementResult) stringMachineShort() string {
+	return fmt.Sprintf("T:%d:%d:%s:%s:%d", t.RoutineID, t.ObjID, t.ObjType, t.File, t.Line)
 }
 
 func (t TraceElementResult) stringMachine() string {
@@ -158,6 +165,10 @@ type SelectCaseResult struct {
 	ObjID   int
 	ObjType string
 	Routine int
+}
+
+func (s SelectCaseResult) stringMachineShort() string {
+	return fmt.Sprintf("S:%d:%s", s.ObjID, s.ObjType)
 }
 
 func (s SelectCaseResult) stringMachine() string {
@@ -193,6 +204,7 @@ func Result(level resultLevel, resType ResultType, argType1 string, arg1 []Resul
 
 	resultReadable := resultTypeMap[resType] + "\n\t" + argType1 + ": "
 	resultMachine := string(resType) + ","
+	resultMachineShort := string(resType)
 
 	for i, arg := range arg1 {
 		if arg.isInvalid() {
@@ -207,6 +219,7 @@ func Result(level resultLevel, resType ResultType, argType1 string, arg1 []Resul
 		}
 		resultReadable += arg.stringReadable()
 		resultMachine += arg.stringMachine()
+		resultMachineShort += arg.stringMachineShort()
 	}
 
 	resultReadable += "\n"
@@ -226,6 +239,7 @@ func Result(level resultLevel, resType ResultType, argType1 string, arg1 []Resul
 			}
 			resultReadable += arg.stringReadable()
 			resultMachine += arg.stringMachine()
+			resultMachineShort += arg.stringMachineShort()
 		}
 
 	}
@@ -234,15 +248,17 @@ func Result(level resultLevel, resType ResultType, argType1 string, arg1 []Resul
 	resultMachine += "\n"
 
 	if level == WARNING {
-		if !stringInSlice(resultMachine, resultsWarningMachine) {
+		if !stringInSlice(resultMachineShort, resultWithoutTime) {
 			resultsWarningReadable = append(resultsWarningReadable, resultReadable)
 			resultsWarningMachine = append(resultsWarningMachine, resultMachine)
+			resultWithoutTime = append(resultWithoutTime, resultMachineShort)
 		}
 	} else if level == CRITICAL {
-		println(resultReadable)
-		if !stringInSlice(resultMachine, resultCriticalMachine) {
+		if !stringInSlice(resultMachineShort, resultWithoutTime) {
+			println(resultReadable)
 			resultsCriticalReadable = append(resultsCriticalReadable, resultReadable)
 			resultCriticalMachine = append(resultCriticalMachine, resultMachine)
+			resultWithoutTime = append(resultWithoutTime, resultMachineShort)
 		}
 	}
 }

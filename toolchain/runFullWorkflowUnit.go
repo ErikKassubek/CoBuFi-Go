@@ -25,7 +25,7 @@ import (
 )
 
 const (
-	timeout = "10m"
+	timeout = "5m"
 )
 
 /*
@@ -105,10 +105,10 @@ func runWorkflowUnit(pathToAdvocate, dir, progName string,
 			}
 
 			// Execute full workflow
-			times, nrReplay, err := unitTestFullWorkflow(pathToAdvocate, dir, testFunc, adjustedPackagePath, file, directoryName)
+			times, nrReplay, nrAnalyzer, err := unitTestFullWorkflow(pathToAdvocate, dir, testFunc, adjustedPackagePath, file, directoryName)
 
 			if measureTime {
-				updateTimeFiles(progName, testFunc, resultPath, times, nrReplay)
+				updateTimeFiles(progName, testFunc, resultPath, times, nrReplay, nrAnalyzer)
 			}
 
 			// Move logs and results to the appropriate directory
@@ -155,7 +155,7 @@ func runWorkflowUnit(pathToAdvocate, dir, progName string,
  *     time (map[string]time.Durations): runtimes
  *     numberReplay (int): number of replay
  */
-func updateTimeFiles(progName string, testName string, folderName string, times map[string]time.Duration, numberReplay int) {
+func updateTimeFiles(progName string, testName string, folderName string, times map[string]time.Duration, numberReplay, numberAnalyzer int) {
 	// fmt.Println("Generate time file")
 
 	timeFilePath := filepath.Join(folderName, "times_"+progName+".csv")
@@ -174,18 +174,18 @@ func updateTimeFiles(progName string, testName string, folderName string, times 
 	defer file.Close()
 
 	if newFile {
-		csvTitels := "TestName,ExecTime,ExecTimeWithTracing,AnalyzerTime,AnalysisTime,HBAnalysisTime,TimeToIdentifyLeaksPlusFindingPoentialPartners,TimeToIdentifyPanicBugs,ReplayTime,NumberReplay\n"
+		csvTitels := "TestName,ExecTime,ExecTimeWithTracing,AnalyzerTime,AnalysisTime,HBAnalysisTime,TimeToIdentifyLeaksPlusFindingPoentialPartners,TimeToIdentifyPanicBugs,ReplayTime,NumberAnalysis,NumberReplay\n"
 		if _, err := file.WriteString(csvTitels); err != nil {
 			fmt.Println("Could not write time: ", err)
 		}
 	}
 
 	timeInfo := fmt.Sprintf(
-		"%s,%.5f,%.5f,%.5f,%.5f,%.5f,%.5f,%.5f,%.5f,%d\n", testName,
+		"%s,%.5f,%.5f,%.5f,%.5f,%.5f,%.5f,%.5f,%.5f,%d,%d\n", testName,
 		times["run"].Seconds(), times["record"].Seconds(),
 		times["analyzer"].Seconds(), times["analysis"].Seconds(),
 		times["hb"].Seconds(), times["leak"].Seconds(), times["panic"].Seconds(), times["replay"].Seconds(),
-		numberReplay)
+		numberAnalyzer, numberReplay)
 
 	// Write to the file
 	if _, err := file.WriteString(timeInfo); err != nil {
@@ -256,10 +256,11 @@ func findTestFunctions(file string) ([]string, error) {
  * Returns:
  *    map[string]time.Duration
  *    int: number of run replays
+ *    int: number of analyzer runs
  *    error
  */
 func unitTestFullWorkflow(pathToAdvocate string, dir string,
-	testName string, pkg string, file string, outputDir string) (map[string]time.Duration, int, error) {
+	testName string, pkg string, file string, outputDir string) (map[string]time.Duration, int, int, error) {
 
 	resTimes := make(map[string]time.Duration)
 
@@ -267,7 +268,7 @@ func unitTestFullWorkflow(pathToAdvocate string, dir string,
 
 	outFile, err := os.OpenFile(output, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
-		return resTimes, 0, fmt.Errorf("Failed to open log file: %v", err)
+		return resTimes, 0, 0, fmt.Errorf("Failed to open log file: %v", err)
 	}
 	defer outFile.Close()
 
@@ -285,19 +286,19 @@ func unitTestFullWorkflow(pathToAdvocate string, dir string,
 
 	// Validate required inputs
 	if pathToAdvocate == "" {
-		return resTimes, 0, errors.New("Path to advocate is empty")
+		return resTimes, 0, 0, errors.New("Path to advocate is empty")
 	}
 	if dir == "" {
-		return resTimes, 0, errors.New("Directory is empty")
+		return resTimes, 0, 0, errors.New("Directory is empty")
 	}
 	if testName == "" {
-		return resTimes, 0, errors.New("Test name is empty")
+		return resTimes, 0, 0, errors.New("Test name is empty")
 	}
 	// if pkg == "" {
 	// 	return 0, 0, 0, 0, errors.New("Package is empty")
 	// }
 	if file == "" {
-		return resTimes, 0, errors.New("Test file is empty")
+		return resTimes, 0, 0, errors.New("Test file is empty")
 	}
 
 	pathToPatchedGoRuntime := filepath.Join(pathToAdvocate, "go-patch/bin/go")
@@ -306,7 +307,7 @@ func unitTestFullWorkflow(pathToAdvocate string, dir string,
 
 	// Change to the directory
 	if err := os.Chdir(dir); err != nil {
-		return resTimes, 0, fmt.Errorf("Failed to change directory: %v", err)
+		return resTimes, 0, 0, fmt.Errorf("Failed to change directory: %v", err)
 	}
 	fmt.Printf("In directory: %s\n", dir)
 
@@ -318,7 +319,7 @@ func unitTestFullWorkflow(pathToAdvocate string, dir string,
 	err = unitTestRecord(pathToGoRoot, pathToPatchedGoRuntime, pkg, file, testName, resTimes)
 	if err != nil {
 		fmt.Println("Failed record: ", err.Error())
-		return resTimes, 0, err
+		return resTimes, 0, 0, err
 	}
 
 	headerRemoverUnit(file)
@@ -327,9 +328,11 @@ func unitTestFullWorkflow(pathToAdvocate string, dir string,
 
 	lenRewTraces := unitTestReplay(pathToGoRoot, pathToPatchedGoRuntime, dir, pkg, file, testName, resTimes, false)
 
-	lenRewTraces += unitTestReanalyzeLeaks(pathToGoRoot, pathToPatchedGoRuntime, pathToAnalyzer, dir, pkg, file, testName, output, resTimes)
+	lrt, la := unitTestReanalyzeLeaks(pathToGoRoot, pathToPatchedGoRuntime, pathToAnalyzer, dir, pkg, file, testName, output, resTimes)
 
-	return resTimes, lenRewTraces, nil
+	lenRewTraces += lrt
+
+	return resTimes, lenRewTraces, la + 1, nil
 }
 
 func unitTestRun(pkg, file, testName string, resTimes map[string]time.Duration) {
@@ -413,7 +416,7 @@ func unitTestAnalyzer(pathToAnalyzer, dir, pkg, traceName, output string, resTim
 		fmt.Println("Analyzer failed", err)
 		log.Println("Analyzer failed", err)
 	}
-	resTimes["analyzer"] = time.Since(startTime)
+	resTimes["analyzer"] += time.Since(startTime)
 
 	fileOuputRead, err := os.OpenFile(output, os.O_RDONLY, 0644)
 	if err != nil {
@@ -436,14 +439,14 @@ func unitTestAnalyzer(pathToAnalyzer, dir, pkg, traceName, output string, resTim
 			timePanicFloat, _ := strconv.ParseFloat(elems[2], 64)
 			timeOtherFloat, _ := strconv.ParseFloat(elems[3], 64)
 
-			resTimes["analysis"] = time.Duration(timeAnaFloat * float64(time.Second))
-			resTimes["leak"] = time.Duration(timeLeakFloat * float64(time.Second))
-			resTimes["panic"] = time.Duration(timePanicFloat * float64(time.Second))
-			durationOther = time.Duration(timeOtherFloat * float64(time.Second))
+			resTimes["analysis"] += time.Duration(timeAnaFloat * float64(time.Second))
+			resTimes["leak"] += time.Duration(timeLeakFloat * float64(time.Second))
+			resTimes["panic"] += time.Duration(timePanicFloat * float64(time.Second))
+			durationOther += time.Duration(timeOtherFloat * float64(time.Second))
 		}
 	}
 	fileOuputRead.Close()
-	resTimes["hb"] = resTimes["analysis"] - resTimes["leak"] - resTimes["panic"] - durationOther
+	resTimes["hb"] += resTimes["analysis"] - resTimes["leak"] - resTimes["panic"] - durationOther
 	if resTimes["hb"] < 0 {
 		resTimes["hb"] = 0
 	}
@@ -469,7 +472,6 @@ func unitTestReplay(pathToGoRoot, pathToPatchedGoRuntime, dir, pkg, file, testNa
 		timeoutRepl += time.Duration(timeoutReplay) * time.Second
 	}
 
-	resTimes["replay"] = time.Duration(0)
 	for i, trace := range rewrittenTraces {
 		traceNum := extractTraceNumber(trace)
 
@@ -488,6 +490,7 @@ func unitTestReplay(pathToGoRoot, pathToPatchedGoRuntime, dir, pkg, file, testNa
 		startTime := time.Now()
 		runCommand(pathToPatchedGoRuntime, "test", "-v", "-timeout", timeout, "-count=1", "-run="+testName, "./"+pkg)
 		resTimes["replay"] += time.Since(startTime)
+		fmt.Println("Add replay time: ", resTimes["replay"])
 
 		os.Unsetenv("GOROOT")
 		fmt.Println("GOROOT removed")
@@ -500,7 +503,7 @@ func unitTestReplay(pathToGoRoot, pathToPatchedGoRuntime, dir, pkg, file, testNa
 	return len(rewrittenTraces)
 }
 
-func unitTestReanalyzeLeaks(pathToGoRoot, pathToPatchedGoRuntime, pathToAnalyzer, dir, pkg, file, testName, output string, resTimes map[string]time.Duration) int {
+func unitTestReanalyzeLeaks(pathToGoRoot, pathToPatchedGoRuntime, pathToAnalyzer, dir, pkg, file, testName, output string, resTimes map[string]time.Duration) (int, int) {
 	pathPkg := filepath.Join(dir, pkg)
 	rerecordedTraces, _ := filepath.Glob(filepath.Join(pathPkg, "advocateTraceReplay_*"))
 	fmt.Printf("Found %d rerecorded traces\n", len(rerecordedTraces))
@@ -513,7 +516,7 @@ func unitTestReanalyzeLeaks(pathToGoRoot, pathToPatchedGoRuntime, pathToAnalyzer
 	disableRerecord = true
 	nrRewTrace := unitTestReplay(pathToGoRoot, pathToPatchedGoRuntime, dir, pkg, file, testName, resTimes, true)
 
-	return nrRewTrace
+	return nrRewTrace, len(rerecordedTraces)
 }
 
 // extractTraceNumber extracts the numeric part from a trace directory name

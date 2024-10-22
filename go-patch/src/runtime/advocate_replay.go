@@ -17,7 +17,7 @@ const (
 )
 
 var ExitCodeNames = map[int]string{
-	0:  "The replay terminated",
+	0:  "The replay terminated without confirming the predicted bug",
 	3:  "The program panicked unexpectedly",
 	10: "Timeout",
 	20: "Leak: Leaking unbuffered channel or select was unstuck",
@@ -30,6 +30,8 @@ var ExitCodeNames = map[int]string{
 	32: "Negative WaitGroup counter",
 	33: "Unlock of unlocked mutex",
 }
+
+var hasReturnedExitCode = false
 
 /*
  * String representation of the replay operation.
@@ -203,9 +205,11 @@ func DisableReplay() {
 
 	replayEnabled = false
 
-	for _, ch := range waitingOps {
-		ch <- ReplayElement{}
+	lock(&waitingOpsMutex)
+	for _, replCh := range waitingOps {
+		replCh.ch <- ReplayElement{}
 	}
+	unlock(&waitingOpsMutex)
 
 	println("Replay disabled")
 }
@@ -244,22 +248,21 @@ func IsReplayEnabled() bool {
  * Function to run in the background and to release the waiting operations
  */
 func ReleaseWaits() {
-	lastFile := ""
-	lastLine := -1
+	lastKey := ""
+	lastCounter := 0
 	for {
+		counter++
 		routine, replayElem := getNextReplayElement()
 
 		if routine == -1 {
 			continue
 		}
 
-		if lastFile != replayElem.File || lastLine != replayElem.Line {
-			lastFile = replayElem.File
-			lastLine = replayElem.Line
-		}
-
 		if replayElem.Op == OperationReplayEnd {
-			ExitReplayWithCode(replayElem.Line)
+			println("Operation Replay End")
+			if replayElem.Line >= 20 && replayElem.Line < 30 {
+				ExitReplayWithCode(replayElem.Line)
+			}
 			DisableReplay()
 			// foundReplayElement(routine)
 			return
@@ -267,20 +270,67 @@ func ReleaseWaits() {
 
 		// key := intToString(routine) + ":" + replayElem.File + ":" + intToString(replayElem.Line)
 		key := replayElem.File + ":" + intToString(replayElem.Line)
+		if key != lastKey {
+			println("Next: ", key)
+			lastKey = key
+			lastCounter = 0
+		} else {
+			lastCounter++
+			if lastCounter > 3000000 {
+				var oldest = replayChan{nil, -1}
+				oldestKey := ""
+				lock(&waitingOpsMutex)
+				for key, ch := range waitingOps {
+					if oldest.counter == -1 || ch.counter < oldest.counter {
+						oldest = ch
+						oldestKey = key
+					}
+				}
+				unlock(&waitingOpsMutex)
+				if oldestKey != "" {
+					println("Release last")
+					oldest.ch <- replayElem
+					println("Reli: ", oldestKey)
+
+					foundReplayElement(routine)
+
+					lock(&replayDoneLock)
+					replayDone++
+					unlock(&replayDoneLock)
+
+					lock(&waitingOpsMutex)
+					delete(waitingOps, oldestKey)
+					unlock(&waitingOpsMutex)
+				}
+			}
+		}
+
+		if AdvocateIgnoreReplay(replayElem.Op, replayElem.File, replayElem.Line) {
+			println("Reli: ", key)
+			foundReplayElement(routine)
+
+			lock(&replayDoneLock)
+			replayDone++
+			unlock(&replayDoneLock)
+			continue
+		}
 
 		lock(&waitingOpsMutex)
-		if ch, ok := waitingOps[key]; ok {
+		if replCh, ok := waitingOps[key]; ok {
 			unlock(&waitingOpsMutex)
-			ch <- replayElem
+			replCh.ch <- replayElem
+			println("Reli: ", key)
 
 			foundReplayElement(routine)
 
 			lock(&replayDoneLock)
 			replayDone++
 			unlock(&replayDoneLock)
-		} else {
-			unlock(&waitingOpsMutex)
+
+			lock(&waitingOpsMutex)
+			delete(waitingOps, key)
 		}
+		unlock(&waitingOpsMutex)
 
 		if !replayEnabled {
 			return
@@ -288,9 +338,15 @@ func ReleaseWaits() {
 	}
 }
 
+type replayChan struct {
+	ch      chan ReplayElement
+	counter int
+}
+
 // Map of all currently waiting operations
-var waitingOps = make(map[string]chan ReplayElement)
+var waitingOps = make(map[string]replayChan)
 var waitingOpsMutex mutex
+var counter = 0
 
 /*
  * Wait until the correct operation is about to be executed.
@@ -327,13 +383,17 @@ func WaitForReplayPath(op Operation, file string, line int) (bool, chan ReplayEl
 	}
 
 	// routine := GetRoutineID()
-	// key := uint64ToString(routine+1) + ":" + file + ":" + intToString(line)
+	// key := uint64ToString(routine) + ":" + file + ":" + intToString(line)
 	key := file + ":" + intToString(line)
+	println("Wait: ", key, len(waitingOps)+1)
 
-	ch := make(chan ReplayElement, 1<<62+1) // 1<<62 + 1 makes sure, that the channel is ignored for replay. The actual size is 1
+	ch := make(chan ReplayElement, 1<<62) // 1<<62 + 0 makes sure, that the channel is ignored for replay. The actual size is 0
 
 	lock(&waitingOpsMutex)
-	waitingOps[key] = ch
+	if _, ok := waitingOps[key]; ok {
+		println("----------------------", key)
+	}
+	waitingOps[key] = replayChan{ch, counter}
 	unlock(&waitingOpsMutex)
 	return true, ch
 }
@@ -418,6 +478,8 @@ func getNextReplayElement() (int, ReplayElement) {
 func IsNextElementReplayEnd(code int, runExit bool, overwrite bool) bool {
 	_, next := getNextReplayElement()
 
+	println("InNexElementReplayEnd")
+
 	if overwrite && code == expectedExitCode {
 		ExitReplayWithCode(code)
 		return true
@@ -466,7 +528,10 @@ func SetExpectedExitCode(code int) {
  * 	code: the exit code
  */
 func ExitReplayWithCode(code int) {
-	println("Exit Replay with code ", code, ExitCodeNames[code])
+	if !hasReturnedExitCode {
+		println("Exit Replay with code ", code, ExitCodeNames[code])
+		hasReturnedExitCode = true
+	}
 	if replayExitCode && ExitCodeNames[code] != "" {
 		if !advocateTracingDisabled { // do not exit if recording is enabled
 			return
@@ -481,10 +546,7 @@ func ExitReplayWithCode(code int) {
  * 	msg: the panic message
  */
 func ExitReplayPanic(msg any) {
-	if !replayExitCode {
-		return
-	}
-
+	println("Exit with panic")
 	switch m := msg.(type) {
 	case plainError:
 		if expectedExitCode == ExitCodeSendClose && m.Error() == "send on closed channel" {

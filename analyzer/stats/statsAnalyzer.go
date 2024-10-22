@@ -129,7 +129,7 @@ func processBugFile(filePath string, info *map[string]map[string]int) error {
 				return err
 			}
 
-			if num >= 20 || num == 0 {
+			if num >= 20 {
 				bug.replaySuc = true
 			}
 		}
