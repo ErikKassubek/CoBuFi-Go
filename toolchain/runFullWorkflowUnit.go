@@ -25,7 +25,7 @@ import (
 )
 
 const (
-	timeout = "5m"
+	timeout = "10m"
 )
 
 /*
@@ -249,10 +249,7 @@ func findTestFunctions(file string) ([]string, error) {
  *    testName (string): name of the test
  *    pkg (string): adjusted package path
  *    file (string): file with the test
- *    output (string): write all outputs to this file
- *    measureTime (bool): if true, run the test once without recording/replay to measure time
- *    timeoutAna (int): Set a timeout in seconds for the analysis
- *    timeoutReplay (int): timeout for replay
+ *    outputDir (string): write all outputs to this file
  * Returns:
  *    map[string]time.Duration
  *    int: number of run replays
@@ -488,7 +485,7 @@ func unitTestReplay(pathToGoRoot, pathToPatchedGoRuntime, dir, pkg, file, testNa
 
 		fmt.Printf("\nRun replay %d/%d\n", i+1, len(rewrittenTraces))
 		startTime := time.Now()
-		runCommand(pathToPatchedGoRuntime, "test", "-v", "-timeout", timeout, "-count=1", "-run="+testName, "./"+pkg)
+		runCommand(pathToPatchedGoRuntime, "test", "-v", "-count=1", "-run="+testName, "./"+pkg)
 		resTimes["replay"] += time.Since(startTime)
 		fmt.Println("Add replay time: ", resTimes["replay"])
 

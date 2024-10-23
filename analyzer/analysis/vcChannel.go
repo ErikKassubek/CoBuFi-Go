@@ -138,10 +138,17 @@ func Send(ch *TraceElementChannel, vc map[int]clock.VectorClock, fifo bool) {
 
 	count := bufferedVCsCount[ch.id]
 
-	if len(bufferedVCs[ch.id]) <= count {
+	if bufferedVCsSize[ch.id] <= count {
 		holdSend = append(holdSend, holdObj{ch, vc, fifo})
 		return
 		// panic("BufferedVCsCount is bigger than the buffer qSize for chan " + strconv.Itoa(id) + " with count " + strconv.Itoa(count) + " and qSize " + strconv.Itoa(qSize) + "\n\tand tID " + tID)
+	}
+
+	// if the buffer size of the channel is very big, it would be a wast of RAM to create a map that could hold all of then, especially if
+	// only a few are really used. For this reason, only the max number of buffer positions used is allocated.
+	// If the map is full, but the channel has more buffer positions, the map is extended
+	if len(bufferedVCs[ch.id]) >= count && len(bufferedVCs[ch.id]) < bufferedVCsSize[ch.id] {
+		bufferedVCs[ch.id] = append(bufferedVCs[ch.id], bufferedVC{false, 0, clock.NewVectorClock(vc[ch.routine].GetSize()), 0, ""})
 	}
 
 	if count > ch.qSize || bufferedVCs[ch.id][count].occupied {
@@ -249,8 +256,7 @@ func Recv(ch *TraceElementChannel, vc map[int]clock.VectorClock, fifo bool) {
 		vc[ch.routine] = vc[ch.routine].Sync(mostRecentReceive[ch.routine][ch.id].Vc)
 	}
 
-	bufferedVCs[ch.id] = bufferedVCs[ch.id][1:]
-	bufferedVCs[ch.id] = append(bufferedVCs[ch.id], bufferedVC{false, 0, vc[ch.routine].Copy(), 0, ""})
+	bufferedVCs[ch.id] = append(bufferedVCs[ch.id][1:], bufferedVC{false, 0, vc[ch.routine].Copy(), 0, ""})
 
 	// for detection of receive on closed
 	hasReceived[ch.id] = true
@@ -385,11 +391,10 @@ func RecvC(ch *TraceElementChannel, vc map[int]clock.VectorClock, buffered bool)
  */
 func newBufferedVCs(id int, qSize int, numRout int) {
 	if _, ok := bufferedVCs[id]; !ok {
-		bufferedVCs[id] = make([]bufferedVC, qSize)
-		for i := 0; i < qSize; i++ {
-			bufferedVCsCount[id] = 0
-			bufferedVCs[id][i] = bufferedVC{false, 0, clock.NewVectorClock(numRout), 0, ""}
-		}
+		bufferedVCs[id] = make([]bufferedVC, 1)
+		bufferedVCsCount[id] = 0
+		bufferedVCsSize[id] = qSize
+		bufferedVCs[id][0] = bufferedVC{false, 0, clock.NewVectorClock(numRout), 0, ""}
 	}
 }
 

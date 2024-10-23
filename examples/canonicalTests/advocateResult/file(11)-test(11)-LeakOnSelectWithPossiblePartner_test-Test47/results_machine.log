@@ -1,3 +1,0 @@
-P01,T:20:600000000009:336:CS:/home/erik/Uni/HiWi/ADVOCATE/examples/canonicalTests/tests/LeakOnSelectWithPossiblePartner_test.go:22,T:6:600000000009:340:CC:/home/erik/Uni/HiWi/ADVOCATE/examples/canonicalTests/tests/LeakOnSelectWithPossiblePartner_test.go:35
-L01,T:21:600000000010:344:CS:/home/erik/Uni/HiWi/ADVOCATE/examples/canonicalTests/tests/LeakOnSelectWithPossiblePartner_test.go:27,T:6:600000000010:332:CR:/home/erik/Uni/HiWi/ADVOCATE/examples/canonicalTests/tests/LeakOnSelectWithPossiblePartner_test.go:30
-P02,T:6:600000000009:332:CR:/home/erik/Uni/HiWi/ADVOCATE/examples/canonicalTests/tests/LeakOnSelectWithPossiblePartner_test.go:30,T:6:600000000009:340:CC:/home/erik/Uni/HiWi/ADVOCATE/examples/canonicalTests/tests/LeakOnSelectWithPossiblePartner_test.go:35

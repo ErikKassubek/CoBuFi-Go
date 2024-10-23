@@ -142,8 +142,8 @@ func getReplayInfo(replayCode map[string]string, index string) (string, string, 
 
 	exitCodeInt, err := strconv.Atoi(exitCode)
 	if err != nil {
-		res := fmt.Sprintf("Invalid format in output.log. Could not convert exit code %s to int for index %d", exitCode, index)
-		return "", res, "failed", errors.New(res)
+		res := fmt.Sprintf("Invalid format in output.log. Could not convert exit code %s to int for index %s", exitCode, index)
+		return "fail", res, "failed", errors.New(res)
 	}
 	if exitCodeInt == 0 {
 		replaySuc = "ended without confirming the bug"

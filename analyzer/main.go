@@ -271,6 +271,8 @@ func modeRun(pathTrace *string, noPrint *bool, noRewrite *bool,
 		println("\n\nStart rewriting trace files...")
 		originalTrace := analysis.CopyCurrentTrace()
 
+		analysis.ClearData()
+
 		rewrittenBugs := make(map[bugs.ResultType][]string) // bugtype -> paths string
 
 		addAlreadyProcessed(rewrittenBugs, *ignoreRewrite)

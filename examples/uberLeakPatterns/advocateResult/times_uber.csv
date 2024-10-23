@@ -1,2 +1,0 @@
-TestName,ExecTime,ExecTimeWithTracing,AnalyzerTime,AnalysisTime,HBAnalysisTime,TimeToIdentifyLeaksPlusFindingPoentialPartners,TimeToIdentifyPanicBugs,ReplayTime,NumberReplay
-TestMain,2.11409#2.17266#0.02744#0.00991#0.00843#0.00082#0.00046#3.35391#2

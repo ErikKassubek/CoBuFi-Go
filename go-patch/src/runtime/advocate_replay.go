@@ -271,7 +271,7 @@ func ReleaseWaits() {
 		// key := intToString(routine) + ":" + replayElem.File + ":" + intToString(replayElem.Line)
 		key := replayElem.File + ":" + intToString(replayElem.Line)
 		if key != lastKey {
-			println("Next: ", key)
+			// println("Next: ", key)
 			lastKey = key
 			lastCounter = 0
 		} else {
@@ -288,9 +288,9 @@ func ReleaseWaits() {
 				}
 				unlock(&waitingOpsMutex)
 				if oldestKey != "" {
-					println("Release last")
+					// println("Release last")
 					oldest.ch <- replayElem
-					println("Reli: ", oldestKey)
+					// println("Reli: ", oldestKey)
 
 					foundReplayElement(routine)
 
@@ -385,7 +385,7 @@ func WaitForReplayPath(op Operation, file string, line int) (bool, chan ReplayEl
 	// routine := GetRoutineID()
 	// key := uint64ToString(routine) + ":" + file + ":" + intToString(line)
 	key := file + ":" + intToString(line)
-	println("Wait: ", key, len(waitingOps)+1)
+	// println("Wait: ", key, len(waitingOps)+1)
 
 	ch := make(chan ReplayElement, 1<<62) // 1<<62 + 0 makes sure, that the channel is ignored for replay. The actual size is 0
 

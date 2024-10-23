@@ -1,4 +1,0 @@
-P01,T:21:600000000009:740:CS:/home/erik/Uni/HiWi/ADVOCATE/examples/canonicalTests/tests/TP_SendAndRecOnClosed4_test.go:30,T:20:600000000009:750:CC:/home/erik/Uni/HiWi/ADVOCATE/examples/canonicalTests/tests/TP_SendAndRecOnClosed4_test.go:24
-P01,T:6:600000000010:732:CS:/home/erik/Uni/HiWi/ADVOCATE/examples/canonicalTests/tests/TP_SendAndRecOnClosed4_test.go:40,T:20:600000000010:752:CC:/home/erik/Uni/HiWi/ADVOCATE/examples/canonicalTests/tests/TP_SendAndRecOnClosed4_test.go:25
-P02,T:6:600000000009:738:CR:/home/erik/Uni/HiWi/ADVOCATE/examples/canonicalTests/tests/TP_SendAndRecOnClosed4_test.go:41,T:20:600000000009:750:CC:/home/erik/Uni/HiWi/ADVOCATE/examples/canonicalTests/tests/TP_SendAndRecOnClosed4_test.go:24
-P02,T:21:600000000010:744:CR:/home/erik/Uni/HiWi/ADVOCATE/examples/canonicalTests/tests/TP_SendAndRecOnClosed4_test.go:35,T:20:600000000010:752:CC:/home/erik/Uni/HiWi/ADVOCATE/examples/canonicalTests/tests/TP_SendAndRecOnClosed4_test.go:25

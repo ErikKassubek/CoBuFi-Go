@@ -802,6 +802,7 @@ func copyTraceRoutine(trace []TraceElement) []TraceElement {
  *   trace (map[int][]traceElement): The trace
  */
 func SetTrace(trace map[int][]TraceElement) {
+	traces = make(map[int][]TraceElement)
 	traces = CopyTrace(trace)
 }
 
