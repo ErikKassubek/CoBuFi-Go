@@ -37,7 +37,11 @@ const (
 	OperationCondBroadcast
 	OperationCondWait
 
-	OperationAtomic
+	OperationAtomicLoad
+	OperationAtomicStore
+	OperationAtomicAdd
+	OperationAtomicSwap
+	OperationAtomicCompareAndSwap
 
 	OperationReplayEnd
 )
@@ -54,6 +58,34 @@ var advocatePanicWriteBlock chan struct{}
 var advocatePanicDone chan struct{}
 
 // var advocateTraceWritingDisabled = false
+
+func getOperationObjectString(op Operation) string {
+	select op {
+	case OperationNone:
+		return "None"
+	case OperationSpawn, OperationSpawned, OperationRoutineExit:
+		return "Routine"
+	case OperationChannelSend, OperationChannelRecv, OperationChannelClose:
+		return "Channel"
+	case OperationMutexLock, OperationMutexUnlock, OperationMutexTryLock:
+		return "Mutex"
+	case OperationRWMutexLock, OperationRWMutexUnlock, OperationRWMutexTryLock, OperationRWMutexRLock, OperationRWMutexRUnlock, OperationRWMutexTryRLock:
+		return "RWMutex"
+	case OperationOnce:
+		return "Once"
+	case OperationWaitgroupAddDone, OperationWaitgroupWait:
+		return "Waitgroup"
+	case OperationSelect, OperationSelectCase, OperationSelectDefault:
+		return "Select"
+	case OperationCondSignal, OperationCondBroadcast, OperationCondWait:
+		return "Cond"
+	case OperationAtomicLoad, OperationAtomicStore, OperationAtomicAdd, OperationAtomicSwap, OperationAtomicCompareAndSwap:
+		return "Atomic"
+	case OperationReplayEnd:
+		return "Replay"
+	}
+	return "Unknown"
+}
 
 /*
  * Get the channels used to write the trace on certain panics
@@ -348,46 +380,7 @@ func AdvocateIgnore(operation Operation, file string, line int) bool {
 	return false
 }
 
-func AdvocateIgnoreReplay(operation Operation, file string, line int) bool {
-	if hasSuffix(file, "time/sleep.go") {
-		return true
-	} else if hasSuffix(file, "signal/signal.go") { // ctrl+c
-		return true
-	} else if contains(file, "go-patch/src/") {
-		return true
-	}
 
-	return AdvocateIgnore(operation, file, line)
-}
 
-func contains(s, sub string) bool {
-	// Get the lengths of both the main string and the substring
-	lenS := len(s)
-	lenSub := len(sub)
-
-	// If the substring is longer than the string, it can't be a substring
-	if lenSub > lenS {
-		return false
-	}
-
-	// Iterate over the main string `s`
-	for i := 0; i <= lenS-lenSub; i++ {
-		// Check if substring matches
-		match := true
-		for j := 0; j < lenSub; j++ {
-			if s[i+j] != sub[j] {
-				match = false
-				break
-			}
-		}
-		// If we found a match, return true
-		if match {
-			return true
-		}
-	}
-
-	// No match found, return false
-	return false
-}
 
 // ADVOCATE-FILE-END

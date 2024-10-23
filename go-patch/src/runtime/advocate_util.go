@@ -338,6 +338,36 @@ func containsInt(list []int, elem int) bool {
 	return false
 }
 
+func contains(s, sub string) bool {
+	// Get the lengths of both the main string and the substring
+	lenS := len(s)
+	lenSub := len(sub)
+
+	// If the substring is longer than the string, it can't be a substring
+	if lenSub > lenS {
+		return false
+	}
+
+	// Iterate over the main string `s`
+	for i := 0; i <= lenS-lenSub; i++ {
+		// Check if substring matches
+		match := true
+		for j := 0; j < lenSub; j++ {
+			if s[i+j] != sub[j] {
+				match = false
+				break
+			}
+		}
+		// If we found a match, return true
+		if match {
+			return true
+		}
+	}
+
+	// No match found, return false
+	return false
+}
+
 /*
  * Slow down the execution of the program
  */
