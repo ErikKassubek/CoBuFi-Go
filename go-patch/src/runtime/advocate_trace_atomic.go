@@ -15,10 +15,10 @@ const (
  * Args:
  * 	index: index of the atomic event in advocateAtomicMap
  */
-func AdvocateAtomic[T any](addr *T, op AtomicOp) {
+func AdvocateAtomic[T any](addr *T, op AtomicOp, skip int) {
 	timer := GetNextTimeStep()
 
-	_, file, line, _ := Caller(2)
+	_, file, line, _ := Caller(skip)
 
 	index := pointerAddressAsString(addr, true)
 

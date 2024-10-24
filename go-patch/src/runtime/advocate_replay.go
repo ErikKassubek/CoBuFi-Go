@@ -279,11 +279,7 @@ func ReleaseWaits() {
 
 		// key := intToString(routine) + ":" + replayElem.File + ":" + intToString(replayElem.Line)
 		key := replayElem.File + ":" + intToString(replayElem.Line)
-		if key != lastKey {
-			// println("Next: ", key)
-			lastKey = key
-			lastCounter = 0
-		} else {
+		if key == lastKey {
 			lastCounter++
 			if lastCounter > 3000000 {
 				var oldest = replayChan{nil, -1}
@@ -297,9 +293,8 @@ func ReleaseWaits() {
 				}
 				unlock(&waitingOpsMutex)
 				if oldestKey != "" {
-					// println("Release last")
+					println("ReliLast: ", oldestKey)
 					oldest.ch <- replayElem
-					// println("Reli: ", oldestKey)
 
 					foundReplayElement(routine)
 
@@ -315,7 +310,6 @@ func ReleaseWaits() {
 		}
 
 		if AdvocateIgnoreReplay(replayElem.Op, replayElem.File, replayElem.Line) {
-			println("Reli: ", key)
 			foundReplayElement(routine)
 
 			lock(&replayDoneLock)
@@ -324,11 +318,16 @@ func ReleaseWaits() {
 			continue
 		}
 
+		if key != lastKey {
+			// println("Next: ", key)
+			lastKey = key
+			lastCounter = 0
+		}
+
 		lock(&waitingOpsMutex)
 		if replCh, ok := waitingOps[key]; ok {
 			unlock(&waitingOpsMutex)
 			replCh.ch <- replayElem
-			println("Reli: ", key)
 
 			foundReplayElement(routine)
 
@@ -555,6 +554,10 @@ func ExitReplayWithCode(code int) {
  * 	msg: the panic message
  */
 func ExitReplayPanic(msg any) {
+	if !IsReplayEnabled() {
+		return
+	}
+
 	println("Exit with panic")
 	switch m := msg.(type) {
 	case plainError:

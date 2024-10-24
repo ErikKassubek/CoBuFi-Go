@@ -3,6 +3,7 @@
 package runtime
 
 import (
+	"runtime/internal/atomic"
 	"unsafe"
 )
 
@@ -267,11 +268,8 @@ func splitString(line string, sep string) []string {
 
 // MARK: ADVOCATE
 
-var advocateCurrentRoutineID uint64
-var advocateGlobalCounter uint64
-
-var advocateCurrentRoutineIDMutex mutex
-var advocateGlobalCounterMutex mutex
+var advocateCurrentRoutineID atomic.Uint64
+var advocateGlobalCounter atomic.Uint64
 
 /*
  * GetAdvocateRoutineID returns a new id for a routine
@@ -279,13 +277,11 @@ var advocateGlobalCounterMutex mutex
  * 	new id
  */
 func GetAdvocateRoutineID() uint64 {
-	lock(&advocateCurrentRoutineIDMutex)
-	defer unlock(&advocateCurrentRoutineIDMutex)
-	advocateCurrentRoutineID++
-	if advocateCurrentRoutineID > 184467440 {
+	id := advocateCurrentRoutineID.Add(1)
+	if id > 184467440 {
 		panic("Overflow Error: Two many routines. Max: 184467440")
 	}
-	return advocateCurrentRoutineID
+	return id
 }
 
 /*
@@ -315,10 +311,7 @@ func GetAdvocateObjectID() uint64 {
  * 	new time value
  */
 func GetNextTimeStep() uint64 {
-	lock(&advocateGlobalCounterMutex)
-	defer unlock(&advocateGlobalCounterMutex)
-	advocateGlobalCounter += 2
-	return advocateGlobalCounter
+	return advocateGlobalCounter.Add(2)
 }
 
 /*

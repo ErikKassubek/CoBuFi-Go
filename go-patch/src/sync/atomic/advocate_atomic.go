@@ -7,9 +7,9 @@ import "runtime"
 func SwapInt32(addr *int32, new int32) (old int32) {
 	wait, ch := runtime.WaitForReplay(runtime.OperationAtomicSwap, 2)
 	if wait {
-		<- ch
+		<-ch
 	}
-	runtime.AdvocateAtomic(addr, runtime.SwapOp)
+	runtime.AdvocateAtomic(addr, runtime.SwapOp, 2)
 	return SwapInt32Advocate(addr, new)
 }
 
@@ -19,9 +19,9 @@ func SwapInt32(addr *int32, new int32) (old int32) {
 func SwapInt64(addr *int64, new int64) (old int64) {
 	wait, ch := runtime.WaitForReplay(runtime.OperationAtomicSwap, 2)
 	if wait {
-		<- ch
+		<-ch
 	}
-	runtime.AdvocateAtomic(addr, runtime.SwapOp)
+	runtime.AdvocateAtomic(addr, runtime.SwapOp, 2)
 	return SwapInt64Advocate(addr, new)
 }
 
@@ -30,9 +30,9 @@ func SwapInt64(addr *int64, new int64) (old int64) {
 func SwapUint32(addr *uint32, new uint32) (old uint32) {
 	wait, ch := runtime.WaitForReplay(runtime.OperationAtomicSwap, 2)
 	if wait {
-		<- ch
+		<-ch
 	}
-	runtime.AdvocateAtomic(addr, runtime.SwapOp)
+	runtime.AdvocateAtomic(addr, runtime.SwapOp, 2)
 	return SwapUint32Advocate(addr, new)
 }
 
@@ -42,9 +42,9 @@ func SwapUint32(addr *uint32, new uint32) (old uint32) {
 func SwapUint64(addr *uint64, new uint64) (old uint64) {
 	wait, ch := runtime.WaitForReplay(runtime.OperationAtomicSwap, 2)
 	if wait {
-		<- ch
+		<-ch
 	}
-	runtime.AdvocateAtomic(addr, runtime.SwapOp)
+	runtime.AdvocateAtomic(addr, runtime.SwapOp, 2)
 	return SwapUint64Advocate(addr, new)
 }
 
@@ -53,9 +53,9 @@ func SwapUint64(addr *uint64, new uint64) (old uint64) {
 func SwapUintptr(addr *uintptr, new uintptr) (old uintptr) {
 	wait, ch := runtime.WaitForReplay(runtime.OperationAtomicSwap, 2)
 	if wait {
-		<- ch
+		<-ch
 	}
-	runtime.AdvocateAtomic(addr, runtime.SwapOp)
+	runtime.AdvocateAtomic(addr, runtime.SwapOp, 2)
 	return SwapUintptrAdvocate(addr, new)
 }
 
@@ -70,9 +70,9 @@ func SwapUintptr(addr *uintptr, new uintptr) (old uintptr) {
 func CompareAndSwapInt32(addr *int32, old, new int32) (swapped bool) {
 	wait, ch := runtime.WaitForReplay(runtime.OperationAtomicCompareAndSwap, 2)
 	if wait {
-		<- ch
+		<-ch
 	}
-	runtime.AdvocateAtomic(addr, runtime.CompSwapOp)
+	runtime.AdvocateAtomic(addr, runtime.CompSwapOp, 2)
 	return CompareAndSwapInt32Advocate(addr, old, new)
 }
 
@@ -82,9 +82,9 @@ func CompareAndSwapInt32(addr *int32, old, new int32) (swapped bool) {
 func CompareAndSwapInt64(addr *int64, old, new int64) (swapped bool) {
 	wait, ch := runtime.WaitForReplay(runtime.OperationAtomicCompareAndSwap, 2)
 	if wait {
-		<- ch
+		<-ch
 	}
-	runtime.AdvocateAtomic(addr, runtime.CompSwapOp)
+	runtime.AdvocateAtomic(addr, runtime.CompSwapOp, 2)
 	return CompareAndSwapInt64Advocate(addr, old, new)
 }
 
@@ -93,9 +93,9 @@ func CompareAndSwapInt64(addr *int64, old, new int64) (swapped bool) {
 func CompareAndSwapUint32(addr *uint32, old, new uint32) (swapped bool) {
 	wait, ch := runtime.WaitForReplay(runtime.OperationAtomicCompareAndSwap, 2)
 	if wait {
-		<- ch
+		<-ch
 	}
-	runtime.AdvocateAtomic(addr, runtime.CompSwapOp)
+	runtime.AdvocateAtomic(addr, runtime.CompSwapOp, 2)
 	return CompareAndSwapUint32Advocate(addr, old, new)
 }
 
@@ -105,9 +105,9 @@ func CompareAndSwapUint32(addr *uint32, old, new uint32) (swapped bool) {
 func CompareAndSwapUint64(addr *uint64, old, new uint64) (swapped bool) {
 	wait, ch := runtime.WaitForReplay(runtime.OperationAtomicCompareAndSwap, 2)
 	if wait {
-		<- ch
+		<-ch
 	}
-	runtime.AdvocateAtomic(addr, runtime.CompSwapOp)
+	runtime.AdvocateAtomic(addr, runtime.CompSwapOp, 2)
 	return CompareAndSwapUint64Advocate(addr, old, new)
 }
 
@@ -116,9 +116,9 @@ func CompareAndSwapUint64(addr *uint64, old, new uint64) (swapped bool) {
 func CompareAndSwapUintptr(addr *uintptr, old, new uintptr) (swapped bool) {
 	wait, ch := runtime.WaitForReplay(runtime.OperationAtomicCompareAndSwap, 2)
 	if wait {
-		<- ch
+		<-ch
 	}
-	runtime.AdvocateAtomic(addr, runtime.CompSwapOp)
+	runtime.AdvocateAtomic(addr, runtime.CompSwapOp, 2)
 	return CompareAndSwapUintptrAdvocate(addr, old, new)
 }
 
@@ -133,9 +133,9 @@ func CompareAndSwapUintptr(addr *uintptr, old, new uintptr) (swapped bool) {
 func AddInt32(addr *int32, delta int32) (new int32) {
 	wait, ch := runtime.WaitForReplay(runtime.OperationAtomicAdd, 2)
 	if wait {
-		<- ch
+		<-ch
 	}
-	runtime.AdvocateAtomic(addr, runtime.AddOp)
+	runtime.AdvocateAtomic(addr, runtime.AddOp, 2)
 	return AddInt32Advocate(addr, delta)
 }
 
@@ -146,9 +146,9 @@ func AddInt32(addr *int32, delta int32) (new int32) {
 func AddUint32(addr *uint32, delta uint32) (new uint32) {
 	wait, ch := runtime.WaitForReplay(runtime.OperationAtomicAdd, 2)
 	if wait {
-		<- ch
+		<-ch
 	}
-	runtime.AdvocateAtomic(addr, runtime.AddOp)
+	runtime.AdvocateAtomic(addr, runtime.AddOp, 2)
 	return AddUint32Advocate(addr, delta)
 }
 
@@ -158,9 +158,9 @@ func AddUint32(addr *uint32, delta uint32) (new uint32) {
 func AddInt64(addr *int64, delta int64) (new int64) {
 	wait, ch := runtime.WaitForReplay(runtime.OperationAtomicAdd, 2)
 	if wait {
-		<- ch
+		<-ch
 	}
-	runtime.AdvocateAtomic(addr, runtime.AddOp)
+	runtime.AdvocateAtomic(addr, runtime.AddOp, 2)
 	return AddInt64Advocate(addr, delta)
 }
 
@@ -172,9 +172,9 @@ func AddInt64(addr *int64, delta int64) (new int64) {
 func AddUint64(addr *uint64, delta uint64) (new uint64) {
 	wait, ch := runtime.WaitForReplay(runtime.OperationAtomicAdd, 2)
 	if wait {
-		<- ch
+		<-ch
 	}
-	runtime.AdvocateAtomic(addr, runtime.AddOp)
+	runtime.AdvocateAtomic(addr, runtime.AddOp, 2)
 	return AddUint64Advocate(addr, delta)
 }
 
@@ -183,9 +183,9 @@ func AddUint64(addr *uint64, delta uint64) (new uint64) {
 func AddUintptr(addr *uintptr, delta uintptr) (new uintptr) {
 	wait, ch := runtime.WaitForReplay(runtime.OperationAtomicAdd, 2)
 	if wait {
-		<- ch
+		<-ch
 	}
-	runtime.AdvocateAtomic(addr, runtime.AddOp)
+	runtime.AdvocateAtomic(addr, runtime.AddOp, 2)
 	return AddUintptrAdvocate(addr, delta)
 }
 
@@ -194,9 +194,9 @@ func AddUintptr(addr *uintptr, delta uintptr) (new uintptr) {
 func LoadInt32(addr *int32) (val int32) {
 	wait, ch := runtime.WaitForReplay(runtime.OperationAtomicLoad, 2)
 	if wait {
-		<- ch
+		<-ch
 	}
-	runtime.AdvocateAtomic(addr, runtime.LoadOp)
+	runtime.AdvocateAtomic(addr, runtime.LoadOp, 2)
 	return LoadInt32Advocate(addr)
 }
 
@@ -206,9 +206,9 @@ func LoadInt32(addr *int32) (val int32) {
 func LoadInt64(addr *int64) (val int64) {
 	wait, ch := runtime.WaitForReplay(runtime.OperationAtomicLoad, 2)
 	if wait {
-		<- ch
+		<-ch
 	}
-	runtime.AdvocateAtomic(addr, runtime.LoadOp)
+	runtime.AdvocateAtomic(addr, runtime.LoadOp, 2)
 	return LoadInt64Advocate(addr)
 }
 
@@ -217,9 +217,9 @@ func LoadInt64(addr *int64) (val int64) {
 func LoadUint32(addr *uint32) (val uint32) {
 	wait, ch := runtime.WaitForReplay(runtime.OperationAtomicLoad, 2)
 	if wait {
-		<- ch
+		<-ch
 	}
-	runtime.AdvocateAtomic(addr, runtime.LoadOp)
+	runtime.AdvocateAtomic(addr, runtime.LoadOp, 2)
 	return LoadUint32Advocate(addr)
 }
 
@@ -229,9 +229,9 @@ func LoadUint32(addr *uint32) (val uint32) {
 func LoadUint64(addr *uint64) (val uint64) {
 	wait, ch := runtime.WaitForReplay(runtime.OperationAtomicLoad, 2)
 	if wait {
-		<- ch
+		<-ch
 	}
-	runtime.AdvocateAtomic(addr, runtime.LoadOp)
+	runtime.AdvocateAtomic(addr, runtime.LoadOp, 2)
 	return LoadUint64Advocate(addr)
 }
 
@@ -240,9 +240,9 @@ func LoadUint64(addr *uint64) (val uint64) {
 func LoadUintptr(addr *uintptr) (val uintptr) {
 	wait, ch := runtime.WaitForReplay(runtime.OperationAtomicLoad, 2)
 	if wait {
-		<- ch
+		<-ch
 	}
-	runtime.AdvocateAtomic(addr, runtime.LoadOp)
+	runtime.AdvocateAtomic(addr, runtime.LoadOp, 2)
 	return LoadUintptrAdvocate(addr)
 }
 
@@ -257,9 +257,9 @@ func LoadUintptr(addr *uintptr) (val uintptr) {
 func StoreInt32(addr *int32, val int32) {
 	wait, ch := runtime.WaitForReplay(runtime.OperationAtomicStore, 2)
 	if wait {
-		<- ch
+		<-ch
 	}
-	runtime.AdvocateAtomic(addr, runtime.StoreOp)
+	runtime.AdvocateAtomic(addr, runtime.StoreOp, 2)
 	StoreInt32Advocate(addr, val)
 }
 
@@ -269,9 +269,9 @@ func StoreInt32(addr *int32, val int32) {
 func StoreInt64(addr *int64, val int64) {
 	wait, ch := runtime.WaitForReplay(runtime.OperationAtomicStore, 2)
 	if wait {
-		<- ch
+		<-ch
 	}
-	runtime.AdvocateAtomic(addr, runtime.StoreOp)
+	runtime.AdvocateAtomic(addr, runtime.StoreOp, 2)
 	StoreInt64Advocate(addr, val)
 }
 
@@ -280,9 +280,9 @@ func StoreInt64(addr *int64, val int64) {
 func StoreUint32(addr *uint32, val uint32) {
 	wait, ch := runtime.WaitForReplay(runtime.OperationAtomicStore, 2)
 	if wait {
-		<- ch
+		<-ch
 	}
-	runtime.AdvocateAtomic(addr, runtime.StoreOp)
+	runtime.AdvocateAtomic(addr, runtime.StoreOp, 2)
 	StoreUint32Advocate(addr, val)
 }
 
@@ -292,9 +292,9 @@ func StoreUint32(addr *uint32, val uint32) {
 func StoreUint64(addr *uint64, val uint64) {
 	wait, ch := runtime.WaitForReplay(runtime.OperationAtomicStore, 2)
 	if wait {
-		<- ch
+		<-ch
 	}
-	runtime.AdvocateAtomic(addr, runtime.StoreOp)
+	runtime.AdvocateAtomic(addr, runtime.StoreOp, 2)
 	StoreUint64Advocate(addr, val)
 }
 
@@ -303,9 +303,9 @@ func StoreUint64(addr *uint64, val uint64) {
 func StoreUintptr(addr *uintptr, val uintptr) {
 	wait, ch := runtime.WaitForReplay(runtime.OperationAtomicStore, 2)
 	if wait {
-		<- ch
+		<-ch
 	}
-	runtime.AdvocateAtomic(addr, runtime.StoreOp)
+	runtime.AdvocateAtomic(addr, runtime.StoreOp, 2)
 	StoreUintptrAdvocate(addr, val)
 }
 
@@ -314,3 +314,231 @@ func StoreUintptr(addr *uintptr, val uintptr) {
 // func StorePointer(addr *unsafe.Pointer, val unsafe.Pointer) {
 // 	StorePointerAdvocate(addr, val)
 // }
+
+// Copies to use from the sync/atomic/type.go
+// They are identical to the others except for the WaitForReplay skip counter
+
+func SwapInt32AdvocateType(addr *int32, new int32) (old int32) {
+	wait, ch := runtime.WaitForReplay(runtime.OperationAtomicSwap, 3)
+	if wait {
+		<-ch
+	}
+	runtime.AdvocateAtomic(addr, runtime.SwapOp, 3)
+	return SwapInt32Advocate(addr, new)
+}
+
+func SwapInt64AdvocateType(addr *int64, new int64) (old int64) {
+	wait, ch := runtime.WaitForReplay(runtime.OperationAtomicSwap, 3)
+	if wait {
+		<-ch
+	}
+	runtime.AdvocateAtomic(addr, runtime.SwapOp, 3)
+	return SwapInt64Advocate(addr, new)
+}
+
+func SwapUint32AdvocateType(addr *uint32, new uint32) (old uint32) {
+	wait, ch := runtime.WaitForReplay(runtime.OperationAtomicSwap, 3)
+	if wait {
+		<-ch
+	}
+	runtime.AdvocateAtomic(addr, runtime.SwapOp, 3)
+	return SwapUint32Advocate(addr, new)
+}
+
+func SwapUint64AdvocateType(addr *uint64, new uint64) (old uint64) {
+	wait, ch := runtime.WaitForReplay(runtime.OperationAtomicSwap, 3)
+	if wait {
+		<-ch
+	}
+	runtime.AdvocateAtomic(addr, runtime.SwapOp, 3)
+	return SwapUint64Advocate(addr, new)
+}
+
+func SwapUintptrAdvocateType(addr *uintptr, new uintptr) (old uintptr) {
+	wait, ch := runtime.WaitForReplay(runtime.OperationAtomicSwap, 3)
+	if wait {
+		<-ch
+	}
+	runtime.AdvocateAtomic(addr, runtime.SwapOp, 3)
+	return SwapUintptrAdvocate(addr, new)
+}
+
+func CompareAndSwapInt32AdvocateType(addr *int32, old, new int32) (swapped bool) {
+	wait, ch := runtime.WaitForReplay(runtime.OperationAtomicCompareAndSwap, 3)
+	if wait {
+		<-ch
+	}
+	runtime.AdvocateAtomic(addr, runtime.CompSwapOp, 3)
+	return CompareAndSwapInt32Advocate(addr, old, new)
+}
+
+func CompareAndSwapInt64AdvocateType(addr *int64, old, new int64) (swapped bool) {
+	wait, ch := runtime.WaitForReplay(runtime.OperationAtomicCompareAndSwap, 3)
+	if wait {
+		<-ch
+	}
+	runtime.AdvocateAtomic(addr, runtime.CompSwapOp, 3)
+	return CompareAndSwapInt64Advocate(addr, old, new)
+}
+
+func CompareAndSwapUint32AdvocateType(addr *uint32, old, new uint32) (swapped bool) {
+	wait, ch := runtime.WaitForReplay(runtime.OperationAtomicCompareAndSwap, 3)
+	if wait {
+		<-ch
+	}
+	runtime.AdvocateAtomic(addr, runtime.CompSwapOp, 3)
+	return CompareAndSwapUint32Advocate(addr, old, new)
+}
+
+func CompareAndSwapUint64AdvocateType(addr *uint64, old, new uint64) (swapped bool) {
+	wait, ch := runtime.WaitForReplay(runtime.OperationAtomicCompareAndSwap, 3)
+	if wait {
+		<-ch
+	}
+	runtime.AdvocateAtomic(addr, runtime.CompSwapOp, 3)
+	return CompareAndSwapUint64Advocate(addr, old, new)
+}
+
+func CompareAndSwapUintptrAdvocateType(addr *uintptr, old, new uintptr) (swapped bool) {
+	wait, ch := runtime.WaitForReplay(runtime.OperationAtomicCompareAndSwap, 3)
+	if wait {
+		<-ch
+	}
+	runtime.AdvocateAtomic(addr, runtime.CompSwapOp, 3)
+	return CompareAndSwapUintptrAdvocate(addr, old, new)
+}
+
+func AddInt32AdvocateType(addr *int32, delta int32) (new int32) {
+	wait, ch := runtime.WaitForReplay(runtime.OperationAtomicAdd, 3)
+	if wait {
+		<-ch
+	}
+	runtime.AdvocateAtomic(addr, runtime.AddOp, 3)
+	return AddInt32Advocate(addr, delta)
+}
+
+func AddUint32AdvocateType(addr *uint32, delta uint32) (new uint32) {
+	wait, ch := runtime.WaitForReplay(runtime.OperationAtomicAdd, 3)
+	if wait {
+		<-ch
+	}
+	runtime.AdvocateAtomic(addr, runtime.AddOp, 3)
+	return AddUint32Advocate(addr, delta)
+}
+
+func AddInt64AdvocateType(addr *int64, delta int64) (new int64) {
+	wait, ch := runtime.WaitForReplay(runtime.OperationAtomicAdd, 3)
+	if wait {
+		<-ch
+	}
+	runtime.AdvocateAtomic(addr, runtime.AddOp, 3)
+	return AddInt64Advocate(addr, delta)
+}
+
+func AddUint64AdvocateType(addr *uint64, delta uint64) (new uint64) {
+	wait, ch := runtime.WaitForReplay(runtime.OperationAtomicAdd, 3)
+	if wait {
+		<-ch
+	}
+	runtime.AdvocateAtomic(addr, runtime.AddOp, 3)
+	return AddUint64Advocate(addr, delta)
+}
+
+func AddUintptrAdvocateType(addr *uintptr, delta uintptr) (new uintptr) {
+	wait, ch := runtime.WaitForReplay(runtime.OperationAtomicAdd, 3)
+	if wait {
+		<-ch
+	}
+	runtime.AdvocateAtomic(addr, runtime.AddOp, 3)
+	return AddUintptrAdvocate(addr, delta)
+}
+
+func LoadInt32AdvocateType(addr *int32) (val int32) {
+	wait, ch := runtime.WaitForReplay(runtime.OperationAtomicLoad, 3)
+	if wait {
+		<-ch
+	}
+	runtime.AdvocateAtomic(addr, runtime.LoadOp, 3)
+	return LoadInt32Advocate(addr)
+}
+
+func LoadInt64AdvocateType(addr *int64) (val int64) {
+	wait, ch := runtime.WaitForReplay(runtime.OperationAtomicLoad, 3)
+	if wait {
+		<-ch
+	}
+	runtime.AdvocateAtomic(addr, runtime.LoadOp, 3)
+	return LoadInt64Advocate(addr)
+}
+
+func LoadUint32AdvocateType(addr *uint32) (val uint32) {
+	wait, ch := runtime.WaitForReplay(runtime.OperationAtomicLoad, 3)
+	if wait {
+		<-ch
+	}
+	runtime.AdvocateAtomic(addr, runtime.LoadOp, 3)
+	return LoadUint32Advocate(addr)
+}
+
+func LoadUint64AdvocateType(addr *uint64) (val uint64) {
+	wait, ch := runtime.WaitForReplay(runtime.OperationAtomicLoad, 3)
+	if wait {
+		<-ch
+	}
+	runtime.AdvocateAtomic(addr, runtime.LoadOp, 3)
+	return LoadUint64Advocate(addr)
+}
+
+func LoadUintptrAdvocateType(addr *uintptr) (val uintptr) {
+	wait, ch := runtime.WaitForReplay(runtime.OperationAtomicLoad, 3)
+	if wait {
+		<-ch
+	}
+	runtime.AdvocateAtomic(addr, runtime.LoadOp, 3)
+	return LoadUintptrAdvocate(addr)
+}
+
+func StoreInt32AdvocateType(addr *int32, val int32) {
+	wait, ch := runtime.WaitForReplay(runtime.OperationAtomicStore, 3)
+	if wait {
+		<-ch
+	}
+	runtime.AdvocateAtomic(addr, runtime.StoreOp, 3)
+	StoreInt32Advocate(addr, val)
+}
+
+func StoreInt64AdvocateType(addr *int64, val int64) {
+	wait, ch := runtime.WaitForReplay(runtime.OperationAtomicStore, 3)
+	if wait {
+		<-ch
+	}
+	runtime.AdvocateAtomic(addr, runtime.StoreOp, 3)
+	StoreInt64Advocate(addr, val)
+}
+
+func StoreUint32AdvocateType(addr *uint32, val uint32) {
+	wait, ch := runtime.WaitForReplay(runtime.OperationAtomicStore, 3)
+	if wait {
+		<-ch
+	}
+	runtime.AdvocateAtomic(addr, runtime.StoreOp, 3)
+	StoreUint32Advocate(addr, val)
+}
+
+func StoreUint64AdvocateType(addr *uint64, val uint64) {
+	wait, ch := runtime.WaitForReplay(runtime.OperationAtomicStore, 3)
+	if wait {
+		<-ch
+	}
+	runtime.AdvocateAtomic(addr, runtime.StoreOp, 3)
+	StoreUint64Advocate(addr, val)
+}
+
+func StoreUintptrAdvocateType(addr *uintptr, val uintptr) {
+	wait, ch := runtime.WaitForReplay(runtime.OperationAtomicStore, 3)
+	if wait {
+		<-ch
+	}
+	runtime.AdvocateAtomic(addr, runtime.StoreOp, 3)
+	StoreUintptrAdvocate(addr, val)
+}

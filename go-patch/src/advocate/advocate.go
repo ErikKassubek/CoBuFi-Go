@@ -198,12 +198,13 @@ var tracePathRewritten = "rewritten_trace_"
  * 	- index: The index of the replay case
  * 	- exitCode: Whether the program should exit after the important replay part passed
  * 	- timeout: Timeout in seconds, 0: no timeout
+ *  - atomic: if true, replay includes atomic
  */
-func InitReplay(index string, exitCode bool, timeout int) {
+func InitReplay(index string, exitCode bool, timeout int, atomic bool) {
 	// use first as default
 
 	runtime.SetExitCode(exitCode)
-	runtime.SetReplayAtomic(false) // set to true to include replay atomic
+	runtime.SetReplayAtomic(atomic) // set to true to include replay atomic
 
 	println("Set exit code")
 
@@ -256,7 +257,7 @@ func InitReplay(index string, exitCode bool, timeout int) {
 	runtime.EnableReplay()
 }
 
-func InitReplayTracing(index string, exitCode bool, timeout int) {
+func InitReplayTracing(index string, exitCode bool, timeout int, atomic bool) {
 	if index == "-1" {
 		InitTracing()
 		return
@@ -296,7 +297,7 @@ func InitReplayTracing(index string, exitCode bool, timeout int) {
 	// go removeAtomicsIfFull()
 	runtime.InitAdvocate()
 
-	InitReplay(index, exitCode, timeout)
+	InitReplay(index, exitCode, timeout, atomic)
 }
 
 func FinishReplayTracing() {
