@@ -60,7 +60,7 @@ var advocatePanicDone chan struct{}
 // var advocateTraceWritingDisabled = false
 
 func getOperationObjectString(op Operation) string {
-	select op {
+	switch op {
 	case OperationNone:
 		return "None"
 	case OperationSpawn, OperationSpawned, OperationRoutineExit:
@@ -379,8 +379,5 @@ func AdvocateIgnore(operation Operation, file string, line int) bool {
 	}
 	return false
 }
-
-
-
 
 // ADVOCATE-FILE-END

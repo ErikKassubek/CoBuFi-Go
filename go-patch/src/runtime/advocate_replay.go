@@ -32,8 +32,15 @@ var ExitCodeNames = map[int]string{
 }
 
 var hasReturnedExitCode = false
-// TODO: test if atomics work. To do so remove this
 var ignoreAtomicsReplay = true
+
+func SetReplayAtomic(repl bool) {
+	ignoreAtomicsReplay = !repl
+}
+
+func GetReplayAtomic() bool {
+	return !ignoreAtomicsReplay
+}
 
 /*
  * String representation of the replay operation.
@@ -571,9 +578,8 @@ func ExitReplayPanic(msg any) {
 
 func AdvocateIgnoreReplay(operation Operation, file string, line int) bool {
 	if ignoreAtomicsReplay && getOperationObjectString(operation) == "Atomic" {
-			return true
+		return true
 	}
-
 
 	if hasSuffix(file, "time/sleep.go") {
 		return true

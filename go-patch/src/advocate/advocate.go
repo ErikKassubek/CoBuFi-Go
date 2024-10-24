@@ -203,6 +203,7 @@ func InitReplay(index string, exitCode bool, timeout int) {
 	// use first as default
 
 	runtime.SetExitCode(exitCode)
+	runtime.SetReplayAtomic(false) // set to true to include replay atomic
 
 	println("Set exit code")
 
@@ -513,9 +514,26 @@ func readTraceFile(fileName string, chanWithoutPartner *map[string]int) (int, ru
 				blocked = true
 			}
 		case "A":
-			// do nothing
+			if !runtime.GetReplayAtomic() {
+				continue
+			}
+			switch fields[3] {
+			case "L":
+				op = runtime.OperationAtomicLoad
+			case "S":
+				op = runtime.OperationAtomicStore
+			case "A":
+				op = runtime.OperationAtomicAdd
+			case "W":
+				op = runtime.OperationAtomicSwap
+			case "C":
+				op = runtime.OperationAtomicCompareAndSwap
+			}
+			pos := strings.Split(fields[4], ":")
+			file = pos[0]
+			line, _ = strconv.Atoi(pos[1])
 		case "E":
-			// do nothing
+			continue
 
 		default:
 			panic("Unknown operation " + fields[0] + " in line " + elem + " in file " + fileName + ".")
