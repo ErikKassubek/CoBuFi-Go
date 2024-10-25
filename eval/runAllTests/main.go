@@ -33,7 +33,7 @@ func main() {
 
 	analysisTimeout := "1800" // 1800s = 0.5h
 	replayTimeout := "-1"     // 100 * recording time
-	maxProgAtSameTime := 2
+	maxProgAtSameTime := 4
 
 	var wg sync.WaitGroup
 	sem := make(chan struct{}, maxProgAtSameTime)

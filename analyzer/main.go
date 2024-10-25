@@ -422,7 +422,7 @@ func rewriteTrace(outMachine string, newTrace string, resultIndex int,
 		return false, false, nil
 	}
 
-	rewriteNeeded, code, err := rewriter.RewriteTrace(bug)
+	rewriteNeeded, code, err := rewriter.RewriteTrace(bug, 0)
 
 	if err != nil {
 		return rewriteNeeded, false, err

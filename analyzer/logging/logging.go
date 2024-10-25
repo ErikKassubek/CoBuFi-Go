@@ -40,6 +40,7 @@ const (
 	NONE resultLevel = iota
 	CRITICAL
 	WARNING
+	INFORMATION
 )
 
 type ResultType string
@@ -72,6 +73,9 @@ const (
 	LMutex             = "L08"
 	LWaitGroup         = "L09"
 	LCond              = "L10"
+
+	// not executed select
+	SNotExecutedWithPartner = "S00"
 )
 
 var resultTypeMap = map[ResultType]string{
@@ -97,6 +101,8 @@ var resultTypeMap = map[ResultType]string{
 	LMutex:             "Leak on mutex:",
 	LWaitGroup:         "Leak on wait group:",
 	LCond:              "Leak on conditional variable:",
+
+	SNotExecutedWithPartner: "Not executed select with potential partner",
 }
 
 var outputReadableFile string
@@ -106,6 +112,7 @@ var resultsWarningReadable []string
 var resultsCriticalReadable []string
 var resultsWarningMachine []string
 var resultCriticalMachine []string
+var resultInformationMachine []string
 
 var resultWithoutTime []string
 
@@ -165,14 +172,15 @@ type SelectCaseResult struct {
 	ObjID   int
 	ObjType string
 	Routine int
+	Index   int
 }
 
 func (s SelectCaseResult) stringMachineShort() string {
-	return fmt.Sprintf("S:%d:%s", s.ObjID, s.ObjType)
+	return fmt.Sprintf("S:%d:%s:%d", s.ObjID, s.ObjType, s.Index)
 }
 
 func (s SelectCaseResult) stringMachine() string {
-	return fmt.Sprintf("S:%d:%s", s.ObjID, s.ObjType)
+	return fmt.Sprintf("S:%d:%s:%d", s.ObjID, s.ObjType, s.Index)
 }
 
 func (s SelectCaseResult) stringReadable() string {
@@ -260,6 +268,11 @@ func Result(level resultLevel, resType ResultType, argType1 string, arg1 []Resul
 			resultCriticalMachine = append(resultCriticalMachine, resultMachine)
 			resultWithoutTime = append(resultWithoutTime, resultMachineShort)
 		}
+	} else if level == INFORMATION {
+		if !stringInSlice(resultMachineShort, resultWithoutTime) {
+			resultInformationMachine = append(resultInformationMachine, resultMachine)
+			resultWithoutTime = append(resultWithoutTime, resultMachineShort)
+		}
 	}
 }
 
@@ -323,27 +336,35 @@ func PrintSummary(noWarning bool, noPrint bool) int {
 			resMachine += result
 		}
 	}
-	if len(resultsWarningReadable) > 0 && !noWarning {
-		found = true
-		resReadable += "\n-------------------- Warning --------------------\n\n"
-		if !noPrint {
-			fmt.Print("\n-------------------- Warning --------------------\n\n")
-		}
-
-		for _, result := range resultsWarningReadable {
-			resReadable += strconv.Itoa(counter) + " " + result + "\n"
-
+	if !noWarning {
+		if len(resultsWarningReadable) > 0 {
+			found = true
+			resReadable += "\n-------------------- Warning --------------------\n\n"
 			if !noPrint {
-				fmt.Println(strconv.Itoa(counter) + " " + result)
+				fmt.Print("\n-------------------- Warning --------------------\n\n")
 			}
 
-			counter++
+			for _, result := range resultsWarningReadable {
+				resReadable += strconv.Itoa(counter) + " " + result + "\n"
+
+				if !noPrint {
+					fmt.Println(strconv.Itoa(counter) + " " + result)
+				}
+
+				counter++
+			}
+
+			for _, result := range resultsWarningMachine {
+				resMachine += result
+			}
 		}
 
-		for _, result := range resultsWarningMachine {
+		println("RESULTINFO: ", len(resultInformationMachine))
+		for _, result := range resultInformationMachine {
 			resMachine += result
 		}
 	}
+
 	if !found {
 		resReadable += "No bugs found" + "\n"
 
@@ -388,7 +409,7 @@ func PrintSummary(noWarning bool, noPrint bool) int {
 		panic(err)
 	}
 
-	return len(resultCriticalMachine) + len(resultsWarningMachine)
+	return len(resultCriticalMachine) + len(resultsWarningMachine) + len(resultInformationMachine)
 }
 
 func stringInSlice(a string, list []string) bool {

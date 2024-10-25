@@ -14,6 +14,7 @@ import (
 	"analyzer/clock"
 	timemeasurement "analyzer/timeMeasurement"
 	"errors"
+	"fmt"
 	"math"
 	"strconv"
 	"strings"
@@ -358,6 +359,17 @@ func (se *TraceElementSelect) SetTPre2(tPre int) {
 	}
 }
 
+func (se *TraceElementSelect) SetChosenCase(index int) error {
+	if index >= len(se.cases) {
+		return fmt.Errorf("Invalid index %d for size %d", index, len(se.cases))
+	}
+	se.cases[se.chosenIndex].tPost = 0
+	se.chosenIndex = index
+	se.cases[index].tPost = se.tPost
+
+	return nil
+}
+
 /*
  * Set tPost
  * Args:
@@ -500,9 +512,9 @@ func (se *TraceElementSelect) updateVectorClock() {
 	for _, c := range se.cases {
 		c.vc = se.vc.Copy()
 		if c.opC == SendOp {
-			SetChannelAsLastSend(c.id, se.routine, c.vc, c.tID)
+			SetChannelAsLastSend(&c)
 		} else if c.opC == RecvOp {
-			SetChannelAsLastReceive(c.id, se.routine, c.vc, c.tID)
+			SetChannelAsLastReceive(&c)
 		}
 	}
 

@@ -13,7 +13,6 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"path/filepath"
 )
@@ -83,18 +82,14 @@ func moveResults(packagePath, destination string) {
 	for _, file := range filesToMove {
 		src := filepath.Join(packagePath, file)
 		dest := filepath.Join(destination, file)
-		if err := os.Rename(src, dest); err != nil && file != "output.log" {
-			log.Printf("Failed to move %s to %s: %v", src, dest, err)
-		}
+		_ = os.Rename(src, dest)
 	}
 
 	for _, pattern := range pattersToMove {
 		files, _ := filepath.Glob(filepath.Join(packagePath, pattern))
 		for _, trace := range files {
 			dest := filepath.Join(destination, filepath.Base(trace))
-			if err := os.Rename(trace, dest); err != nil {
-				log.Printf("Failed to move %s to %s: %v", trace, dest, err)
-			}
+			_ = os.Rename(trace, dest)
 		}
 	}
 

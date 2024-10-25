@@ -13,7 +13,9 @@ package bugs
 import (
 	"analyzer/analysis"
 	"errors"
+	"fmt"
 	"sort"
+	"strconv"
 	"strings"
 )
 
@@ -47,22 +49,46 @@ const (
 	LMutex             = "L08"
 	LWaitGroup         = "L09"
 	LCond              = "L10"
+
+	SNotExecutedWithPartner = "S00"
 )
 
+type BugElementSelectCase struct {
+	ID      int
+	ObjType string
+	Index   int
+}
+
+func GetBugElementSelectCase(arg string) (BugElementSelectCase, error) {
+	elems := strings.Split(arg, ":")
+	fmt.Println(elems, arg)
+	id, err := strconv.Atoi(elems[1])
+	if err != nil {
+		return BugElementSelectCase{}, err
+	}
+	objType := elems[2]
+	index, err := strconv.Atoi(elems[3])
+	if err != nil {
+		return BugElementSelectCase{}, err
+	}
+	return BugElementSelectCase{id, objType, index}, nil
+}
+
 type Bug struct {
-	Type          ResultType
-	TraceElement1 []*analysis.TraceElement
-	TraceElement2 []*analysis.TraceElement
+	Type             ResultType
+	TraceElement1    []analysis.TraceElement
+	TraceElement1Sel []BugElementSelectCase
+	TraceElement2    []analysis.TraceElement
 }
 
 func (b Bug) GetBugString() string {
 	paths := make([]string, 0)
 
 	for _, t := range b.TraceElement1 {
-		paths = append(paths, (*t).GetPos())
+		paths = append(paths, t.GetPos())
 	}
 	for _, t := range b.TraceElement2 {
-		paths = append(paths, (*t).GetPos())
+		paths = append(paths, t.GetPos())
 	}
 
 	sort.Strings(paths)
@@ -166,9 +192,13 @@ func (b Bug) ToString() string {
 		typeStr = "Leak on conditional variable:"
 		arg1Str = "cond: "
 		arg2Str = ""
+	case SNotExecutedWithPartner:
+		typeStr = "Not executed select with potential partner"
+		arg1Str = "select: "
+		arg2Str = "partner: "
 
 	default:
-		panic("Unknown bug type: " + string(b.Type))
+		panic("Unknown bug type in toString: " + string(b.Type))
 	}
 
 	res := typeStr + "\n\t" + arg1Str
@@ -176,7 +206,7 @@ func (b Bug) ToString() string {
 		if i != 0 {
 			res += ";"
 		}
-		res += (*elem).GetTID()
+		res += elem.GetTID()
 	}
 
 	if arg2Str != "" {
@@ -190,7 +220,7 @@ func (b Bug) ToString() string {
 			if i != 0 {
 				res += ";"
 			}
-			res += (*elem).GetTID()
+			res += elem.GetTID()
 		}
 	}
 
@@ -282,8 +312,11 @@ func ProcessBug(bugStr string) (bool, Bug, error) {
 	case "L10":
 		bug.Type = LCond
 		containsArg2 = false
+	case "S00":
+		bug.Type = SNotExecutedWithPartner
+		containsArg2 = true
 	default:
-		return actual, bug, errors.New("Unknown bug type: " + bugStr)
+		return actual, bug, errors.New("Unknown bug type in process bug: " + bugStr)
 	}
 
 	bugArg1 := bugSplit[1]
@@ -292,22 +325,32 @@ func ProcessBug(bugStr string) (bool, Bug, error) {
 		bugArg2 = bugSplit[2]
 	}
 
-	bug.TraceElement1 = make([]*analysis.TraceElement, 0)
+	bug.TraceElement1 = make([]analysis.TraceElement, 0)
+	bug.TraceElement1Sel = make([]BugElementSelectCase, 0)
 
 	for _, bugArg := range strings.Split(bugArg1, ";") {
 		if strings.TrimSpace(bugArg) == "" {
 			continue
 		}
 
-		elem, err := analysis.GetTraceElementFromBugArg(bugArg)
-		if err != nil {
-			println("Could not find: " + bugArg + " in trace")
-			return actual, bug, err
+		if strings.HasPrefix(bugArg, "T") {
+			elem, err := analysis.GetTraceElementFromBugArg(bugArg)
+			if err != nil {
+				println("Could not find: " + bugArg + " in trace")
+				return actual, bug, err
+			}
+			bug.TraceElement1 = append(bug.TraceElement1, elem)
+		} else if strings.HasPrefix(bugArg, "S") {
+			elem, err := GetBugElementSelectCase(bugArg)
+			if err != nil {
+				println("Could not read: " + bugArg + " from results")
+				return actual, bug, err
+			}
+			bug.TraceElement1Sel = append(bug.TraceElement1Sel, elem)
 		}
-		bug.TraceElement1 = append(bug.TraceElement1, elem)
 	}
 
-	bug.TraceElement2 = make([]*analysis.TraceElement, 0)
+	bug.TraceElement2 = make([]analysis.TraceElement, 0)
 
 	if !containsArg2 {
 		return actual, bug, nil

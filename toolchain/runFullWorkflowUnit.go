@@ -325,9 +325,10 @@ func unitTestFullWorkflow(pathToAdvocate string, dir string,
 
 	lenRewTraces := unitTestReplay(pathToGoRoot, pathToPatchedGoRuntime, dir, pkg, file, testName, resTimes, false)
 
-	lrt, la := unitTestReanalyzeLeaks(pathToGoRoot, pathToPatchedGoRuntime, pathToAnalyzer, dir, pkg, file, testName, output, resTimes)
+	la := 0
+	// lrt, la := unitTestReanalyzeLeaks(pathToGoRoot, pathToPatchedGoRuntime, pathToAnalyzer, dir, pkg, file, testName, output, resTimes)
 
-	lenRewTraces += lrt
+	// lenRewTraces += lrt
 
 	return resTimes, lenRewTraces, la + 1, nil
 }
@@ -472,13 +473,8 @@ func unitTestReplay(pathToGoRoot, pathToPatchedGoRuntime, dir, pkg, file, testNa
 	for i, trace := range rewrittenTraces {
 		traceNum := extractTraceNumber(trace)
 
-		isLeak := !disableRerecord
-		if isLeak {
-			isLeak = getIsLeak(trace)
-		}
-
 		fmt.Printf("Insert replay header or %s: %s for trace %s\n", file, testName, traceNum)
-		headerInserterUnit(file, testName, true, traceNum, int(timeoutRepl.Seconds()), isLeak)
+		headerInserterUnit(file, testName, true, traceNum, int(timeoutRepl.Seconds()), false)
 
 		os.Setenv("GOROOT", pathToGoRoot)
 		fmt.Println("GOROOT = " + pathToGoRoot + " exported")

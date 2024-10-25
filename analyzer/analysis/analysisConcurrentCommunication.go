@@ -27,12 +27,12 @@ import (
  *  tID (int): tID of the recv operation
  *  vc (int): vector clock of the recv operation
  */
-func checkForConcurrentRecv(ch *TraceElementChannel, routine int, tID string, vc map[int]clock.VectorClock) {
+func checkForConcurrentRecv(ch *TraceElementChannel, vc map[int]clock.VectorClock) {
 	timemeasurement.Start("other")
 	defer timemeasurement.End("other")
 
 	for r, elem := range lastRecvRoutine {
-		if r == routine {
+		if r == ch.routine {
 			continue
 		}
 
@@ -40,10 +40,10 @@ func checkForConcurrentRecv(ch *TraceElementChannel, routine int, tID string, vc
 			continue
 		}
 
-		happensBefore := clock.GetHappensBefore(elem[ch.id].Vc, vc[routine])
+		happensBefore := clock.GetHappensBefore(elem[ch.id].Vc, vc[ch.routine])
 		if happensBefore == clock.Concurrent {
 
-			file1, line1, tPre1, err := infoFromTID(tID)
+			file1, line1, tPre1, err := infoFromTID(ch.tID)
 			if err != nil {
 				logging.Debug(err.Error(), logging.ERROR)
 				return
@@ -52,7 +52,7 @@ func checkForConcurrentRecv(ch *TraceElementChannel, routine int, tID string, vc
 			file2, line2, tPre2, err := infoFromTID(lastRecvRoutine[r][ch.id].TID)
 
 			arg1 := logging.TraceElementResult{
-				RoutineID: routine,
+				RoutineID: ch.routine,
 				ObjID:     ch.id,
 				TPre:      tPre1,
 				ObjType:   "CR",
@@ -75,10 +75,10 @@ func checkForConcurrentRecv(ch *TraceElementChannel, routine int, tID string, vc
 	}
 
 	if ch.tPost != 0 {
-		if _, ok := lastRecvRoutine[routine]; !ok {
-			lastRecvRoutine[routine] = make(map[int]VectorClockTID)
+		if _, ok := lastRecvRoutine[ch.routine]; !ok {
+			lastRecvRoutine[ch.routine] = make(map[int]VectorClockTID)
 		}
 
-		lastRecvRoutine[routine][ch.id] = VectorClockTID{vc[routine].Copy(), tID, routine}
+		lastRecvRoutine[ch.routine][ch.id] = VectorClockTID{vc[ch.routine].Copy(), ch.tID, ch.routine}
 	}
 }

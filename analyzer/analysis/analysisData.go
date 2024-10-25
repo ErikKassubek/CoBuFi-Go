@@ -33,19 +33,20 @@ type VectorClockTID2 struct {
 }
 
 type VectorClockTID3 struct {
-	Routine int
-	TID     string
-	Vc      clock.VectorClock
-	Val     int
+	Elem TraceElement
+	Vc   clock.VectorClock
+	Val  int
 }
 
 type allSelectCase struct {
-	selectID int            // select id
-	chanID   int            // channel id
-	vcTID    VectorClockTID // vector clock and tID
-	send     bool           // true: send, false: receive
-	buffered bool           // true: buffered, false: unbuffered
-	partner  bool           // true: partner found, false: no partner found
+	sel          *TraceElementSelect // the select
+	chanID       int                 // channel id
+	vcTID        VectorClockTID      // vector clock and tID
+	send         bool                // true: send, false: receive
+	buffered     bool                // true: buffered, false: unbuffered
+	partnerFound bool                // true: partner found, false: no partner found
+	partner      []VectorClockTID3   // the potential partner
+	exec         bool                // true: the case was executed, false: otherwise
 }
 
 var (

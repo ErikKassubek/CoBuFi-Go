@@ -508,9 +508,7 @@ func (ch *TraceElementChannel) updateVectorClock() {
 				logging.Debug("Update vector clock of channel operation: "+
 					traces[partner][currentIndex[partner]].ToString(),
 					logging.DEBUG)
-				pos := traces[partner][currentIndex[partner]].(*TraceElementChannel).tID
-				Unbuffered(ch, ch.routine, partner, ch.tID,
-					pos, currentVCHb)
+				Unbuffered(ch, traces[partner][currentIndex[partner]], currentVCHb)
 				// advance index of receive routine, send routine is already advanced
 				increaseIndex(partner)
 			} else {
@@ -529,9 +527,7 @@ func (ch *TraceElementChannel) updateVectorClock() {
 			if partner != -1 {
 				logging.Debug("Update vector clock of channel operation: "+
 					traces[partner][currentIndex[partner]].ToString(), logging.DEBUG)
-				tID := traces[partner][currentIndex[partner]].(*TraceElementChannel).tID
-				Unbuffered(ch, partner, ch.routine, tID,
-					ch.tID, currentVCHb)
+				Unbuffered(traces[partner][currentIndex[partner]], ch, currentVCHb)
 				// advance index of receive routine, send routine is already advanced
 				increaseIndex(partner)
 			} else {

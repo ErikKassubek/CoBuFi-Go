@@ -36,11 +36,11 @@ func rewriteGraph(bug bugs.Bug, expectedErrorCode int) error {
 
 		analysis.ShiftConcurrentOrAfterToAfter(elem1)
 
-		if minTime == -1 || (*elem1).GetTPre() < minTime {
-			minTime = (*elem1).GetTPre()
+		if minTime == -1 || elem1.GetTPre() < minTime {
+			minTime = elem1.GetTPre()
 		}
-		if maxTime == -1 || (*elem1).GetTPre() > maxTime {
-			maxTime = (*elem1).GetTPre()
+		if maxTime == -1 || elem1.GetTPre() > maxTime {
+			maxTime = elem1.GetTPre()
 		}
 
 	}
