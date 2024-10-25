@@ -3,6 +3,7 @@
 package runtime
 
 import (
+	"runtime/internal/atomic"
 	"unsafe"
 )
 
@@ -267,11 +268,8 @@ func splitString(line string, sep string) []string {
 
 // MARK: ADVOCATE
 
-var advocateCurrentRoutineID uint64
-var advocateGlobalCounter uint64
-
-var advocateCurrentRoutineIDMutex mutex
-var advocateGlobalCounterMutex mutex
+var advocateCurrentRoutineID atomic.Uint64
+var advocateGlobalCounter atomic.Uint64
 
 /*
  * GetAdvocateRoutineID returns a new id for a routine
@@ -279,13 +277,11 @@ var advocateGlobalCounterMutex mutex
  * 	new id
  */
 func GetAdvocateRoutineID() uint64 {
-	lock(&advocateCurrentRoutineIDMutex)
-	defer unlock(&advocateCurrentRoutineIDMutex)
-	advocateCurrentRoutineID++
-	if advocateCurrentRoutineID > 184467440 {
+	id := advocateCurrentRoutineID.Add(1)
+	if id > 184467440 {
 		panic("Overflow Error: Two many routines. Max: 184467440")
 	}
-	return advocateCurrentRoutineID
+	return id
 }
 
 /*
@@ -315,10 +311,7 @@ func GetAdvocateObjectID() uint64 {
  * 	new time value
  */
 func GetNextTimeStep() uint64 {
-	lock(&advocateGlobalCounterMutex)
-	defer unlock(&advocateGlobalCounterMutex)
-	advocateGlobalCounter += 2
-	return advocateGlobalCounter
+	return advocateGlobalCounter.Add(2)
 }
 
 /*
@@ -335,6 +328,36 @@ func containsInt(list []int, elem int) bool {
 			return true
 		}
 	}
+	return false
+}
+
+func contains(s, sub string) bool {
+	// Get the lengths of both the main string and the substring
+	lenS := len(s)
+	lenSub := len(sub)
+
+	// If the substring is longer than the string, it can't be a substring
+	if lenSub > lenS {
+		return false
+	}
+
+	// Iterate over the main string `s`
+	for i := 0; i <= lenS-lenSub; i++ {
+		// Check if substring matches
+		match := true
+		for j := 0; j < lenSub; j++ {
+			if s[i+j] != sub[j] {
+				match = false
+				break
+			}
+		}
+		// If we found a match, return true
+		if match {
+			return true
+		}
+	}
+
+	// No match found, return false
 	return false
 }
 

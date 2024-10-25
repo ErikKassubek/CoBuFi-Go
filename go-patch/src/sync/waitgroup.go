@@ -160,7 +160,6 @@ func (wg *WaitGroup) Wait() {
 	// blocks the routine and it is nessesary to record the successful
 	// finish of the wait with a post.
 	advocateIndex := runtime.AdvocateWaitGroupWaitPre(wg.id)
-	defer runtime.AdvocateWaitGroupPost(advocateIndex)
 	// ADVOCATE-CHANGE-END
 
 	for {
@@ -173,6 +172,9 @@ func (wg *WaitGroup) Wait() {
 				race.Enable()
 				race.Acquire(unsafe.Pointer(wg))
 			}
+			// ADVOCATE-CHANGE-START
+			runtime.AdvocateWaitGroupPost(advocateIndex)
+			//ADVOCATE-CHANGE-END
 			return
 		}
 		// Increment waiters count.
@@ -192,6 +194,9 @@ func (wg *WaitGroup) Wait() {
 				race.Enable()
 				race.Acquire(unsafe.Pointer(wg))
 			}
+			// ADVOCATE-CHANGE-START
+			runtime.AdvocateWaitGroupPost(advocateIndex)
+			//ADVOCATE-CHANGE-END
 			return
 		}
 	}

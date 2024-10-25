@@ -198,11 +198,13 @@ var tracePathRewritten = "rewritten_trace_"
  * 	- index: The index of the replay case
  * 	- exitCode: Whether the program should exit after the important replay part passed
  * 	- timeout: Timeout in seconds, 0: no timeout
+ *  - atomic: if true, replay includes atomic
  */
-func InitReplay(index string, exitCode bool, timeout int) {
+func InitReplay(index string, exitCode bool, timeout int, atomic bool) {
 	// use first as default
 
 	runtime.SetExitCode(exitCode)
+	runtime.SetReplayAtomic(atomic) // set to true to include replay atomic
 
 	println("Set exit code")
 
@@ -255,7 +257,7 @@ func InitReplay(index string, exitCode bool, timeout int) {
 	runtime.EnableReplay()
 }
 
-func InitReplayTracing(index string, exitCode bool, timeout int) {
+func InitReplayTracing(index string, exitCode bool, timeout int, atomic bool) {
 	if index == "-1" {
 		InitTracing()
 		return
@@ -295,7 +297,7 @@ func InitReplayTracing(index string, exitCode bool, timeout int) {
 	// go removeAtomicsIfFull()
 	runtime.InitAdvocate()
 
-	InitReplay(index, exitCode, timeout)
+	InitReplay(index, exitCode, timeout, atomic)
 }
 
 func FinishReplayTracing() {
@@ -513,9 +515,26 @@ func readTraceFile(fileName string, chanWithoutPartner *map[string]int) (int, ru
 				blocked = true
 			}
 		case "A":
-			// do nothing
+			if !runtime.GetReplayAtomic() {
+				continue
+			}
+			switch fields[3] {
+			case "L":
+				op = runtime.OperationAtomicLoad
+			case "S":
+				op = runtime.OperationAtomicStore
+			case "A":
+				op = runtime.OperationAtomicAdd
+			case "W":
+				op = runtime.OperationAtomicSwap
+			case "C":
+				op = runtime.OperationAtomicCompareAndSwap
+			}
+			pos := strings.Split(fields[4], ":")
+			file = pos[0]
+			line, _ = strconv.Atoi(pos[1])
 		case "E":
-			// do nothing
+			continue
 
 		default:
 			panic("Unknown operation " + fields[0] + " in line " + elem + " in file " + fileName + ".")

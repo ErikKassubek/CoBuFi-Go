@@ -28,6 +28,7 @@ Changed files (marked with ADVOCATE-CHANGE, außer in .s):
 - src/runtime/select.go
 - src/runtime/panic.go
 - src/sync/atomic/doc.go
+- src/sync/atomic/type.go
 - src/sync/atomic/asm.s
 - src/sync/mutex.go
 - src/sync/rwmutex.go

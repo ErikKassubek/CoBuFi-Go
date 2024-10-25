@@ -113,18 +113,20 @@ func (m *Mutex) Lock() {
 	// this information. advocateIndex is used for AdvocatePost to find the
 	// pre event.
 	advocateIndex := runtime.AdvocateMutexLockPre(m.id, false, false)
-	defer runtime.AdvocateMutexPost(advocateIndex)
 	// ADVOCATE-CHANGE-END
 
 	// Fast path: grab unlocked mutex.
 	if atomic.CompareAndSwapInt32(&m.state, 0, mutexLocked) {
+		// ADVOCATE-CHANGE-START
+		runtime.AdvocateMutexPost(advocateIndex)
+		//ADVOCATE-CHANGE-END
 		if race.Enabled {
 			race.Acquire(unsafe.Pointer(m))
 		}
 		return
 	}
 	// Slow path (outlined so that the fast path can be inlined)
-	m.lockSlow()
+	m.lockSlow(advocateIndex)
 }
 
 // TryLock tries to lock m and reports whether it succeeded.
@@ -197,7 +199,9 @@ func (m *Mutex) TryLock() bool {
 	return true
 }
 
-func (m *Mutex) lockSlow() {
+// ADVOCATE-CHANGE-START
+func (m *Mutex) lockSlow(advocateIndex int) {
+	// ADVOCATE-CHANGE-END
 	var waitStartTime int64
 	starving := false
 	awoke := false
@@ -281,6 +285,9 @@ func (m *Mutex) lockSlow() {
 		}
 	}
 
+	// ADVOCATE-CHANGE-START
+	runtime.AdvocateMutexPost(advocateIndex)
+	//ADVOCATE-CHANGE-END
 	if race.Enabled {
 		race.Acquire(unsafe.Pointer(m))
 	}
@@ -315,7 +322,7 @@ func (m *Mutex) Unlock() {
 	// Here the post is seperatly recorded to easy the implementation for
 	// the rw mutexes.
 	advocateIndex := runtime.AdvocateUnlockPre(m.id, false, false)
-	defer runtime.AdvocateMutexPost(advocateIndex)
+	runtime.AdvocateMutexPost(advocateIndex)
 	// ADVOCATE-CHANGE-END
 
 	if race.Enabled {

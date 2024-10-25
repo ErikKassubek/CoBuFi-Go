@@ -95,7 +95,6 @@ func (rw *RWMutex) RLock() {
 	// this information. advocateIndex is used for AdvocatePost to find the
 	// pre event.
 	advocateIndex := runtime.AdvocateMutexLockPre(rw.id, true, true)
-	defer runtime.AdvocateMutexPost(advocateIndex)
 	// ADVOCATE-CHANGE-END
 
 	if race.Enabled {
@@ -110,6 +109,9 @@ func (rw *RWMutex) RLock() {
 		race.Enable()
 		race.Acquire(unsafe.Pointer(&rw.readerSem))
 	}
+	//ADVOCATE-CHANGE-START
+	runtime.AdvocateMutexPost(advocateIndex)
+	// ADVOCATE-CHANGE-END
 }
 
 // TryRLock tries to lock rw for reading and reports whether it succeeded.
@@ -200,7 +202,6 @@ func (rw *RWMutex) RUnlock() {
 	// AdvocateUnlockPre is used to record the unlocking of a mutex.
 	// AdvocatePost records the successful unlocking of a mutex.
 	advocateIndex := runtime.AdvocateUnlockPre(rw.id, true, true)
-	defer runtime.AdvocateMutexPost(advocateIndex)
 	// ADVOCATE-CHANGE-END
 
 	if race.Enabled {
@@ -215,6 +216,9 @@ func (rw *RWMutex) RUnlock() {
 	if race.Enabled {
 		race.Enable()
 	}
+	// ADVOCATE-CHANGE-START
+	runtime.AdvocateMutexPost(advocateIndex)
+	// ADVOCATE-CHANGE-END
 }
 
 func (rw *RWMutex) rUnlockSlow(r int32) {
@@ -259,7 +263,6 @@ func (rw *RWMutex) Lock() {
 	// this information. advocateIndex is used for AdvocatePost to find the
 	// pre event.
 	advocateIndex := runtime.AdvocateMutexLockPre(rw.id, true, false)
-	defer runtime.AdvocateMutexPost(advocateIndex)
 	// ADVOCATE-CHANGE-END
 
 	if race.Enabled {
@@ -279,6 +282,9 @@ func (rw *RWMutex) Lock() {
 		race.Acquire(unsafe.Pointer(&rw.readerSem))
 		race.Acquire(unsafe.Pointer(&rw.writerSem))
 	}
+	// ADVOCATE-CHANGE-START
+	runtime.AdvocateMutexPost(advocateIndex)
+	// ADVOCATE-CHANGE-END
 }
 
 // TryLock tries to lock rw for writing and reports whether it succeeded.
@@ -377,7 +383,6 @@ func (rw *RWMutex) Unlock() {
 	// For non rw mutexe, the unlock cannot fail. Therefore it is not
 	// strictly necessary to record the post for the unlocking of a mutex.
 	advocateIndex := runtime.AdvocateUnlockPre(rw.id, true, false)
-	defer runtime.AdvocateMutexPost(advocateIndex)
 	// ADVOCATE-CHANGE-END
 
 	if race.Enabled {
@@ -385,6 +390,9 @@ func (rw *RWMutex) Unlock() {
 		race.Release(unsafe.Pointer(&rw.readerSem))
 		race.Disable()
 	}
+	// ADVOCATE-CHANGE-START
+	runtime.AdvocateMutexPost(advocateIndex)
+	// ADVOCATE-CHANGE-END
 
 	// Announce to readers there is no active writer.
 	r := rw.readerCount.Add(rwmutexMaxReaders)
