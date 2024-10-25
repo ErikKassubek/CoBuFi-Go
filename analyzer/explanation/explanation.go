@@ -81,6 +81,10 @@ func CreateOverview(path string, ignoreDouble bool) error {
 				continue
 			}
 
+			if strings.HasPrefix(bugType, "S") {
+				return nil
+			}
+
 			// get the bug type description
 			bugTypeDescription := getBugTypeDescription(bugType)
 

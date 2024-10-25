@@ -531,6 +531,9 @@ func readTraceFile(fileName string, chanWithoutPartner *map[string]int) (int, ru
 				op = runtime.OperationAtomicCompareAndSwap
 			}
 			pos := strings.Split(fields[4], ":")
+			if len(pos) != 2 {
+				println(elem)
+			}
 			file = pos[0]
 			line, _ = strconv.Atoi(pos[1])
 		case "E":

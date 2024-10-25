@@ -84,6 +84,9 @@ func AddTraceElementAtomic(routine int, tpost string,
 		return errors.New("operation is not a valid operation")
 	}
 
+	if pos == "" {
+		println("pos is empty reading")
+	}
 	elem := TraceElementAtomic{
 		routine: routine,
 		tPost:   tPostInt,
@@ -259,6 +262,10 @@ func (at *TraceElementAtomic) ToString() string {
 	}
 
 	res += "," + at.pos
+
+	if at.pos == "" {
+		println("pos is empty")
+	}
 
 	return res
 }

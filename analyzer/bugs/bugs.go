@@ -13,7 +13,6 @@ package bugs
 import (
 	"analyzer/analysis"
 	"errors"
-	"fmt"
 	"sort"
 	"strconv"
 	"strings"
@@ -61,7 +60,6 @@ type BugElementSelectCase struct {
 
 func GetBugElementSelectCase(arg string) (BugElementSelectCase, error) {
 	elems := strings.Split(arg, ":")
-	fmt.Println(elems, arg)
 	id, err := strconv.Atoi(elems[1])
 	if err != nil {
 		return BugElementSelectCase{}, err

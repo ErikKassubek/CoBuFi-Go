@@ -326,9 +326,9 @@ func unitTestFullWorkflow(pathToAdvocate string, dir string,
 	lenRewTraces := unitTestReplay(pathToGoRoot, pathToPatchedGoRuntime, dir, pkg, file, testName, resTimes, false)
 
 	la := 0
-	// lrt, la := unitTestReanalyzeLeaks(pathToGoRoot, pathToPatchedGoRuntime, pathToAnalyzer, dir, pkg, file, testName, output, resTimes)
+	lrt, la := unitTestReanalyzeLeaks(pathToGoRoot, pathToPatchedGoRuntime, pathToAnalyzer, dir, pkg, file, testName, output, resTimes)
 
-	// lenRewTraces += lrt
+	lenRewTraces += lrt
 
 	return resTimes, lenRewTraces, la + 1, nil
 }
@@ -472,9 +472,10 @@ func unitTestReplay(pathToGoRoot, pathToPatchedGoRuntime, dir, pkg, file, testNa
 
 	for i, trace := range rewrittenTraces {
 		traceNum := extractTraceNumber(trace)
+		record := getRerecord(trace)
 
 		fmt.Printf("Insert replay header or %s: %s for trace %s\n", file, testName, traceNum)
-		headerInserterUnit(file, testName, true, traceNum, int(timeoutRepl.Seconds()), false)
+		headerInserterUnit(file, testName, true, traceNum, int(timeoutRepl.Seconds()), record)
 
 		os.Setenv("GOROOT", pathToGoRoot)
 		fmt.Println("GOROOT = " + pathToGoRoot + " exported")
@@ -525,7 +526,7 @@ func extractTraceNumber(trace string) string {
 	return ""
 }
 
-func getIsLeak(trace string) bool {
+func getRerecord(trace string) bool {
 	data, err := os.ReadFile(filepath.Join(trace, "rewrite_info.log"))
 	if err != nil {
 		return false
@@ -540,5 +541,7 @@ func getIsLeak(trace string) bool {
 		return false
 	}
 
-	return string([]rune(elems[1])[0]) == "L"
+	return string([]rune(elems[1])[0]) == "S"
+	// return string([]rune(elems[1])[0]) == "L"
+
 }
