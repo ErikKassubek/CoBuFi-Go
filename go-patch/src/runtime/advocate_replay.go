@@ -584,11 +584,11 @@ func AdvocateIgnoreReplay(operation Operation, file string, line int) bool {
 		return true
 	}
 
-	if hasSuffix(file, "time/sleep.go") {
+	if contains(file, "go-patch/src/") {
+		return true
+	} else if hasSuffix(file, "time/sleep.go") {
 		return true
 	} else if hasSuffix(file, "signal/signal.go") { // ctrl+c
-		return true
-	} else if contains(file, "go-patch/src/") {
 		return true
 	}
 

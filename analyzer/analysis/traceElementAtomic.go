@@ -148,7 +148,7 @@ func (at *TraceElementAtomic) GetTSort() int {
  *   string: The file of the element
  */
 func (at *TraceElementAtomic) GetPos() string {
-	return ""
+	return at.pos
 }
 
 /*
@@ -257,6 +257,8 @@ func (at *TraceElementAtomic) ToString() string {
 	default:
 		res += "U"
 	}
+
+	res += "," + at.pos
 
 	return res
 }
