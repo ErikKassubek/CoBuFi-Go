@@ -153,12 +153,12 @@ func addHeaderUnit(fileName string, testName string, replay bool, replayNumber s
 			if replay {
 				if record {
 					lines = append(lines, fmt.Sprintf(`	// ======= Preamble Start =======
-  advocate.InitReplayTracing("%s", false, %d)
+  advocate.InitReplayTracing("%s", false, %d, true)
   defer advocate.FinishReplayTracing()
   // ======= Preamble End =======`, replayNumber, timeoutReplay))
 				} else {
 					lines = append(lines, fmt.Sprintf(`	// ======= Preamble Start =======
-  advocate.InitReplay("%s", false, %d)
+  advocate.InitReplay("%s", false, %d, true)
   defer advocate.FinishReplay()
   // ======= Preamble End =======`, replayNumber, timeoutReplay))
 				}
