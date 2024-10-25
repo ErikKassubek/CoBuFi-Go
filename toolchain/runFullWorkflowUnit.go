@@ -79,7 +79,7 @@ func runWorkflowUnit(pathToAdvocate, dir, progName string,
 
 	// Process each test file
 	for _, file := range testFiles {
-		fmt.Printf("\n\nProgress: %d/%d\n", currentFile, totalFiles)
+		fmt.Printf("\n\nProgress %s: %d/%d\n", progName, currentFile, totalFiles)
 		fmt.Printf("\nProcessing file: %s\n", file)
 
 		packagePath := filepath.Dir(file)
@@ -93,7 +93,7 @@ func runWorkflowUnit(pathToAdvocate, dir, progName string,
 			attemptedTests++
 			packageName := filepath.Base(packagePath)
 			fileName := filepath.Base(file)
-			fmt.Printf("Running full workflow for test: %s in package: %s in file: %s\n", testFunc, packageName, file)
+			fmt.Printf("\nRunning full workflow for test: %s in package: %s in file: %s\n\n", testFunc, packageName, file)
 
 			adjustedPackagePath := strings.TrimPrefix(packagePath, dir)
 			fileNameWithoutEnding := strings.TrimSuffix(fileName, ".go")

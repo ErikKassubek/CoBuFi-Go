@@ -126,7 +126,7 @@ func processBugFile(filePath string, info *map[string]map[string]int) error {
 
 			num, err := strconv.Atoi(code)
 			if err != nil {
-				return err
+				num = 3
 			}
 
 			if num >= 20 {
