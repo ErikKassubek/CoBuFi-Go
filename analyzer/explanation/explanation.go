@@ -63,8 +63,6 @@ func CreateOverview(path string, ignoreDouble bool) error {
 	resultsMachine, _ := filepath.Glob(filepath.Join(path, "results_machine_*.log"))
 	resultsMachine = append(resultsMachine, filepath.Join(path, "results_machine.log"))
 
-	fmt.Println("resMachine: ", resultsMachine, len(resultsMachine))
-
 	for _, result := range resultsMachine {
 		fmt.Println("\nOverview: ", result)
 		file, _ := os.ReadFile(result)
