@@ -6,19 +6,20 @@ import (
 	"os/exec"
 	"path/filepath"
 	"sync"
+	"time"
 )
 
 func main() {
 	names := []string{
 		// "canonicalTests",
 		"GoBench",
+		"moby",
+		"kubernetes",
+		"prometheus",
 		"connect",
 		"argo-cd",
-		"kubernetes",
-		"moby",
 		"go-ethereum",
-		"prometheus",
-		// "etcd",
+		"etcd",
 	}
 
 	mainPath := "~/Uni/HiWi/ADVOCATE/examples/"
@@ -41,6 +42,8 @@ func main() {
 	for _, name := range names {
 		wg.Add(1)
 		go runProg(name, mainPath, analysisTimeout, replayTimeout, &wg, sem)
+
+		time.Sleep(time.Second)
 	}
 
 	wg.Wait()

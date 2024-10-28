@@ -11,7 +11,6 @@
 package explanation
 
 import (
-	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -33,6 +32,7 @@ func getRewriteInfo(bugType string, codes map[string]string, index string) map[s
 
 	if rewPos == "Actual" {
 		res["description"] += "The bug is an actual bug. Therefore no rewrite is possibel."
+		codes[fmt.Sprint(index)] = "fail"
 	} else if rewPos == "Possible" {
 		res["description"] += "The bug is a potential bug.\n"
 		res["description"] += "The analyzer has tries to rewrite the trace in such a way, "
@@ -47,6 +47,7 @@ func getRewriteInfo(bugType string, codes map[string]string, index string) map[s
 		res["description"] += "No rewritten trace was created. This does not need to mean, "
 		res["description"] += "that the leak can not be resolved, especially because the "
 		res["description"] += "analyzer is only aware of executed operations."
+		codes[fmt.Sprint(index)] = "fail"
 	}
 	res["exitCode"], res["exitCodeExplanation"], res["replaySuc"], err = getReplayInfo(codes, index)
 
@@ -142,8 +143,7 @@ func getReplayInfo(replayCode map[string]string, index string) (string, string, 
 
 	exitCodeInt, err := strconv.Atoi(exitCode)
 	if err != nil {
-		res := fmt.Sprintf("Invalid format in output.log. Could not convert exit code %s to int for index %s", exitCode, index)
-		return "fail", res, "failed", errors.New(res)
+		return "fail", exitCodeExplanation["fail"], "was not run", nil
 	}
 	if exitCodeInt == 0 {
 		replaySuc = "ended without confirming the bug"
