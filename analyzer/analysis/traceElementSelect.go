@@ -437,6 +437,48 @@ func (se *TraceElementSelect) SetTWithoutNotExecuted2(tSort int) {
 }
 
 /*
+ * Set the case where the channel id and direction is correct as the active one
+ * Args:
+ *     chanID int: id of the channel in the case, -1 for default
+ *     send opChannel: channel operation of case
+ * Returns:
+ *     error
+ */
+func (se *TraceElementSelect) SetCase(chanID int, op OpChannel) error {
+	if chanID == -1 {
+		if se.containsDefault {
+			se.chosenDefault = true
+			se.chosenIndex = -1
+			for i := range se.cases {
+				se.cases[i].SetTPost(0)
+			}
+			return nil
+		} else {
+			return fmt.Errorf("Tried to set select without default to default")
+		}
+	}
+
+	found := false
+	for i, c := range se.cases {
+		fmt.Println(c.id, c.opC, chanID, op)
+		if c.id == chanID && c.opC == op {
+			tPost := se.getTpost()
+			se.cases[se.chosenIndex].SetTPost(0)
+			se.cases[i].SetTPost(tPost)
+			se.chosenIndex = i
+			found = true
+			break
+		}
+	}
+
+	if !found {
+		return fmt.Errorf("Select case not found")
+	}
+
+	return nil
+}
+
+/*
  * Get the simple string representation of the element
  * MARK: ToString
  * Returns:

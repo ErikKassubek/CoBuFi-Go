@@ -500,7 +500,7 @@ func unitTestReplay(pathToGoRoot, pathToPatchedGoRuntime, dir, pkg, file, testNa
 func unitTestReanalyzeLeaks(pathToGoRoot, pathToPatchedGoRuntime, pathToAnalyzer, dir, pkg, file, testName, output string, resTimes map[string]time.Duration) (int, int) {
 	pathPkg := filepath.Join(dir, pkg)
 	rerecordedTraces, _ := filepath.Glob(filepath.Join(pathPkg, "advocateTraceReplay_*"))
-	fmt.Printf("Found %d rerecorded traces\n", len(rerecordedTraces))
+	fmt.Printf("\nFound %d rerecorded traces\n\n", len(rerecordedTraces))
 
 	for _, trace := range rerecordedTraces {
 		number := extractTraceNumber(trace)

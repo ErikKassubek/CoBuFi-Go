@@ -1065,13 +1065,13 @@ func (q *waitq) dequeue(rElem ReplayElement) *sudog {
 		// ADVOCATE-CHANGE-START
 		// if the channel partner is not correct, the goroutine is not woken up
 		// TODO: is this necessary
-		if replayEnabled && sgp.replayEnabled {
-			if !(rElem.File == "") && !sgp.c.advocateIgnore {
-				if sgp.pFile != rElem.File || sgp.pLine != rElem.Line {
-					return nil
-				}
-			}
-		}
+		// if replayEnabled && sgp.replayEnabled {
+		// 	if !(rElem.File == "") && !sgp.c.advocateIgnore {
+		// 		if sgp.pFile != rElem.File || sgp.pLine != rElem.Line {
+		// 			return nil
+		// 		}
+		// 	}
+		// }
 		// ADVOCATE-CHANE-END
 
 		y := sgp.next

@@ -272,6 +272,15 @@ func ReleaseWaits() {
 			if replayElem.Line >= 20 && replayElem.Line < 30 {
 				ExitReplayWithCode(replayElem.Line)
 			}
+
+			// wait long enough, that all operations that have been released but not
+			// finished executing can execute
+			c := make(chan int, 1)
+			for i := 0; i < 4; i++ {
+				c <- i
+				<-c
+			}
+
 			DisableReplay()
 			// foundReplayElement(routine)
 			return
@@ -439,6 +448,7 @@ func correctSelect(next Operation, op Operation) bool {
 }
 
 func BlockForever() {
+	println("\n\n\nBlock forever\n\n\n")
 	gopark(nil, nil, waitReasonZero, traceBlockForever, 1)
 }
 

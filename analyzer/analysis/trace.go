@@ -175,6 +175,14 @@ func GetTraceElementFromBugArg(bugArg string) (TraceElement, error) {
 		}
 	}
 
+	for routine, trace := range traces {
+		for index, elem := range trace {
+			if elem.GetTPre() == tPre {
+				return traces[routine][index], nil
+			}
+		}
+	}
+
 	return nil, errors.New("Element " + bugArg + " does not exist")
 }
 
@@ -641,7 +649,9 @@ func ShiftConcurrentOrAfterToAfterStartingFromElement(element TraceElement, star
 		}
 	}
 
-	element.SetT(maxNotMoved + 1)
+	if element.getTpost() == 0 {
+		element.SetT(maxNotMoved + 1)
+	}
 
 	distance := element.GetTPre() - minTime + 1
 

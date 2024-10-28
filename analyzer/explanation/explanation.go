@@ -46,6 +46,7 @@ import (
  *    error: if an error occurred
  */
 func CreateOverview(path string, ignoreDouble bool) error {
+	fmt.Println("Create Overview for ", path)
 	// get the code info (main file, test name, commands)
 
 	replayCodes := getOutputCodes(path)

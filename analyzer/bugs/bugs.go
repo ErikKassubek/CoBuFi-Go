@@ -334,7 +334,7 @@ func ProcessBug(bugStr string) (bool, Bug, error) {
 		if strings.HasPrefix(bugArg, "T") {
 			elem, err := analysis.GetTraceElementFromBugArg(bugArg)
 			if err != nil {
-				println("Could not find: " + bugArg + " in trace")
+				println("Could not find: "+bugArg+" in trace: ", err.Error())
 				return actual, bug, err
 			}
 			bug.TraceElement1 = append(bug.TraceElement1, elem)

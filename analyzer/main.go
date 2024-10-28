@@ -268,7 +268,7 @@ func modeRun(pathTrace *string, noPrint *bool, noRewrite *bool,
 		numberRewrittenTrace := 0
 		failedRewrites := 0
 		notNeededRewrites := 0
-		println("\n\nStart rewriting trace files...")
+		println("\n\nStart rewriting trace file ", *pathTrace)
 		originalTrace := analysis.CopyCurrentTrace()
 
 		analysis.ClearData()

@@ -129,7 +129,7 @@ func rewriteUnbufChanLeakChanChan(bug bugs.Bug) error {
 
 /*
  * Rewrite a trace where a leaking unbuffered channel/select with possible partner was found
- * if both elements are channel operations.
+ * if a channel is stuck and a select is a possible partner
  * Args:
  *   bug (Bug): The bug to create a trace for
  * Returns:
@@ -163,6 +163,11 @@ func rewriteUnbufChanLeakChanSel(bug bugs.Bug) error {
 		// T = T1 ++ [f] ++ T2' ++ T3' ++ [e]
 		// where T2' = [h in T2 | h < e] and T3' = [h in T3 | h < e]
 
+		err := bug.TraceElement2[0].(*analysis.TraceElementSelect).SetCase(stuck.GetID(), analysis.SendOp)
+		if err != nil {
+			println(err.Error())
+		}
+
 		// add replay signal
 		analysis.AddTraceElementReplay(stuck.GetTSort()+1, exitCodeLeakUnbuf)
 
@@ -183,6 +188,11 @@ func rewriteUnbufChanLeakChanSel(bug bugs.Bug) error {
 		// where T2' = [h in T2 | h < e] and T3' = [h in T3 | h < e]
 		// and T4' = [h in T4 | h >= e and h < f]
 
+		err := bug.TraceElement2[0].(*analysis.TraceElementSelect).SetCase(stuck.GetID(), analysis.RecvOp)
+		if err != nil {
+			println(err.Error())
+		}
+
 		// add replay signal
 		analysis.AddTraceElementReplay(possiblePartner.GetTSort()+1, exitCodeLeakUnbuf)
 	}
@@ -192,7 +202,7 @@ func rewriteUnbufChanLeakChanSel(bug bugs.Bug) error {
 
 /*
  * Rewrite a trace where a leaking unbuffered channel/select with possible partner was found
- * if both elements are channel operations.
+ * if a select is stuck and a channel is a possible partner
  * Args:
  *   bug (Bug): The bug to create a trace for
  * Returns:
@@ -233,6 +243,11 @@ func rewriteUnbufChanLeakSelChan(bug bugs.Bug) error {
 
 		analysis.ShiftConcurrentOrAfterToAfterStartingFromElement(bug.TraceElement2[0], stuck.GetTSort()) // bug.TraceElement2[0] = possiblePartner
 
+		err := bug.TraceElement1[0].(*analysis.TraceElementSelect).SetCase(stuck.GetID(), analysis.SendOp)
+		if err != nil {
+			println(err.Error())
+		}
+
 		// T = T1 ++ T2' ++ T3' ++ [e] ++ T4' ++ [f]
 		// where T2' = [h in T2 | h < e] and T3' = [h in T3 | h < e]
 		// and T4' = [h in T4 | h >= e and h < f]
@@ -245,6 +260,11 @@ func rewriteUnbufChanLeakSelChan(bug bugs.Bug) error {
 		// T = T1 ++ [f] ++ T2' ++ T3' ++ [e]
 		// where T2' = [h in T2 | h < e] and T3' = [h in T3 | h < e]
 
+		err := bug.TraceElement1[0].(*analysis.TraceElementSelect).SetCase(stuck.GetID(), analysis.RecvOp)
+		if err != nil {
+			println(err.Error())
+		}
+
 		// add replay signal
 		analysis.AddTraceElementReplay(stuck.GetTSort()+1, exitCodeLeakUnbuf)
 
@@ -255,7 +275,7 @@ func rewriteUnbufChanLeakSelChan(bug bugs.Bug) error {
 
 /*
  * Rewrite a trace where a leaking unbuffered channel/select with possible partner was found
- * if both elements are channel operations.
+ * if both elements are select operations.
  * Args:
  *   bug (Bug): The bug to create a trace for
  * Returns:
@@ -300,6 +320,15 @@ func rewriteUnbufChanLeakSelSel(bug bugs.Bug) error {
 				// T = T1 ++ [f] ++ T2' ++ T3' ++ [e]
 				// where T2' = [h in T2 | h < e] and T3' = [h in T3 | h < e]
 
+				err := bug.TraceElement1[0].(*analysis.TraceElementSelect).SetCase(c.GetID(), analysis.RecvOp)
+				if err != nil {
+					println(err.Error())
+				}
+				err = bug.TraceElement2[0].(*analysis.TraceElementSelect).SetCase(d.GetID(), analysis.SendOp)
+				if err != nil {
+					println(err.Error())
+				}
+
 				// add replay signal
 				analysis.AddTraceElementReplay(stuck.GetTSort()+1, exitCodeLeakUnbuf)
 				return nil
@@ -317,6 +346,15 @@ func rewriteUnbufChanLeakSelSel(bug bugs.Bug) error {
 			// T = T1 ++ T2' ++ T3' ++ [e] ++ T4' ++ [f]
 			// where T2' = [h in T2 | h < e] and T3' = [h in T3 | h < e]
 			// and T4' = [h in T4 | h >= e and h < f]
+
+			err := bug.TraceElement1[0].(*analysis.TraceElementSelect).SetCase(c.GetID(), analysis.SendOp)
+			if err != nil {
+				println(err.Error())
+			}
+			err = bug.TraceElement2[0].(*analysis.TraceElementSelect).SetCase(d.GetID(), analysis.RecvOp)
+			if err != nil {
+				println(err.Error())
+			}
 
 			// add replay signals
 			analysis.AddTraceElementReplay(possiblePartner.GetTSort()+1, exitCodeLeakUnbuf)
