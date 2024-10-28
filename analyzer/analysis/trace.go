@@ -717,7 +717,7 @@ func RemoveConcurrentOrAfter(element TraceElement, tmin int) {
 				continue
 			}
 
-			if clock.GetHappensBefore(elem.GetVC(), element.GetVC()) != clock.Concurrent {
+			if clock.GetHappensBefore(elem.GetVC(), element.GetVC()) != clock.Before {
 				result = append(result, elem)
 			}
 		}

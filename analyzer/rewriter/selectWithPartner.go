@@ -29,33 +29,31 @@ func rewriteNotExecutedSelect(bug bugs.Bug, index int) error {
 	}
 	partner := bug.TraceElement2[index]
 
-	// remove everything that is concurrent or after to the select
+	// // remove everything that is concurrent or after to the select
 	hb := clock.GetHappensBefore(sel.GetVC(), partner.GetVC())
 
-	if hb == clock.Before {
-		analysis.RemoveConcurrentOrAfter(sel, 0)
-		if partner.GetObjType() == "CC" || partner.GetObjType() == "CS" {
-			partner.SetTSort(sel.GetTSort() - 1)
-		} else {
-			partner.SetTSort(sel.GetTSort() + 1)
-		}
+	analysis.RemoveConcurrentOrAfter(sel, 0)
 
+	if hb != clock.Before {
 		analysis.AddElementToTrace(partner)
-
-	} else {
-		analysis.RemoveConcurrentOrAfter(partner, 0)
-		if partner.GetObjType() == "CC" || partner.GetObjType() == "CS" {
-			sel.SetTSort(partner.GetTSort() + 1)
-		} else {
-			sel.SetTSort(partner.GetTSort() - 1)
-		}
-
-		analysis.AddElementToTrace(sel)
 	}
 
-	sel.(*analysis.TraceElementSelect).SetChosenCase(ca.Index)
+	if partner.GetTSort() == 0 {
+		if ca.ObjType == "CS" {
+			partner.SetTSort(sel.GetTSort() + 1)
+		} else {
+			sel.(*analysis.TraceElementSelect).SetCase(ca.ID, analysis.RecvOp)
+			partner.SetTSort(max(1, sel.GetTSort()-1))
+		}
+	}
 
-	analysis.AddTraceElementReplay(partner.GetTSort()+3, exitCodeNone)
+	if ca.ObjType == "CS" {
+		sel.(*analysis.TraceElementSelect).SetCase(ca.ID, analysis.SendOp)
+	} else {
+		sel.(*analysis.TraceElementSelect).SetCase(ca.ID, analysis.RecvOp)
+	}
+
+	analysis.AddTraceElementReplay(max(partner.GetTSort(), sel.GetTSort())+1, exitCodeNone)
 
 	return nil
 }
