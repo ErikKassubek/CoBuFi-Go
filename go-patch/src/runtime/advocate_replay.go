@@ -212,11 +212,16 @@ func DisableReplay() {
 	lock(&replayLock)
 	defer unlock(&replayLock)
 
+	if !replayEnabled {
+		return
+	}
+
 	replayEnabled = false
 
 	lock(&waitingOpsMutex)
-	for _, replCh := range waitingOps {
-		replCh.ch <- ReplayElement{}
+	for key, replCh := range waitingOps {
+		println("key: ", key)
+		replCh.ch <- ReplayElement{Blocked: true}
 	}
 	unlock(&waitingOpsMutex)
 
@@ -242,6 +247,14 @@ func WaitForReplayFinish(exit bool) {
 		}
 
 		slowExecution()
+	}
+
+	DisableReplay()
+
+	// wait long enough, that all operations that have been released in the displayReplay
+	// can record the pre
+	for i := 0; i < 1000000; i++ {
+		_ = i
 	}
 
 	if exit {
@@ -275,10 +288,8 @@ func ReleaseWaits() {
 
 			// wait long enough, that all operations that have been released but not
 			// finished executing can execute
-			c := make(chan int, 1)
-			for i := 0; i < 4; i++ {
-				c <- i
-				<-c
+			for i := 0; i < 1000000; i++ {
+				_ = i
 			}
 
 			DisableReplay()
@@ -302,7 +313,6 @@ func ReleaseWaits() {
 				}
 				unlock(&waitingOpsMutex)
 				if oldestKey != "" {
-					println("ReliLast: ", oldestKey)
 					oldest.ch <- replayElem
 
 					foundReplayElement(routine)
@@ -407,9 +417,6 @@ func WaitForReplayPath(op Operation, file string, line int) (bool, chan ReplayEl
 	ch := make(chan ReplayElement, 1<<62) // 1<<62 + 0 makes sure, that the channel is ignored for replay. The actual size is 0
 
 	lock(&waitingOpsMutex)
-	if _, ok := waitingOps[key]; ok {
-		println("----------------------", key)
-	}
 	waitingOps[key] = replayChan{ch, counter}
 	unlock(&waitingOpsMutex)
 	return true, ch

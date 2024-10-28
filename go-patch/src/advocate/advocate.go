@@ -312,7 +312,7 @@ func FinishReplayTracing() {
 
 	runtime.WaitForReplayFinish(false)
 
-	runtime.DisableReplay()
+	// runtime.DisableReplay()
 
 	FinishTracing()
 }
@@ -328,7 +328,6 @@ func FinishReplayTracing() {
  * 	- once
  * 	- waitgroups
  * 	- select
- * For now we ignore atomic operations.
  * We only record the relevant information for each operation.
  * Args:
  * 	- fileName: The name of the file that contains the trace.
@@ -534,8 +533,14 @@ func readTraceFile(fileName string, chanWithoutPartner *map[string]int) (int, ru
 			if len(pos) != 2 {
 				println(elem)
 			}
-			file = pos[0]
-			line, _ = strconv.Atoi(pos[1])
+			if len(pos) < 2 {
+				runtime.SetReplayAtomic(false)
+				file = ""
+				line = 0
+			} else {
+				file = pos[0]
+				line, _ = strconv.Atoi(pos[1])
+			}
 		case "E":
 			continue
 

@@ -46,7 +46,6 @@ import (
  *    error: if an error occurred
  */
 func CreateOverview(path string, ignoreDouble bool) error {
-	fmt.Println("Create Overview for ", path)
 	// get the code info (main file, test name, commands)
 
 	replayCodes := getOutputCodes(path)
@@ -64,7 +63,10 @@ func CreateOverview(path string, ignoreDouble bool) error {
 	resultsMachine, _ := filepath.Glob(filepath.Join(path, "results_machine_*.log"))
 	resultsMachine = append(resultsMachine, filepath.Join(path, "results_machine.log"))
 
+	fmt.Println("resMachine: ", resultsMachine, len(resultsMachine))
+
 	for _, result := range resultsMachine {
+		fmt.Println("\nOverview: ", result)
 		file, _ := os.ReadFile(result)
 		numberResults := len(strings.Split(string(file), "\n"))
 
@@ -83,7 +85,7 @@ func CreateOverview(path string, ignoreDouble bool) error {
 			}
 
 			if strings.HasPrefix(bugType, "S") {
-				return nil
+				break
 			}
 
 			// get the bug type description

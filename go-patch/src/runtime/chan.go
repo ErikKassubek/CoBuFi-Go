@@ -225,7 +225,6 @@ func chansend(c *hchan, ep unsafe.Pointer, block bool, callerpc uintptr, ignored
 		wait, ch := WaitForReplay(OperationChannelSend, 3)
 		if wait {
 			replayElem = <-ch
-			println("Send ", replayElem.File, replayElem.Line, replayElem.Blocked)
 			if replayElem.Blocked {
 				lock(&c.numberSendMutex)
 				c.numberSend++

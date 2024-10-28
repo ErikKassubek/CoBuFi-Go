@@ -296,7 +296,7 @@ func (se *TraceElementSelect) GetVC() clock.VectorClock {
  *   *TraceElementChannel: The communication partner of the select or nil
  */
 func (se *TraceElementSelect) GetPartner() *TraceElementChannel {
-	if se.chosenCase.tPost != 0 {
+	if se.chosenCase.tPost != 0 && !se.chosenDefault {
 		return se.chosenCase.partner
 	}
 	return nil
@@ -436,6 +436,10 @@ func (se *TraceElementSelect) SetTWithoutNotExecuted2(tSort int) {
 	}
 }
 
+func (se *TraceElementSelect) GetChosenDefault() bool {
+	return se.chosenDefault
+}
+
 /*
  * Set the case where the channel id and direction is correct as the active one
  * Args:
@@ -466,6 +470,7 @@ func (se *TraceElementSelect) SetCase(chanID int, op OpChannel) error {
 			se.cases[se.chosenIndex].SetTPost(0)
 			se.cases[i].SetTPost(tPost)
 			se.chosenIndex = i
+			se.chosenDefault = false
 			found = true
 			break
 		}

@@ -783,7 +783,6 @@ func ShiftRoutine(routine int, startTSort int, shift int) bool {
  */
 func GetPartialTrace(startTime int, endTime int) map[int][]*TraceElement {
 	result := make(map[int][]*TraceElement)
-	println("\n\n")
 	for routine, trace := range traces {
 		for index, elem := range trace {
 			if _, ok := result[routine]; !ok {

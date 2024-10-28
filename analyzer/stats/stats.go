@@ -111,9 +111,19 @@ func writeStatsToFile(path string, progName string, testName string, statsTraces
 		numberOfPanicsVerifiedViaReplay += statsAnalyzer["replaySuccessful"][code]
 	}
 
-	headerAnalysis := "TestName,NumberOfLeaks,NumberOfLeaksWithRewrite,NumberOfLeaksResolvedViaReplay,NumberOfPanics,NumberOfPanicsVerifiedViaReplay"
-	dataAnalysis := fmt.Sprintf("%s,%d,%d,%d,%d,%d", progName, numberOfLeaks,
-		numberOfLeaksWithRewrite, numberOfLeaksResolvedViaReplay, numberOfPanics, numberOfPanicsVerifiedViaReplay)
+	numberOfLeaksDetectedWithRerecording := 0
+	for _, code := range leakCodes {
+		numberOfLeaksDetectedWithRerecording += statsAnalyzer["rerecorded"][code]
+	}
+
+	numberOfNumberOfPanicsDetectedWithRerecordingPanics := 0
+	for _, code := range panicCodes {
+		numberOfPanics += statsAnalyzer["rerecorded"][code]
+	}
+
+	headerAnalysis := "TestName,NumberOfLeaks,NumberOfLeaksWithRewrite,NumberOfLeaksResolvedViaReplay,NumberOfPanics,NumberOfPanicsVerifiedViaReplay,NumberOfLeaksDetectedWithRerecording,NumberOfPanicsDetectedWithRerecording"
+	dataAnalysis := fmt.Sprintf("%s,%d,%d,%d,%d,%d,%d,%d", progName, numberOfLeaks,
+		numberOfLeaksWithRewrite, numberOfLeaksResolvedViaReplay, numberOfPanics, numberOfPanicsVerifiedViaReplay, numberOfLeaksDetectedWithRerecording, numberOfNumberOfPanicsDetectedWithRerecordingPanics)
 
 	writeStatsFile(fileAnalysisPath, headerAnalysis, dataAnalysis)
 
@@ -140,7 +150,7 @@ func writeStatsToFile(path string, progName string, testName string, statsTraces
 
 	headers := make([]string, 0)
 	data := make([]string, 0)
-	for _, mode := range []string{"detected", "replayWritten", "replaySuccessful"} {
+	for _, mode := range []string{"detected", "replayWritten", "replaySuccessful", "rerecorded"} {
 		for _, code := range []string{"A01", "A02", "A03", "A04", "A05", "P01", "P02", "P03", "P04", "L00", "L01", "L02", "L03", "L04", "L05", "L06", "L07", "L08", "L09", "L10"} {
 			headers = append(headers, "NumberOf"+strings.ToUpper(string(mode[0]))+mode[1:]+code)
 			data = append(data, strconv.Itoa(statsAnalyzer[mode][code]))

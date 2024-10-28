@@ -349,7 +349,6 @@ func checkForLeak() {
 				}
 
 			} else {
-				println(vcTID.tID)
 				if vcTID.sel {
 					file, line, tPre, err := infoFromTID(vcTID.tID)
 					if err != nil {

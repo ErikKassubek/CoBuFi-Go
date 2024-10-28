@@ -15,45 +15,35 @@ package rewriter
 import (
 	"analyzer/analysis"
 	"analyzer/bugs"
-	"analyzer/clock"
 	"fmt"
 )
 
 // ========= Not executed select with partner =========================
 func rewriteNotExecutedSelect(bug bugs.Bug, index int) error {
 	sel := bug.TraceElement1[0]
+	if sel.GetTSort() == 0 {
+		return fmt.Errorf("Cannot rewrite not executed case, select was not executed")
+	}
+
 	ca := bug.TraceElement1Sel[0]
-	partners := bug.TraceElement2
-	if index >= len(partners) {
-		return fmt.Errorf("Index %d not in possible partner (len %d)", index, len(partners))
-	}
-	partner := bug.TraceElement2[index]
-
-	// // remove everything that is concurrent or after to the select
-	hb := clock.GetHappensBefore(sel.GetVC(), partner.GetVC())
-
-	analysis.RemoveConcurrentOrAfter(sel, 0)
-
-	if hb != clock.Before {
-		analysis.AddElementToTrace(partner)
+	if index >= len(bug.TraceElement2) {
+		return fmt.Errorf("Index %d not in possible partner (len %d)", index, len(bug.TraceElement2))
 	}
 
-	if partner.GetTSort() == 0 {
-		if ca.ObjType == "CS" {
-			partner.SetTSort(sel.GetTSort() + 1)
-		} else {
-			sel.(*analysis.TraceElementSelect).SetCase(ca.ID, analysis.RecvOp)
-			partner.SetTSort(max(1, sel.GetTSort()-1))
-		}
+	selPartner := sel.(*analysis.TraceElementSelect).GetPartner()
+	if selPartner != nil {
+		selPartner.SetTPost(0)
 	}
 
 	if ca.ObjType == "CS" {
-		sel.(*analysis.TraceElementSelect).SetCase(ca.ID, analysis.SendOp)
+		bug.TraceElement2[index].SetTSort(sel.GetTSort() + 1)
+		bug.TraceElement1[0].(*analysis.TraceElementSelect).SetCase(ca.ID, analysis.SendOp)
 	} else {
-		sel.(*analysis.TraceElementSelect).SetCase(ca.ID, analysis.RecvOp)
+		bug.TraceElement2[index].SetTSort(sel.GetTSort() - 1)
+		bug.TraceElement1[0].(*analysis.TraceElementSelect).SetCase(ca.ID, analysis.RecvOp)
 	}
 
-	analysis.AddTraceElementReplay(max(partner.GetTSort(), sel.GetTSort())+1, exitCodeNone)
+	analysis.RemoveElementFromTrace(bug.TraceElement1[0].(*analysis.TraceElementSelect).GetPartner().GetTID())
 
 	return nil
 }
