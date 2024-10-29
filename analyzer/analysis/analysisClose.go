@@ -37,7 +37,7 @@ func checkForCommunicationOnClosedChannel(ch *TraceElementChannel) {
 				logging.DEBUG)
 
 			happensBefore := clock.GetHappensBefore(closeData[ch.id].vc, mrs[ch.id].Vc)
-			if mrs[ch.id].Elem.GetTID() != "" && happensBefore == clock.Concurrent {
+			if mrs[ch.id].Elem != nil && mrs[ch.id].Elem.GetTID() != "" && happensBefore == clock.Concurrent {
 
 				file1, line1, tPre1, err := infoFromTID(mrs[ch.id].Elem.GetTID()) // send
 				if err != nil {
@@ -86,7 +86,7 @@ func checkForCommunicationOnClosedChannel(ch *TraceElementChannel) {
 				logging.DEBUG)
 
 			happensBefore := clock.GetHappensBefore(closeData[ch.id].vc, mrr[ch.id].Vc)
-			if mrr[ch.id].Elem.GetTID() != "" && (happensBefore == clock.Concurrent || happensBefore == clock.Before) {
+			if mrr[ch.id].Elem != nil && mrr[ch.id].Elem.GetTID() != "" && (happensBefore == clock.Concurrent || happensBefore == clock.Before) {
 
 				file1, line1, tPre1, err := infoFromTID(mrr[ch.id].Elem.GetTID()) // recv
 				if err != nil {
