@@ -15,11 +15,11 @@ func main() {
 		// "GoBench",
 		// "moby",
 		// "connect",
+		"prometheus",
 		"argo-cd",
 		"go-ethereum",
 		"etcd",
 		"kubernetes",
-		"prometheus",
 	}
 
 	mainPath := "~/Uni/HiWi/ADVOCATE/examples/"

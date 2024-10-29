@@ -61,6 +61,8 @@ func runWorkflowUnit(pathToAdvocate, dir, progName string,
 	}
 	fmt.Printf("In directory: %s\n", dir)
 
+	runCommand("go", "mod", "tidy")
+
 	os.RemoveAll("advocateResult")
 	if err := os.MkdirAll("advocateResult", os.ModePerm); err != nil {
 		return fmt.Errorf("Failed to create advocateResult directory: %v", err)
@@ -470,9 +472,18 @@ func unitTestReplay(pathToGoRoot, pathToPatchedGoRuntime, dir, pkg, file, testNa
 		timeoutRepl += time.Duration(timeoutReplay) * time.Second
 	}
 
+	rerecordCounter := 0
 	for i, trace := range rewrittenTraces {
 		traceNum := extractTraceNumber(trace)
 		record := getRerecord(trace)
+
+		// limit the number of rerecordings to 10
+		if record {
+			rerecordCounter++
+			if rerecordCounter > 10 {
+				continue
+			}
+		}
 
 		fmt.Printf("Insert replay header or %s: %s for trace %s\n", file, testName, traceNum)
 		headerInserterUnit(file, testName, true, traceNum, int(timeoutRepl.Seconds()), record)
