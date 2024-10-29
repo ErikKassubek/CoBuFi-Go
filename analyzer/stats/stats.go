@@ -122,7 +122,7 @@ func writeStatsToFile(path string, progName string, testName string, statsTraces
 	}
 
 	headerAnalysis := "TestName,NumberOfLeaks,NumberOfLeaksWithRewrite,NumberOfLeaksResolvedViaReplay,NumberOfPanics,NumberOfPanicsVerifiedViaReplay,NumberOfLeaksDetectedWithRerecording,NumberOfPanicsDetectedWithRerecording"
-	dataAnalysis := fmt.Sprintf("%s,%d,%d,%d,%d,%d,%d,%d", progName, numberOfLeaks,
+	dataAnalysis := fmt.Sprintf("%s,%d,%d,%d,%d,%d,%d,%d", testName, numberOfLeaks,
 		numberOfLeaksWithRewrite, numberOfLeaksResolvedViaReplay, numberOfPanics, numberOfPanicsVerifiedViaReplay, numberOfLeaksDetectedWithRerecording, numberOfNumberOfPanicsDetectedWithRerecordingPanics)
 
 	writeStatsFile(fileAnalysisPath, headerAnalysis, dataAnalysis)
@@ -134,7 +134,7 @@ func writeStatsToFile(path string, progName string, testName string, statsTraces
 		"NumberOfSelectCases,NumberOfSelectNonDefaultEvents,NumberOfSelectDefaultEvents,NumberOfMutex,NumberOfMutexEvents," +
 		"NumberOfWaitgroup,NumberOfWaitgroupEvent,NumberOfCondVariables,NumberOfCondVariablesEvents,NumberOfOnce,NumberOfOnceOperations,"
 	dataDetails := fmt.Sprintf("%s,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,",
-		progName, statsTraces["numberElements"],
+		testName, statsTraces["numberElements"],
 		statsTraces["numberRoutines"], statsTraces["numberNonEmptyRoutines"],
 		statsTraces["numberOfSpawns"], statsTraces["numberRoutineEnds"],
 		statsTraces["numberAtomics"], statsTraces["numberAtomicOperations"],

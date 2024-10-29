@@ -12,14 +12,14 @@ import (
 func main() {
 	names := []string{
 		// "canonicalTests",
-		"GoBench",
-		"moby",
-		"prometheus",
-		"connect",
-		"kubernetes",
+		// "GoBench",
+		// "moby",
+		// "connect",
 		"argo-cd",
 		"go-ethereum",
 		"etcd",
+		"kubernetes",
+		"prometheus",
 	}
 
 	mainPath := "~/Uni/HiWi/ADVOCATE/examples/"
