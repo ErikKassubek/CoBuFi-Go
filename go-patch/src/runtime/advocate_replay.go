@@ -219,8 +219,7 @@ func DisableReplay() {
 	replayEnabled = false
 
 	lock(&waitingOpsMutex)
-	for key, replCh := range waitingOps {
-		println("key: ", key)
+	for _, replCh := range waitingOps {
 		replCh.ch <- ReplayElement{Blocked: true}
 	}
 	unlock(&waitingOpsMutex)
@@ -455,7 +454,6 @@ func correctSelect(next Operation, op Operation) bool {
 }
 
 func BlockForever() {
-	println("\n\n\nBlock forever\n\n\n")
 	gopark(nil, nil, waitReasonZero, traceBlockForever, 1)
 }
 

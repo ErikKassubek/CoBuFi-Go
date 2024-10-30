@@ -112,7 +112,7 @@ func runWorkflowMain(pathToAdvocate string, pathToFile string, executableName st
 
 	// Add header
 	fmt.Printf("Add header to %s\n", pathToFile)
-	if err := headerInserterMain(pathToFile, false, "1", timeoutReplay); err != nil {
+	if err := headerInserterMain(pathToFile, false, "1", timeoutReplay, false); err != nil {
 		return fmt.Errorf("Error in adding header: %v", err)
 	}
 
@@ -163,7 +163,7 @@ func runWorkflowMain(pathToAdvocate string, pathToFile string, executableName st
 	for _, trace := range rewrittenTraces {
 		rtraceNum := extractTraceNum(trace)
 		fmt.Printf("Apply replay header for file f %s and trace %s\n", pathToFile, rtraceNum)
-		if err := headerInserterMain(pathToFile, true, rtraceNum, int(timeoutRepl.Seconds())); err != nil {
+		if err := headerInserterMain(pathToFile, true, rtraceNum, int(timeoutRepl.Seconds()), false); err != nil {
 			return err
 		}
 

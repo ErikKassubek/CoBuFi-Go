@@ -321,8 +321,6 @@ func unitTestFullWorkflow(pathToAdvocate string, dir string,
 		return resTimes, 0, 0, err
 	}
 
-	headerRemoverUnit(file)
-
 	unitTestAnalyzer(pathToAnalyzer, dir, pkg, "advocateTrace", output, resTimes, "-1")
 
 	lenRewTraces := unitTestReplay(pathToGoRoot, pathToPatchedGoRuntime, dir, pkg, file, testName, resTimes, false)
@@ -394,6 +392,7 @@ func unitTestRecord(pathToGoRoot, pathToPatchedGoRuntime, pkg, file, testName st
 
 	// Remove header after the test
 	fmt.Println(fmt.Sprintf("Remove header for %s", file))
+	headerRemoverUnit(file)
 
 	return nil
 }
@@ -477,11 +476,13 @@ func unitTestReplay(pathToGoRoot, pathToPatchedGoRuntime, dir, pkg, file, testNa
 		traceNum := extractTraceNumber(trace)
 		record := getRerecord(trace)
 
-		// limit the number of rerecordings to 10
-		if record {
-			rerecordCounter++
-			if rerecordCounter > 10 {
-				continue
+		// limit the number of rerecordings
+		if numberRerecord != -1 {
+			if record {
+				rerecordCounter++
+				if rerecordCounter > numberRerecord {
+					continue
+				}
 			}
 		}
 
@@ -518,23 +519,10 @@ func unitTestReanalyzeLeaks(pathToGoRoot, pathToPatchedGoRuntime, pathToAnalyzer
 		traceName := filepath.Base(trace)
 		unitTestAnalyzer(pathToAnalyzer, dir, pkg, traceName, output, resTimes, number)
 	}
-	disableRerecord = true
+	numberRerecord = 0
 	nrRewTrace := unitTestReplay(pathToGoRoot, pathToPatchedGoRuntime, dir, pkg, file, testName, resTimes, true)
 
 	return nrRewTrace, len(rerecordedTraces)
-}
-
-// extractTraceNumber extracts the numeric part from a trace directory name
-func extractTraceNumber(trace string) string {
-	parts := strings.Split(trace, "rewritten_trace_")
-	if len(parts) > 1 {
-		return parts[1]
-	}
-	parts = strings.Split(trace, "advocateTraceReplay_")
-	if len(parts) > 1 {
-		return parts[1]
-	}
-	return ""
 }
 
 func getRerecord(trace string) bool {

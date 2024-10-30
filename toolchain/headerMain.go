@@ -28,10 +28,11 @@ import (
  *    replay (bool): true for replay, false for only recording
  *    replayNumber (string): id of the trace to replay
  *    replayTimeout (int): replay for timeout
+ *    record (bool): if both replay and record are set, the replay is rerecorded
  * Returns:
  *    error
  */
-func headerInserterMain(fileName string, replay bool, replayNumber string, replayTimeout int) error {
+func headerInserterMain(fileName string, replay bool, replayNumber string, replayTimeout int, record bool) error {
 	if fileName == "" {
 		return errors.New("Please provide a file  name")
 	}
@@ -40,7 +41,7 @@ func headerInserterMain(fileName string, replay bool, replayNumber string, repla
 		return fmt.Errorf("File %s does not exist", fileName)
 	}
 
-	return addMainHeader(fileName, replay, replayNumber, replayTimeout)
+	return addMainHeader(fileName, replay, replayNumber, replayTimeout, record)
 }
 
 /*
@@ -139,10 +140,11 @@ func mainMethodExists(fileName string) (bool, error) {
  *    replay (bool): true for replay, false for just recording
  *    replayNumber (int): id of the trace to replay
  *    replayTimeout (int): replay for timeout
+ *    record (bool): if both replay and record are set, the replay is rerecorded
  * Return:
  *    error
  */
-func addMainHeader(fileName string, replay bool, replayNumber string, replayTimeout int) error {
+func addMainHeader(fileName string, replay bool, replayNumber string, replayTimeout int, record bool) error {
 	exists, err := mainMethodExists(fileName)
 	if err != nil {
 		return err
@@ -162,7 +164,9 @@ func addMainHeader(fileName string, replay bool, replayNumber string, replayTime
 	var lines []string
 	scanner := bufio.NewScanner(file)
 	importAdded := false
+	currentLine := 0
 	for scanner.Scan() {
+		currentLine++
 		line := scanner.Text()
 		lines = append(lines, line)
 
@@ -179,16 +183,25 @@ func addMainHeader(fileName string, replay bool, replayNumber string, replayTime
 
 		if strings.Contains(line, "func main() {") {
 			if replay {
-				lines = append(lines, fmt.Sprintf(`	// ======= Preamble Start =======
-  advocate.InitReplay(%s, true, %d)
+				if record {
+					lines = append(lines, fmt.Sprintf(`	// ======= Preamble Start =======
+  advocate.InitReplayTracing("%s", false, %d, false)
+  defer advocate.FinishReplayTracing()
+  // ======= Preamble End =======`, replayNumber, timeoutReplay))
+				} else {
+					lines = append(lines, fmt.Sprintf(`	// ======= Preamble Start =======
+  advocate.InitReplay("%s", false, %d, false)
   defer advocate.FinishReplay()
-  // ======= Preamble End =======`, replayNumber, replayTimeout))
+  // ======= Preamble End =======`, replayNumber, timeoutReplay))
+				}
 			} else {
 				lines = append(lines, `	// ======= Preamble Start =======
   advocate.InitTracing()
-  defer advocate.FinishReplay()
+  defer advocate.FinishTracing()
   // ======= Preamble End =======`)
 			}
+			fmt.Println("Header added at line:", currentLine)
+			fmt.Printf("Header added at file: %s\n", fileName)
 		}
 	}
 
