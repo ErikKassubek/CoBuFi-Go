@@ -58,7 +58,7 @@ func stats(path string, progName string, progType string) {
 	case "statsAll":
 		numberElems = 85
 	case "statsAnalysis":
-		numberElems = 5
+		numberElems = 7
 	case "statsTrace":
 		numberElems = 9
 	}
