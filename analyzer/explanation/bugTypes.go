@@ -325,7 +325,7 @@ var exitCodeExplanation = map[string]string{
 		"or because the analyzer was not able to rewrite the trace for other reasons.",
 	"0": "The replay finished without being able to confirm the predicted bug. If the given trace was a directly recorded trace, this is the " +
 		"expected behavior. If it was rewritten by the analyzer, this could be an indication " +
-		"that something went wrong during rewrite.",
+		"that something went wrong during rewrite or replay.",
 	"3": "During the replay, the program panicked unexpectedly.\n" +
 		"This can be expected behavior, e.g. if the program tries to replay a recv on closed " +
 		"but the recv on closed is necessarily preceded by a send on closed.",

@@ -16,7 +16,7 @@ S := "S,"tpre","tpost","id","cases","selIndex","pos                      (elemen
 O := "O,"tpre",tpost","id","suco","pos                                   (element for once)
 N := "N,"tpre",tpost","id","opN","pos                                    (element for conditional)
 E := "E,"tpre"                                                           (termination of a routine)
-X := "X,"tpre","ec                                                       (start/stop signal, only in rewritten trace)
+X := "X,"tpre","ec","tPreLast"                                           (start/stop signal, only in rewritten trace)
 tpre := ℕ                                                                (timer when the operation is started)
 tpost := ℕ                                                               (timer when the operation has finished)
 addr := ℕ                                                                (pointer to the atomic variable, used as id)
@@ -42,7 +42,8 @@ suco := t | f                                                            (true i
 cId := ℕ                                                                 (id of channel in select case)
 opN := "W" | "S" | "B"                                                   (operation for conditional: Wait, Signal, Broadcast)
 selIndex := ℕ | -1                                                       (internal index for the selected select case)
-ec :=ℕ                                                                   (exit code)
+ec := ℕ                                                                  (exit code)
+tPreLast := ℕ                                                            (tPre of the last element in the replay, e.g. the tPre of the stuck element in a leak)
 ```
 
 For each routine a separate file is stored.

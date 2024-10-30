@@ -108,7 +108,8 @@ func (ro Operation) ToString() string {
  * The replay data structure.
  * The replay data structure is used to store the trace of the program.
  * op: identifier of the operation
- * time: int (tpre) of the operation
+ * time: time of the operation
+ * timePre: pre time
  * file: file in which the operation is executed
  * line: line number of the operation
  * blocked: true if the operation is blocked (never finised, tpost=0), false otherwise
@@ -125,6 +126,7 @@ type ReplayElement struct {
 	Routine  int
 	Op       Operation
 	Time     int
+	TimePre  int
 	File     string
 	Line     int
 	Blocked  bool
@@ -150,6 +152,10 @@ var traceElementPositions = make(map[string][]int) // file -> []line
 // exit code
 var replayExitCode bool
 var expectedExitCode int
+
+// for leak, TimePre of stuck elem
+var lastTPreReplay int
+var stuckReplayExecutedSuc = false
 
 /*
  * Add a replay trace to the replay data.
@@ -256,7 +262,9 @@ func WaitForReplayFinish(exit bool) {
 		_ = i
 	}
 
-	if exit {
+	if stuckReplayExecutedSuc {
+		ExitReplayWithCode(expectedExitCode)
+	} else {
 		ExitReplayWithCode(ExitCodeDefault)
 	}
 }
@@ -281,7 +289,7 @@ func ReleaseWaits() {
 
 		if replayElem.Op == OperationReplayEnd {
 			println("Operation Replay End")
-			if replayElem.Line >= 20 && replayElem.Line < 30 {
+			if !isExitCodeLeak(replayElem.Line) {
 				ExitReplayWithCode(replayElem.Line)
 			}
 
@@ -418,6 +426,7 @@ func WaitForReplayPath(op Operation, file string, line int) (bool, chan ReplayEl
 	lock(&waitingOpsMutex)
 	waitingOps[key] = replayChan{ch, counter}
 	unlock(&waitingOpsMutex)
+
 	return true, ch
 }
 
@@ -545,13 +554,29 @@ func SetExpectedExitCode(code int) {
 	expectedExitCode = code
 }
 
+func SetLastTPre(tPre int) {
+	lastTPreReplay = tPre
+}
+
+func CheckLastTPreReplay(tPre int) {
+	if lastTPreReplay == tPre && tPre != 0 {
+		stuckReplayExecutedSuc = true
+	}
+}
+
 /*
- * Exit the program with the given code.
- * Args:
- * 	code: the exit code
- */
+  - Set the time of the
+
+/*
+  - Exit the program with the given code.
+  - Args:
+  - code: the exit code
+*/
 func ExitReplayWithCode(code int) {
 	if !hasReturnedExitCode {
+		if isExitCodeLeak(code) && !stuckReplayExecutedSuc {
+			return
+		}
 		println("Exit Replay with code ", code, ExitCodeNames[code])
 		hasReturnedExitCode = true
 	}
@@ -561,6 +586,10 @@ func ExitReplayWithCode(code int) {
 		}
 		exit(int32(code))
 	}
+}
+
+func isExitCodeLeak(code int) bool {
+	return code >= 20 && code < 30
 }
 
 /*

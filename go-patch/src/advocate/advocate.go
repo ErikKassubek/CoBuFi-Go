@@ -368,11 +368,14 @@ func readTraceFile(fileName string, chanWithoutPartner *map[string]int) (int, ru
 		var selIndex int
 		fields := strings.Split(elem, ",")
 		time, _ = strconv.Atoi(fields[1])
+		tPre, _ := strconv.Atoi(fields[1])
 		switch fields[0] {
 		case "X": // disable replay
 			op = runtime.OperationReplayEnd
 			line, _ = strconv.Atoi(fields[2]) // misuse the line for the exit code
 			runtime.SetExpectedExitCode(line)
+			lastTPre, _ := strconv.Atoi(fields[3]) // missuse pLie for the tPreLast
+			runtime.SetLastTPre(lastTPre)
 		case "G":
 			op = runtime.OperationSpawn
 			// time, _ = strconv.Atoi(fields[1])
@@ -552,7 +555,7 @@ func readTraceFile(fileName string, chanWithoutPartner *map[string]int) (int, ru
 		}
 		if op != runtime.OperationNone && !runtime.AdvocateIgnoreReplay(op, file, line) {
 			replayData = append(replayData, runtime.ReplayElement{
-				Op: op, Routine: routineID, Time: time, File: file, Line: line,
+				Op: op, Routine: routineID, Time: time, TimePre: tPre, File: file, Line: line,
 				Blocked: blocked, Suc: suc, PFile: pFile, PLine: pLine,
 				SelIndex: selIndex})
 

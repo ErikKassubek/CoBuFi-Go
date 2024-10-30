@@ -325,14 +325,16 @@ func selectgo(cas0 *scase, order0 *uint16, pc0 *uintptr, nsends, nrecvs int, blo
 		}
 	}
 
-	if !block {
-		selunlock(scases, lockorder)
-		casi = -1
-		// ADVOCATE-CHANGE-START
-		AdvocateSelectPost(advocateIndex, c, casi, lockorder, advocateRClose)
-		// ADVOCATE-CHANGE-END
-		goto retc
+	// ADVOCATE-CHANGE-START
+	if !(replayEnabled && replayElem.Op == OperationSelectDefault) {
+		if !block {
+			selunlock(scases, lockorder)
+			casi = -1
+			AdvocateSelectPost(advocateIndex, c, casi, lockorder, advocateRClose)
+			goto retc
+		}
 	}
+	// ADVOCATE-CHANGE-END
 
 	// pass 2 - enqueue on all chans
 	gp = getg()

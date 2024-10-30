@@ -20,10 +20,13 @@ import (
 * MARK: Struct
 * Fields:
 *   tpost (int): The timestamp of the event
+*   exitCode (int): expected exit code
+*   lastElemTPre (int): tpre of the last elem, e.g. the tpre of the stuck elem in leak
  */
 type TraceElementReplay struct {
-	tPost    int
-	exitCode int
+	tPost        int
+	exitCode     int
+	lastElemTPre int
 }
 
 /*
@@ -32,11 +35,13 @@ type TraceElementReplay struct {
  * Args:
  *   t (string): The timestamp of the event
  *   exitCode (int): The exit code of the event
+ *   lastElemT (int): TPre of the
  */
-func AddTraceElementReplay(t int, exitCode int) error {
+func AddTraceElementReplay(t int, exitCode int, lastElemTPre int) error {
 	elem := TraceElementReplay{
-		tPost:    t,
-		exitCode: exitCode,
+		tPost:        t,
+		exitCode:     exitCode,
+		lastElemTPre: lastElemTPre,
 	}
 
 	return AddElementToTrace(&elem)
@@ -173,7 +178,7 @@ func (at *TraceElementReplay) SetTWithoutNotExecuted(tSort int) {
  *   string: The simple string representation of the element
  */
 func (at *TraceElementReplay) ToString() string {
-	res := "X," + strconv.Itoa(at.tPost) + "," + strconv.Itoa(at.exitCode)
+	res := "X," + strconv.Itoa(at.tPost) + "," + strconv.Itoa(at.exitCode) + "," + strconv.Itoa(at.lastElemTPre)
 	return res
 }
 
@@ -194,7 +199,8 @@ func (at *TraceElementReplay) updateVectorClock() {
  */
 func (at *TraceElementReplay) Copy() TraceElement {
 	return &TraceElementReplay{
-		tPost:    at.tPost,
-		exitCode: at.exitCode,
+		tPost:        at.tPost,
+		exitCode:     at.exitCode,
+		lastElemTPre: at.lastElemTPre,
 	}
 }
