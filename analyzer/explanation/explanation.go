@@ -15,6 +15,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"slices"
 	"strconv"
 	"strings"
 )
@@ -131,6 +132,8 @@ func readAnalysisResults(path string, index int, fileWithHeader string, headerLi
 	bugPos := make(map[int][]string)
 	bugElemType := make(map[int]string)
 
+	posAlreadyKnown := make([]string, 0)
+
 	for i := 1; i < len(bugFields); i++ {
 		bugElems := strings.Split(bugFields[i], ";")
 		if len(bugElems) == 0 {
@@ -153,6 +156,13 @@ func readAnalysisResults(path string, index int, fileWithHeader string, headerLi
 			file := fields[5]
 			line := fields[6]
 
+			pos := file + ":" + line
+
+			if slices.Contains(posAlreadyKnown, pos) {
+				continue
+			}
+			posAlreadyKnown = append(posAlreadyKnown, pos)
+
 			// correct the line number, if the file is the main file of the program
 			// because of the inserted preamble
 			if file == fileWithHeader {
@@ -164,7 +174,6 @@ func readAnalysisResults(path string, index int, fileWithHeader string, headerLi
 				}
 			}
 
-			pos := file + ":" + line
 			bugPos[i] = append(bugPos[i], pos)
 		}
 	}

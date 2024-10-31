@@ -278,14 +278,12 @@ func selectgo(cas0 *scase, order0 *uint16, pc0 *uintptr, nsends, nrecvs int, blo
 
 	// ADVOCATE-CHANGE-START
 	// if a default was selected in the trace, also select the default
-	if replayEnabled {
-		if replayElem.Op == OperationSelectDefault {
-			selunlock(scases, lockorder)
-			casi = -1
-			AdvocateSelectPost(advocateIndex, c, casi, lockorder, advocateRClose)
-			// ADVOCATE-CHANGE-END
-			goto retc
-		}
+	if replayEnabled && replayElem.Op == OperationSelectDefault {
+		selunlock(scases, lockorder)
+		casi = -1
+		AdvocateSelectPost(advocateIndex, c, casi, lockorder, advocateRClose)
+		// ADVOCATE-CHANGE-END
+		goto retc
 	}
 
 	for _, casei := range pollorder {
@@ -326,7 +324,7 @@ func selectgo(cas0 *scase, order0 *uint16, pc0 *uintptr, nsends, nrecvs int, blo
 	}
 
 	// ADVOCATE-CHANGE-START
-	if !(replayEnabled && replayElem.Op == OperationSelectDefault) {
+	if !replayEnabled {
 		if !block {
 			selunlock(scases, lockorder)
 			casi = -1
