@@ -2,6 +2,11 @@
 
 package runtime
 
+import (
+	"runtime/internal/atomic"
+	"unsafe"
+)
+
 // MARK: INT -> STR
 
 /*
@@ -17,6 +22,39 @@ func uint64ToString(n uint64) string {
 	} else {
 		return uint64ToString(n/10) + string(rune(n%10+'0'))
 	}
+}
+
+func pointerAddressAsString[T any](ptr *T, size bool) string {
+	address := uintptr(unsafe.Pointer(ptr))
+
+	// Handle zero case explicitly
+	if address == 0 {
+		return "0"
+	}
+
+	// Convert uintptr to string
+	var str string
+	for address > 0 {
+		digit := address % 10         // Get the last digit
+		str = string('0'+digit) + str // Prepend the digit
+		address /= 10                 // Remove the last digit
+	}
+
+	if !size {
+		return str
+	}
+
+	const desiredLength = 11
+
+	// Get the length of the input string
+	strLen := len(str)
+
+	if strLen >= desiredLength {
+		// If the string has 11 or more letters, return the last 11
+		return str[strLen-desiredLength:]
+	}
+
+	return str
 }
 
 /*
@@ -230,11 +268,8 @@ func splitString(line string, sep string) []string {
 
 // MARK: ADVOCATE
 
-var advocateCurrentRoutineID uint64
-var advocateGlobalCounter uint64
-
-var advocateCurrentRoutineIDMutex mutex
-var advocateGlobalCounterMutex mutex
+var advocateCurrentRoutineID atomic.Uint64
+var advocateGlobalCounter atomic.Uint64
 
 /*
  * GetAdvocateRoutineID returns a new id for a routine
@@ -242,13 +277,11 @@ var advocateGlobalCounterMutex mutex
  * 	new id
  */
 func GetAdvocateRoutineID() uint64 {
-	lock(&advocateCurrentRoutineIDMutex)
-	defer unlock(&advocateCurrentRoutineIDMutex)
-	advocateCurrentRoutineID++
-	if advocateCurrentRoutineID > 184467440 {
+	id := advocateCurrentRoutineID.Add(1)
+	if id > 184467440 {
 		panic("Overflow Error: Two many routines. Max: 184467440")
 	}
-	return advocateCurrentRoutineID
+	return id
 }
 
 /*
@@ -278,10 +311,7 @@ func GetAdvocateObjectID() uint64 {
  * 	new time value
  */
 func GetNextTimeStep() uint64 {
-	lock(&advocateGlobalCounterMutex)
-	defer unlock(&advocateGlobalCounterMutex)
-	advocateGlobalCounter += 2
-	return advocateGlobalCounter
+	return advocateGlobalCounter.Add(2)
 }
 
 /*
@@ -298,6 +328,36 @@ func containsInt(list []int, elem int) bool {
 			return true
 		}
 	}
+	return false
+}
+
+func contains(s, sub string) bool {
+	// Get the lengths of both the main string and the substring
+	lenS := len(s)
+	lenSub := len(sub)
+
+	// If the substring is longer than the string, it can't be a substring
+	if lenSub > lenS {
+		return false
+	}
+
+	// Iterate over the main string `s`
+	for i := 0; i <= lenS-lenSub; i++ {
+		// Check if substring matches
+		match := true
+		for j := 0; j < lenSub; j++ {
+			if s[i+j] != sub[j] {
+				match = false
+				break
+			}
+		}
+		// If we found a match, return true
+		if match {
+			return true
+		}
+	}
+
+	// No match found, return false
 	return false
 }
 

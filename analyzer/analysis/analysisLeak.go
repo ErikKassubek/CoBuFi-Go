@@ -76,7 +76,7 @@ func CheckForLeakChannelStuck(ch *TraceElementChannel, vc clock.VectorClock) {
 						logging.Debug("Error in infoFromTID", logging.ERROR)
 						return
 					}
-					file2, line2, tPre2, err := infoFromTID(mrr[ch.id].TID)
+					file2, line2, tPre2, err := infoFromTID(mrr[ch.id].Elem.GetTID())
 					if err != nil {
 						logging.Debug("Error in infoFromTID", logging.ERROR)
 						return
@@ -109,7 +109,7 @@ func CheckForLeakChannelStuck(ch *TraceElementChannel, vc clock.VectorClock) {
 						logging.Debug("Error in infoFromTID", logging.ERROR)
 						return
 					}
-					file2, line2, tPre2, err2 := infoFromTID(mrs[ch.id].TID)
+					file2, line2, tPre2, err2 := infoFromTID(mrs[ch.id].Elem.GetTID())
 					if err2 != nil {
 						logging.Debug("Error in infoFromTID", logging.ERROR)
 						return
@@ -321,7 +321,7 @@ func checkForLeak() {
 						RoutineID: vcTID.routine, ObjID: vcTID.id, TPre: tPre1, ObjType: "SS", File: file1, Line: line1}
 
 					arg2 := logging.TraceElementResult{ // select
-						RoutineID: partner.vcTID.Routine, ObjID: partner.selectID, TPre: tPre2, ObjType: "SS", File: file2, Line: line2}
+						RoutineID: partner.vcTID.Routine, ObjID: partner.sel.GetID(), TPre: tPre2, ObjType: "SS", File: file2, Line: line2}
 
 					logging.Result(logging.CRITICAL, logging.LSelectWith,
 						"select", []logging.ResultElem{arg1}, "partner", []logging.ResultElem{arg2})
@@ -342,14 +342,13 @@ func checkForLeak() {
 						RoutineID: vcTID.routine, ObjID: vcTID.id, TPre: tPre1, ObjType: obType, File: file1, Line: line1}
 
 					arg2 := logging.TraceElementResult{ // select
-						RoutineID: partner.vcTID.Routine, ObjID: partner.selectID, TPre: tPre2, ObjType: "SS", File: file2, Line: line2}
+						RoutineID: partner.vcTID.Routine, ObjID: partner.sel.GetID(), TPre: tPre2, ObjType: "SS", File: file2, Line: line2}
 
 					logging.Result(logging.CRITICAL, bugType,
 						"channel", []logging.ResultElem{arg1}, "partner", []logging.ResultElem{arg2})
 				}
 
 			} else {
-				println(vcTID.tID)
 				if vcTID.sel {
 					file, line, tPre, err := infoFromTID(vcTID.tID)
 					if err != nil {
@@ -440,7 +439,7 @@ func CheckForLeakSelectStuck(se *TraceElementSelect, ids []int, buffered []bool,
 							logging.Debug("Error in infoFromTID", logging.ERROR)
 							return
 						}
-						file2, line2, tPre2, err2 := infoFromTID(recv.TID) // partner
+						file2, line2, tPre2, err2 := infoFromTID(recv.Elem.GetTID()) // partner
 						if err2 != nil {
 							logging.Debug("Error in infoFromTID", logging.ERROR)
 							return
@@ -466,7 +465,7 @@ func CheckForLeakSelectStuck(se *TraceElementSelect, ids []int, buffered []bool,
 							logging.Debug("Error in infoFromTID", logging.ERROR)
 							return
 						}
-						file2, line2, tPre2, err2 := infoFromTID(send.TID) // partner
+						file2, line2, tPre2, err2 := infoFromTID(send.Elem.GetTID()) // partner
 						if err2 != nil {
 							logging.Debug("Error in infoFromTID", logging.ERROR)
 							return
@@ -530,7 +529,7 @@ func CheckForLeakMutex(mu *TraceElementMutex) {
 		return
 	}
 
-	file2, line2, tPre2, err := infoFromTID(mostRecentAcquireTotal[mu.id].TID)
+	file2, line2, tPre2, err := infoFromTID(mostRecentAcquireTotal[mu.id].Elem.GetTID())
 	if err != nil {
 		logging.Debug("Error in infoFromTID", logging.ERROR)
 		return
@@ -562,7 +561,7 @@ func CheckForLeakMutex(mu *TraceElementMutex) {
 		RoutineID: mu.routine, ObjID: mu.id, TPre: tPre1, ObjType: objType1, File: file1, Line: line1}
 
 	arg2 := logging.TraceElementResult{
-		RoutineID: mostRecentAcquireTotal[mu.id].Routine, ObjID: mu.id, TPre: tPre2, ObjType: objType2, File: file2, Line: line2}
+		RoutineID: mostRecentAcquireTotal[mu.id].Elem.GetRoutine(), ObjID: mu.id, TPre: tPre2, ObjType: objType2, File: file2, Line: line2}
 
 	logging.Result(logging.CRITICAL, logging.LMutex,
 		"mutex", []logging.ResultElem{arg1}, "last", []logging.ResultElem{arg2})
@@ -576,7 +575,7 @@ func CheckForLeakMutex(mu *TraceElementMutex) {
  *   op (int): The operation on the mutex
  */
 func addMostRecentAcquireTotal(mu *TraceElementMutex, vc clock.VectorClock, op int) {
-	mostRecentAcquireTotal[mu.id] = VectorClockTID3{Routine: mu.routine, Vc: vc, TID: mu.tID, Val: op}
+	mostRecentAcquireTotal[mu.id] = VectorClockTID3{Elem: mu, Vc: vc.Copy(), Val: op}
 }
 
 /*
@@ -632,7 +631,7 @@ func checkForStuckRoutine() {
 		}
 
 		// do not record extra if a leak with a blocked operation is present
-		if len(trace) > 1 && trace[len(trace)-1].getTpost() == 0 {
+		if len(trace) > 0 && trace[len(trace)-1].getTpost() == 0 {
 			continue
 		}
 

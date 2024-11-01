@@ -43,6 +43,7 @@ type TraceElementAtomic struct {
 	id      int
 	opA     opAtomic
 	vc      clock.VectorClock
+	pos     string
 }
 
 /*
@@ -53,9 +54,10 @@ type TraceElementAtomic struct {
  *   tpost (string): The timestamp of the event
  *   id (string): The id of the atomic variable
  *   operation (string): The operation on the atomic variable
+ *   pos (string): The position of the atomic
  */
 func AddTraceElementAtomic(routine int, tpost string,
-	id string, operation string) error {
+	id string, operation string, pos string) error {
 	tPostInt, err := strconv.Atoi(tpost)
 	if err != nil {
 		return errors.New("tpost is not an integer")
@@ -87,6 +89,7 @@ func AddTraceElementAtomic(routine int, tpost string,
 		tPost:   tPostInt,
 		id:      idInt,
 		opA:     opAInt,
+		pos:     pos,
 	}
 
 	return AddElementToTrace(&elem)
@@ -145,7 +148,7 @@ func (at *TraceElementAtomic) GetTSort() int {
  *   string: The file of the element
  */
 func (at *TraceElementAtomic) GetPos() string {
-	return ""
+	return at.pos
 }
 
 /*
@@ -253,6 +256,12 @@ func (at *TraceElementAtomic) ToString() string {
 		res += "C"
 	default:
 		res += "U"
+	}
+
+	res += "," + at.pos
+
+	if at.pos == "" {
+		println("pos is empty")
 	}
 
 	return res

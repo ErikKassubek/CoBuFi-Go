@@ -58,7 +58,7 @@ func stats(path string, progName string, progType string) {
 	case "statsAll":
 		numberElems = 85
 	case "statsAnalysis":
-		numberElems = 5
+		numberElems = 7
 	case "statsTrace":
 		numberElems = 9
 	}
@@ -113,23 +113,14 @@ func times(path string, progName string) {
 		// ignore the test name
 		data = data[1:]
 
-		lastTimeReplay := 0.
 		for i, s := range data {
 			num, err := strconv.ParseFloat(s, 64)
 			if err != nil {
 				fmt.Printf("Error converting %s to int: %v\n", s, err)
 				return
 			}
-			if i == len(data)-2 {
-				lastTimeReplay = num
-				continue
-			} else if i == len(data)-1 {
-				dur := num * lastTimeReplay
-				total[len(data)-2] += dur
-				total[i] += num
-			} else {
-				total[i] += num
-			}
+
+			total[i] += num
 		}
 	}
 
@@ -161,7 +152,7 @@ func writeToFile[T int | float64](data []T, progName string, progType string, nu
 		case "statsTrace":
 			_, err = file.WriteString("ProgramName,NumberOfEvents,NumberOfGoroutines,NumberOfAtomicEvents,NumberOfChannelEvents,NumberOfSelectEvents,NumberOfMutexEvents,NumberOfWaitgroupEvents,NumberOfCondVariablesEvents,NumberOfOnceOperations\n")
 		case "times":
-			_, err = file.WriteString("TestName,ExecTime,ExecTimeWithTracing,AnalyzerTime,AnalysisTime,HBAnalysisTime,TimeToIdentifyLeaksPlusFindingPoentialPartners,TimeToIdentifyPanicBugs,ReplayTime,NumberReplay\n")
+			_, err = file.WriteString("TestName,ExecTime,ExecTimeWithTracing,AnalyzerTime,AnalysisTime,HBAnalysisTime,TimeToIdentifyLeaksPlusFindingPoentialPartners,TimeToIdentifyPanicBugs,ReplayTime,NumberAnalysis,NumberReplay\n")
 		}
 		if err != nil {
 			fmt.Printf("Error writing to file: %v\n", err)

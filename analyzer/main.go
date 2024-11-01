@@ -52,6 +52,10 @@ func main() {
 	rewriteAll := flag.Bool("S", false, "If a the same position is flagged multiple times, run the replay for each of them. "+
 		"If not set, only the first occurence is rewritten")
 	timeout := flag.Int("T", -1, "Set a timeout in seconds for the analysis")
+	outM := flag.String("outM", "results_machine", "Name for the result machine file")
+	outR := flag.String("outR", "results_readable", "Name for the result readable file")
+	outT := flag.String("outT", "rewritten_trace", "Name for the rewritten traces")
+	ignoreRewrite := flag.String("ignoreRew", "", "Path to a result machine file. If a found bug is already in this file, it will not be rewritten")
 
 	scenarios := flag.String("s", "", "Select which analysis scenario to run, e.g. -s srd for the option s, r and d."+
 		"If not set, all scenarios are run.\n"+
@@ -102,9 +106,12 @@ func main() {
 		}
 	}
 
-	outMachine := *resultFolder + "/results_machine.log"
-	outReadable := *resultFolder + "/results_readable.log"
-	newTrace := *resultFolder + "/rewritten_trace"
+	outMachine := filepath.Join(*resultFolder, *outM) + ".log"
+	outReadable := filepath.Join(*resultFolder, *outR) + ".log"
+	newTrace := filepath.Join(*resultFolder, *outT)
+	if *ignoreRewrite != "" {
+		*ignoreRewrite = filepath.Join(*resultFolder, *ignoreRewrite)
+	}
 
 	switch mode {
 	case "stats":
@@ -116,7 +123,7 @@ func main() {
 	case "run":
 		modeRun(pathTrace, noPrint, noRewrite, scenarios, level, outReadable,
 			outMachine, ignoreAtomics, fifo, ignoreCriticalSection,
-			noWarning, rewriteAll, folderTrace, newTrace, timeout)
+			noWarning, rewriteAll, folderTrace, newTrace, timeout, ignoreRewrite)
 	default:
 		fmt.Printf("Unknown mode %s", os.Args[1])
 		fmt.Printf("Select one mode from 'run', 'stats', 'explain' or 'check'")
@@ -176,7 +183,7 @@ func modeCheck(resultFolderTool, programPath *string) {
 func modeRun(pathTrace *string, noPrint *bool, noRewrite *bool,
 	scenarios *string, level *int, outReadable string, outMachine string,
 	ignoreAtomics *bool, fifo *bool, ignoreCriticalSection *bool,
-	noWarning *bool, rewriteAll *bool, folderTrace string, newTrace string, timeout *int) {
+	noWarning *bool, rewriteAll *bool, folderTrace string, newTrace string, timeout *int, ignoreRewrite *string) {
 	// printHeader()
 
 	if *pathTrace == "" {
@@ -261,10 +268,21 @@ func modeRun(pathTrace *string, noPrint *bool, noRewrite *bool,
 		numberRewrittenTrace := 0
 		failedRewrites := 0
 		notNeededRewrites := 0
-		println("\n\nStart rewriting trace files...")
+		println("\n\nStart rewriting trace file ", *pathTrace)
 		originalTrace := analysis.CopyCurrentTrace()
 
+		analysis.ClearData()
+
 		rewrittenBugs := make(map[bugs.ResultType][]string) // bugtype -> paths string
+
+		addAlreadyProcessed(rewrittenBugs, *ignoreRewrite)
+
+		file := filepath.Base(*pathTrace)
+		rewriteNr := "0"
+		spl := strings.Split(file, "_")
+		if len(spl) > 1 {
+			rewriteNr = spl[len(spl)-1]
+		}
 
 		for resultIndex := 0; resultIndex < numberOfResults; resultIndex++ {
 			needed, double, err := rewriteTrace(outMachine,
@@ -274,19 +292,19 @@ func modeRun(pathTrace *string, noPrint *bool, noRewrite *bool,
 				println("Trace can not be rewritten.")
 				notNeededRewrites++
 				if double {
-					fmt.Printf("Bugreport info: %d,double", resultIndex+1)
+					fmt.Printf("Bugreport info: %s_%d,double", rewriteNr, resultIndex+1)
 				} else {
-					fmt.Printf("Bugreport info: %d,fail", resultIndex+1)
+					fmt.Printf("Bugreport info: %s_%d,fail", rewriteNr, resultIndex+1)
 				}
 			} else if err != nil {
 				println("Failed to rewrite trace: ", err.Error())
 				failedRewrites++
 				analysis.SetTrace(originalTrace)
-				fmt.Printf("Bugreport info: %d,fail", resultIndex+1)
+				fmt.Printf("Bugreport info: %s_%d,fail", rewriteNr, resultIndex+1)
 			} else { // needed && err == nil
 				numberRewrittenTrace++
 				analysis.SetTrace(originalTrace)
-				fmt.Printf("Bugreport info: %d,suc", resultIndex+1)
+				fmt.Printf("Bugreport info: %s_%d,suc", rewriteNr, resultIndex+1)
 			}
 
 			print("\n\n")
@@ -304,6 +322,32 @@ func modeRun(pathTrace *string, noPrint *bool, noRewrite *bool,
 	}
 
 	print("\n\n\n")
+}
+
+func addAlreadyProcessed(alreadyProcessed map[bugs.ResultType][]string, ignoreRewrite string) {
+	if ignoreRewrite == "" {
+		return
+	}
+
+	data, err := os.ReadFile(ignoreRewrite)
+	if err != nil {
+		return
+	}
+	for _, bugStr := range strings.Split(string(data), "\n") {
+		_, bug, err := bugs.ProcessBug(bugStr)
+		if err != nil {
+			continue
+		}
+
+		if _, ok := alreadyProcessed[bug.Type]; !ok {
+			alreadyProcessed[bug.Type] = make([]string, 0)
+		} else {
+			if utils.Contains(alreadyProcessed[bug.Type], bugStr) {
+				continue
+			}
+		}
+		alreadyProcessed[bug.Type] = append(alreadyProcessed[bug.Type], bugStr)
+	}
 }
 
 func memorySupervisor() {
@@ -378,7 +422,7 @@ func rewriteTrace(outMachine string, newTrace string, resultIndex int,
 		return false, false, nil
 	}
 
-	rewriteNeeded, code, err := rewriter.RewriteTrace(bug)
+	rewriteNeeded, code, err := rewriter.RewriteTrace(bug, 0)
 
 	if err != nil {
 		return rewriteNeeded, false, err

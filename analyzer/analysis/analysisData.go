@@ -10,7 +10,9 @@
 
 package analysis
 
-import "analyzer/clock"
+import (
+	"analyzer/clock"
+)
 
 type VectorClockTID struct {
 	Vc      clock.VectorClock
@@ -31,19 +33,20 @@ type VectorClockTID2 struct {
 }
 
 type VectorClockTID3 struct {
-	Routine int
-	TID     string
-	Vc      clock.VectorClock
-	Val     int
+	Elem TraceElement
+	Vc   clock.VectorClock
+	Val  int
 }
 
 type allSelectCase struct {
-	selectID int            // select id
-	chanID   int            // channel id
-	vcTID    VectorClockTID // vector clock and tID
-	send     bool           // true: send, false: receive
-	buffered bool           // true: buffered, false: unbuffered
-	partner  bool           // true: partner found, false: no partner found
+	sel          *TraceElementSelect // the select
+	chanID       int                 // channel id
+	vcTID        VectorClockTID      // vector clock and tID
+	send         bool                // true: send, false: receive
+	buffered     bool                // true: buffered, false: unbuffered
+	partnerFound bool                // true: partner found, false: no partner found
+	partner      []VectorClockTID3   // the potential partner
+	exec         bool                // true: the case was executed, false: otherwise
 }
 
 var (
@@ -69,6 +72,7 @@ var (
 	bufferedVCs = make(map[int]([]bufferedVC))
 	// the current buffer position
 	bufferedVCsCount = make(map[int]int)
+	bufferedVCsSize  = make(map[int]int)
 
 	// add/dones on waitGroup
 	wgAdd  = make(map[int][]TraceElement) // id  -> []TraceElement
@@ -103,4 +107,26 @@ var (
 // InitAnalysis initializes the analysis cases
 func InitAnalysis(analysisCasesMap map[string]bool) {
 	analysisCases = analysisCasesMap
+}
+
+func ClearData() {
+	closeData = make(map[int]*TraceElementChannel)
+	lastRecvRoutine = make(map[int]map[int]VectorClockTID)
+	hasSend = make(map[int]bool)
+	mostRecentSend = make(map[int]map[int]VectorClockTID3)
+	hasReceived = make(map[int]bool)
+	mostRecentReceive = make(map[int]map[int]VectorClockTID3)
+	bufferedVCs = make(map[int][]bufferedVC)
+	wgAdd = make(map[int][]TraceElement)
+	wgDone = make(map[int][]TraceElement)
+	allLocks = make(map[int][]TraceElement)
+	allUnlocks = make(map[int][]TraceElement)
+	lockSet = make(map[int]map[int]string)
+	mostRecentAcquire = make(map[int]map[int]VectorClockTID)
+	mostRecentAcquireTotal = make(map[int]VectorClockTID3)
+	relW = make(map[int]clock.VectorClock)
+	relR = make(map[int]clock.VectorClock)
+	leakingChannels = make(map[int][]VectorClockTID2)
+	selectCases = make([]allSelectCase, 0)
+	allForks = make(map[int]*TraceElementFork)
 }

@@ -87,12 +87,13 @@ const (
 // blocks until the mutex is available.
 func (m *Mutex) Lock() {
 	// ADVOCATE-CHANGE-START
-	enabled, valid, reaplayElem := runtime.WaitForReplay(runtime.OperationMutexLock, 2)
-	if enabled && valid {
+	wait, ch := runtime.WaitForReplay(runtime.OperationMutexLock, 2)
+	if wait {
+		replayElem := <-ch
 		if m.id == 0 {
 			m.id = runtime.GetAdvocateObjectID()
 		}
-		if reaplayElem.Blocked {
+		if replayElem.Blocked {
 			_ = runtime.AdvocateMutexLockPre(m.id, false, false)
 			runtime.BlockForever()
 		}
@@ -112,18 +113,20 @@ func (m *Mutex) Lock() {
 	// this information. advocateIndex is used for AdvocatePost to find the
 	// pre event.
 	advocateIndex := runtime.AdvocateMutexLockPre(m.id, false, false)
-	defer runtime.AdvocateMutexPost(advocateIndex)
 	// ADVOCATE-CHANGE-END
 
 	// Fast path: grab unlocked mutex.
 	if atomic.CompareAndSwapInt32(&m.state, 0, mutexLocked) {
+		// ADVOCATE-CHANGE-START
+		runtime.AdvocateMutexPost(advocateIndex)
+		//ADVOCATE-CHANGE-END
 		if race.Enabled {
 			race.Acquire(unsafe.Pointer(m))
 		}
 		return
 	}
 	// Slow path (outlined so that the fast path can be inlined)
-	m.lockSlow()
+	m.lockSlow(advocateIndex)
 }
 
 // TryLock tries to lock m and reports whether it succeeded.
@@ -133,8 +136,9 @@ func (m *Mutex) Lock() {
 // in a particular use of mutexes.
 func (m *Mutex) TryLock() bool {
 	// ADVOCATE-CHANGE-START
-	enabled, valid, replayElem := runtime.WaitForReplay(runtime.OperationMutexTryLock, 2)
-	if enabled && valid {
+	wait, ch := runtime.WaitForReplay(runtime.OperationMutexTryLock, 2)
+	if wait {
+		replayElem := <-ch
 		if replayElem.Blocked {
 			if m.id == 0 {
 				m.id = runtime.GetAdvocateObjectID()
@@ -195,7 +199,9 @@ func (m *Mutex) TryLock() bool {
 	return true
 }
 
-func (m *Mutex) lockSlow() {
+// ADVOCATE-CHANGE-START
+func (m *Mutex) lockSlow(advocateIndex int) {
+	// ADVOCATE-CHANGE-END
 	var waitStartTime int64
 	starving := false
 	awoke := false
@@ -279,6 +285,9 @@ func (m *Mutex) lockSlow() {
 		}
 	}
 
+	// ADVOCATE-CHANGE-START
+	runtime.AdvocateMutexPost(advocateIndex)
+	//ADVOCATE-CHANGE-END
 	if race.Enabled {
 		race.Acquire(unsafe.Pointer(m))
 	}
@@ -292,8 +301,9 @@ func (m *Mutex) lockSlow() {
 // arrange for another goroutine to unlock it.
 func (m *Mutex) Unlock() {
 	// ADVOCATE-CHANGE-START
-	enabled, valid, replayElem := runtime.WaitForReplay(runtime.OperationMutexUnlock, 2)
-	if enabled && valid {
+	wait, ch := runtime.WaitForReplay(runtime.OperationMutexUnlock, 2)
+	if wait {
+		replayElem := <-ch
 		if replayElem.Blocked {
 			if m.id == 0 {
 				m.id = runtime.GetAdvocateObjectID()
@@ -312,7 +322,7 @@ func (m *Mutex) Unlock() {
 	// Here the post is seperatly recorded to easy the implementation for
 	// the rw mutexes.
 	advocateIndex := runtime.AdvocateUnlockPre(m.id, false, false)
-	defer runtime.AdvocateMutexPost(advocateIndex)
+	runtime.AdvocateMutexPost(advocateIndex)
 	// ADVOCATE-CHANGE-END
 
 	if race.Enabled {

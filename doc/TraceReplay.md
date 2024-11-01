@@ -33,17 +33,12 @@ Below is a discussion of the various cases to consider.
 
 #### atomics
 
-
-Ignored.
-
-But this means that some write-read dependencies might be violated
-and the control flow chantges (e.g. entering some other parts of the program code).
-This then leads to a "stuck" trace replay.
+Works but can be disabled
 
 #### goroutines
 
 
-The spawn of new go routines should now be executed in the same order as recorded in the trace (should work but more testing needed).
+The spawn of new go routines should now be executed in the same order as recorded in the trace
 
 
 #### Unbuffered channel
@@ -299,23 +294,7 @@ It is split into three parts:
 
 ### Trace Reading
 First we read in the trace and create a new internal data structure to save
-the trace, ordered by `tpre`. For now we ignore atomic events, because they do ~~not~~ change the flow of the program and the implementation of the order
-enforcement would be challenging. For each element we store
-
-- the operation
-- the tpre
-- the file in the program where it occurred
-- the line in the program where it occurred
-- whether the operation was completely executed (tpost not 0)
-
-For TryLock operations and Once we also store
-
-- whether the operation was successful
-
-For channel and select operations we find the communication partner and store
-
-- the file in the program where the partner operation occurred
-- the line in the program where the partner operation occurred
+the trace. For each element we store the relevant elements
 
 
 ### Order Enforcement
@@ -323,79 +302,80 @@ Order enforcement makes sure, that the elements that are recorded in the trace
 are run in the correct global order.
 
 For the most operations we use the file and line number to connect an operation
-in the trace with an operation in the program code that is to be replayed. The
-only operations which cannot use this yet are atomic operations.
+in the trace with an operation in the program code that is to be replayed.
 
-If a traced operation in the replaying trace starts, it calls the following function
+If an operation want to execute, it calls the following function:
 ```go
-func WaitForReplayPath(op Operation, file string, line int) (bool, bool, ReplayElement) {
+func WaitForReplayPath(op Operation, file string, line int) (bool, chan ReplayElement) {
 	if !replayEnabled {
-		return false, false, ReplayElement{}
+		return false, nil
 	}
 
-	if AdvocateIgnore(op, file, line) {
-		return true, false, ReplayElement{}
+	if AdvocateIgnoreReplay(op, file, line) {
+		return false, nil
 	}
 
-	timeoutCounter := 0
-	for {
-		nextRoutine, next := getNextReplayElement()
+	key := file + ":" + intToString(line)
 
-		// all elements in the trace have been executed
-		if nextRoutine == -1 {
-			println("The program tried to execute an operation, although all elements in the trace have already been executed.\nDisable Replay")
-			replayEnabled = false
-			return false, false, ReplayElement{}
-		}
+	ch := make(chan ReplayElement, 1<<62) // 1<<62 makes sure, that the channel is ignored for replay. The actual size is 1
 
-		if next.Time != 0 {
-			if (next.Op != op && !correctSelect(next.Op, op)) ||
-				next.File != file || next.Line != line {
+	lock(&waitingOpsMutex)
+	waitingOps[key] = replayChan{ch, counter}
+	unlock(&waitingOpsMutex)
 
-				timeoutCounter++
-
-				checkForTimeout(timeoutCounter, file, line)
-				slowExecution()
-				continue
-			}
-		}
-
-		foundReplayElement(nextRoutine)
-
-		lock(&replayDoneLock)
-		replayDone++
-		unlock(&replayDoneLock)
-
-		return true, true, next
-	}
+	return true, ch
 }
 ```
 
-This function will check if the calling operation is the next function to be
-executed or not. If it is not, it will hold the execution until this is the case.
+This function will create a key to identify the waiting operation. It will then
+create a channel and stores the key and channel in a map. The function returns
+whether the object need to wait and a channel to wait on.
 
-First we check if the replay is enabled. If it is not, we do not check if we
-need to hold the exections.
+For the calling function this looks e.g. like this
 
-Some operations, like e.g. garbage collection are not predictable and would
-lead to stuck executions. For this reason we ignore some of the operations.
+```go
+wait, ch := runtime.WaitForReplay(runtime.OperationMutexTryLock, 2)
+if wait {
+	replayElem := <-ch
+}
+```
+Additionally we create a go routine in the background to release the operations.
+This the basic functionality of this routine looks as follows:
 
-If non of these to cases apply, we will check if the current operation is
-the next operation, by comparing the code position of the current operation with
-the code position of next operation to be executed. If those are not equal,
-we will wait for a short moment and check again. Thereby be count how long the
-operation is already waiting. If a operation is waiting for a longer time, we
-write a message to the terminal to inform the user, that the program might be
-stuck.
+``` go
+func ReleaseWaits() {
+	for {
+		routine, replayElem := getNextReplayElement()
 
-If the operation is the correct one, we advance to the next value as the new
-next operation and execute the current operation.
+		if routine == -1 {
+			continue
+        }
+
+		key := replayElem.File + ":" + intToString(replayElem.Line)
+
+		if replCh, ok := waitingOps[key]; ok {
+			replCh.ch <- replayElem
+
+			foundReplayElement(routine)
+
+			delete(waitingOps, key)
+		}
+	}
+}
+```
+The function checks what the next element that is supposed to be executed is
+and checks, if this element is already waiting. If it is, it will send the
+ replay element on the corresponding channel to release the waiting operation.
 
 To prevent the program from terminating before all operations have been executed
 (e.g. if the main function has already executed all operations, but another
 routine has not), we count the number of finished operations. When the
 main routine finishes, we prevent the program from terminating, until the number
 of executed operations is equal to the number of operations in the trace.
+
+If the program detects that it is stuck, it will release the longest waiting
+operation even if it is not the next in the trace, hoping that it can then
+return with the replay.
 
 
 
@@ -463,7 +443,7 @@ Operations that were successful in the trace can now not be blocked by incorrect
 executed unsuccessful operations and therefor do not need any additional
 change.
 
-### Making sure, that channel partners are correct
+<!-- ### Making sure, that channel partners are correct
 As described in Trace Reading, we direly store in each trace element of the
 line and file of the partner operation. When go tries to send or receive
 an element on a channel, it will create a `*sudog` object, that is then passed
@@ -482,7 +462,7 @@ if replayEnabled && !sgp.replayEnabled {  // replay is enabled and the channel i
         }
     }
 }
-```
+``` -->
 
 ### Making sure, that select cases are correct.
 We must make sure, that the correct case in a select is executed.
@@ -499,17 +479,16 @@ if enabled && replayElem.Op == AdvocateReplaySelectDefault {
 before the check which channel could be executed. This will imminently execute
 the default case.
 
-The same check for the channel communication partners as described in `Making sure, that channel partners are correct` will force select cases, to find the actually executed channel pair before being able to execute. This will stop incorrect cases to execute.
-If a select contains the same case twice, i.e.
+We also make sure, that the correct channel is selected. In the select,
+the implementation will iterate over all cases. Here, the following code is included:
 ```go
-select {
-    case <-c:
-        ...
-    case <-c:
-        ...
+if replayEnabled {
+    if casi != replayElem.SelIndex {
+        continue
+    }
 }
 ```
-this will still select one of this cases by random. To make sure, that those select statements will also be replayed correctly, we use the internal index `casi` for the cases, used in the implementation of the select statement. This case is not identical to the ordering of the select cases but is still deterministic. For this reason it is possible to use this index as an identifier for a specific case. From this, when the select determines, if a select case is usable, we reject every case, for which the index is not correct.
+This makes sure, that all other channels are ignored.
 
 
 ## Exit codes

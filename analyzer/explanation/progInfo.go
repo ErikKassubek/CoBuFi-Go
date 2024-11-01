@@ -51,8 +51,8 @@ func readProgInfo(path string) (map[string]string, error) {
 		// 	res["run"] = lines[i]
 		if strings.Contains(lines[i], "FileName: ") {
 			res["file"] = strings.TrimPrefix(lines[i], "FileName: ")
-		} else if strings.Contains(lines[i], "Header added at file: ") {
-			res["name"] = strings.TrimPrefix(lines[i], "Header added at file: ")
+		} else if strings.Contains(lines[i], "TestName: ") {
+			res["name"] = strings.TrimPrefix(lines[i], "TestName: ")
 		} else if strings.Contains(lines[i], "Import added at line: ") {
 			res["importLine"] = strings.TrimPrefix(lines[i], "Import added at line: ")
 		} else if strings.Contains(lines[i], "Header added at line: ") {

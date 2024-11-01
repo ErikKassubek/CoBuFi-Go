@@ -36,18 +36,18 @@ func rewriteGraph(bug bugs.Bug, expectedErrorCode int) error {
 
 		analysis.ShiftConcurrentOrAfterToAfter(elem1)
 
-		if minTime == -1 || (*elem1).GetTPre() < minTime {
-			minTime = (*elem1).GetTPre()
+		if minTime == -1 || elem1.GetTPre() < minTime {
+			minTime = elem1.GetTPre()
 		}
-		if maxTime == -1 || (*elem1).GetTPre() > maxTime {
-			maxTime = (*elem1).GetTPre()
+		if maxTime == -1 || elem1.GetTPre() > maxTime {
+			maxTime = elem1.GetTPre()
 		}
 
 	}
 
 	// add start and end
 	if !(minTime == -1 && maxTime == -1) {
-		analysis.AddTraceElementReplay(maxTime+1, expectedErrorCode)
+		analysis.AddTraceElementReplay(maxTime+1, expectedErrorCode, max(bug.TraceElement1[0].GetTPre(), bug.TraceElement2[0].GetTPre()))
 	}
 
 	return nil

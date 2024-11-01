@@ -14,6 +14,7 @@ import (
 	"analyzer/clock"
 	timemeasurement "analyzer/timeMeasurement"
 	"errors"
+	"fmt"
 	"math"
 	"strconv"
 	"strings"
@@ -295,7 +296,7 @@ func (se *TraceElementSelect) GetVC() clock.VectorClock {
  *   *TraceElementChannel: The communication partner of the select or nil
  */
 func (se *TraceElementSelect) GetPartner() *TraceElementChannel {
-	if se.chosenCase.tPost != 0 {
+	if se.chosenCase.tPost != 0 && !se.chosenDefault {
 		return se.chosenCase.partner
 	}
 	return nil
@@ -356,6 +357,17 @@ func (se *TraceElementSelect) SetTPre2(tPre int) {
 	for _, c := range se.cases {
 		c.SetTPre2(tPre)
 	}
+}
+
+func (se *TraceElementSelect) SetChosenCase(index int) error {
+	if index >= len(se.cases) {
+		return fmt.Errorf("Invalid index %d for size %d", index, len(se.cases))
+	}
+	se.cases[se.chosenIndex].tPost = 0
+	se.chosenIndex = index
+	se.cases[index].tPost = se.tPost
+
+	return nil
 }
 
 /*
@@ -422,6 +434,53 @@ func (se *TraceElementSelect) SetTWithoutNotExecuted2(tSort int) {
 	if se.tPost != 0 {
 		se.tPost = tSort
 	}
+}
+
+func (se *TraceElementSelect) GetChosenDefault() bool {
+	return se.chosenDefault
+}
+
+/*
+ * Set the case where the channel id and direction is correct as the active one
+ * Args:
+ *     chanID int: id of the channel in the case, -1 for default
+ *     send opChannel: channel operation of case
+ * Returns:
+ *     error
+ */
+func (se *TraceElementSelect) SetCase(chanID int, op OpChannel) error {
+	if chanID == -1 {
+		if se.containsDefault {
+			se.chosenDefault = true
+			se.chosenIndex = -1
+			for i := range se.cases {
+				se.cases[i].SetTPost(0)
+			}
+			return nil
+		} else {
+			return fmt.Errorf("Tried to set select without default to default")
+		}
+	}
+
+	found := false
+	for i, c := range se.cases {
+		fmt.Println(c.id, c.opC, chanID, op)
+		if c.id == chanID && c.opC == op {
+			tPost := se.getTpost()
+			se.cases[se.chosenIndex].SetTPost(0)
+			se.cases[i].SetTPost(tPost)
+			se.chosenIndex = i
+			se.chosenDefault = false
+			found = true
+			break
+		}
+	}
+
+	if !found {
+		return fmt.Errorf("Select case not found")
+	}
+
+	return nil
 }
 
 /*
@@ -500,9 +559,9 @@ func (se *TraceElementSelect) updateVectorClock() {
 	for _, c := range se.cases {
 		c.vc = se.vc.Copy()
 		if c.opC == SendOp {
-			SetChannelAsLastSend(c.id, se.routine, c.vc, c.tID)
+			SetChannelAsLastSend(&c)
 		} else if c.opC == RecvOp {
-			SetChannelAsLastReceive(c.id, se.routine, c.vc, c.tID)
+			SetChannelAsLastReceive(&c)
 		}
 	}
 

@@ -72,7 +72,7 @@ func rewriteCyclicDeadlock(bug bugs.Bug) error {
 
 	for _, elem := range bug.TraceElement2 {
 		// get the first and last mutex operation in the cycle
-		time := (*elem).GetTPre()
+		time := elem.GetTPre()
 		if firstTime == -1 || time < firstTime {
 			firstTime = time
 		}
@@ -91,19 +91,19 @@ func rewriteCyclicDeadlock(bug bugs.Bug) error {
 		found := false
 		// for all edges in the cycle shift the routine so that the next element is before the current element
 		for i := 0; i < len(bug.TraceElement2); i++ {
-			routinesInCycle[(*bug.TraceElement2[i]).GetRoutine()] = struct{}{}
+			routinesInCycle[bug.TraceElement2[i].GetRoutine()] = struct{}{}
 
 			j := (i + 1) % len(bug.TraceElement2)
 
 			elem1 := bug.TraceElement2[i]
 			elem2 := bug.TraceElement2[j]
 
-			if (*elem1).GetRoutine() == (*elem2).GetRoutine() {
+			if elem1.GetRoutine() == elem2.GetRoutine() {
 				continue
 			}
 
 			// shift the routine of elem1 so that elem 2 is before elem1
-			res := analysis.ShiftRoutine((*elem1).GetRoutine(), (*elem1).GetTPre(), (*elem2).GetTPre()-(*elem1).GetTPre()+1)
+			res := analysis.ShiftRoutine(elem1.GetRoutine(), elem1.GetTPre(), elem2.GetTPre()-elem1.GetTPre()+1)
 
 			if res {
 				found = true
@@ -139,7 +139,7 @@ func rewriteCyclicDeadlock(bug bugs.Bug) error {
 	}
 
 	// add start and end signal
-	analysis.AddTraceElementReplay(lastTime+1, exitCodeCyclic)
+	analysis.AddTraceElementReplay(lastTime+1, exitCodeCyclic, max(bug.TraceElement1[0].GetTPre(), bug.TraceElement2[0].GetTPre()))
 
 	return nil
 }

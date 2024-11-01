@@ -86,7 +86,7 @@ func createTraceFromFile(filePath string, routine int, maxTokenSize int, objectI
 
 		for scanner.Scan() {
 			line := scanner.Text()
-			res := processLine(line, objectID, start, end, disableAtomics)
+			res := processLine(line, objectID, start, end, disableAtomics, routineStr)
 			for k, v := range res {
 				elements[k] = routineStr + " -> " + v
 			}
@@ -109,13 +109,17 @@ func createTraceFromFile(filePath string, routine int, maxTokenSize int, objectI
 	return elements, nil
 }
 
-func processLine(line string, objectID, start, end int, disableAtomics bool) map[int]string {
+func processLine(line string, objectID, start, end int, disableAtomics bool, routineStr string) map[int]string {
 	elements := strings.Split(line, ";")
 	result := make(map[int]string)
 	for _, element := range elements {
 		res, tPost := processElement(element, strconv.Itoa(objectID), start, end, disableAtomics)
 		if res {
-			result[tPost] = element
+			if tPost == 0 {
+				println(routineStr + " -> " + element)
+			} else {
+				result[tPost] = element
+			}
 		}
 	}
 	return result
@@ -154,23 +158,10 @@ func processElement(element string, objectID string, startTime int, endTime int,
 		if fields[3] == objectID {
 			return true, time
 		}
-
-		cases := strings.Split(fields[4], "~")
-		for _, c := range cases {
-			if c == "" || c == "d" {
-				continue
-			}
-			if c == "D" {
-				return true, time
-			}
-			cFields := strings.Split(c, ".")
-			if cFields[3] == objectID {
-				t2, _ := strconv.Atoi(cFields[2])
-				if t2 != 0 {
-					return true, time
-				}
-			}
+		if isValidTime(time, startTime, endTime) {
+			return true, time
 		}
+
 		return false, time
 	case "X":
 		time, _ := strconv.Atoi(fields[1])
@@ -183,7 +174,7 @@ func processElement(element string, objectID string, startTime int, endTime int,
 }
 
 func isValidTime(tPost, start, end int) bool {
-	return tPost >= start && tPost <= end
+	return tPost == 0 || (tPost >= start && tPost <= end)
 }
 
 func isIdValid(id, objectID string) bool {

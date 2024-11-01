@@ -5,21 +5,17 @@ import (
 	"math"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"runtime"
 	"sort"
 	"strconv"
 	"strings"
 	"sync"
-	"syscall"
 	"time"
 )
 
-// ============== Recording =================
-
 var traceFileCounter = 0
 var tracePathRecorded = "advocateTrace"
-var advocateStartTimer time.Time // start time of the program
-var advocateReplayStartTime time.Time
 
 var hasFinished = false
 
@@ -28,89 +24,58 @@ var hasFinished = false
  * The trace is written in the file named file_name.
  * The trace is written in the format of advocate.
  */
-func Finish() {
+func FinishTracing() {
 	if hasFinished {
 		return
 	}
 	hasFinished = true
 
+	// remove the trace folder if it exists
+	err := os.RemoveAll(tracePathRecorded)
+	if err != nil {
+		if !os.IsNotExist(err) {
+			panic(err)
+		}
+	}
+
+	// create the trace folder
+	err = os.Mkdir(tracePathRecorded, 0755)
+	if err != nil {
+		if !os.IsExist(err) {
+			panic(err)
+		}
+	}
+
 	runtime.AdvocatRoutineExit()
 
 	runtime.DisableTrace()
 
-	writeToTraceFiles()
-	// deleteEmptyFiles()
+	writeToTraceFiles(tracePathRecorded)
 }
 
 /*
- * WaitForReplayFinish waits for the replay to finish.
+ * FinishReplay waits for the replay to finish.
  */
-func WaitForReplayFinish() {
+func FinishReplay() {
 	if r := recover(); r != nil {
 		println("Replay failed.")
 	}
 
-	runtime.WaitForReplayFinish()
-
-	runtime.ExitReplayWithCode(runtime.ExitCodeDefault)
+	runtime.WaitForReplayFinish(true)
 }
-
-/*
- * Ignore atomics if there is not enough memory
- * The function checks the available memory every 5 seconds.
- * If the available memory is less than 10%, the recorder will ignore atomic operations.
- * If there are less then 1% available, the program will panic.
- */
-func removeAtomicsIfFull() {
-	var stat syscall.Sysinfo_t
-
-	for {
-		time.Sleep(2 * time.Second)
-		err := syscall.Sysinfo(&stat)
-		if err != nil {
-			panic(err)
-		}
-
-		freeRAM := stat.Freeram * uint64(stat.Unit)
-
-		if freeRAM < 300000000 {
-			panic("Not enough memory.")
-		}
-
-		if !runtime.GetIgnoreAtomicOperations() && !runtime.GetAdvocateDisabled() && freeRAM < 1200000000 {
-			println("Not enough memory. Ignore atomic operations.")
-			runtime.IgnoreAtomicOperations()
-		}
-	}
-}
-
-func toGB(bytes uint64) float64 {
-	return float64(bytes) / 1024 / 1024 / 1024
-}
-
-// BUG: crashes bug
-// func cleanTrace() {
-// println("Cleaning trace")
-// // stop new element from been added to the trace
-// runtime.BlockTrace()
-// writeToTraceFiles()
-// runtime.DeleteTrace()
-// runtime.UnblockTrace()
-// runtime.GC()
-// }
 
 /*
  * Write the trace to a set of files. The traces are written into a folder
  * with name trace. For each routine, a file is created. The file is named
  * trace_routineId.log. The trace of the routine is written into the file.
  */
-func writeToTraceFiles() {
+func writeToTraceFiles(tracePath string) {
 	numRout := runtime.GetNumberOfRoutines()
 	var wg sync.WaitGroup
 	for i := 1; i <= numRout; i++ {
 		// write the trace to the file
 		wg.Add(1)
-		go writeToTraceFile(i, &wg)
+		go writeToTraceFile(i, &wg, tracePath)
 	}
 
 	wg.Wait()
@@ -123,7 +88,7 @@ func writeToTraceFiles() {
  * Args:
  * 	- routine: The id of the routine
  */
-func writeToTraceFile(routine int, wg *sync.WaitGroup) {
+func writeToTraceFile(routine int, wg *sync.WaitGroup, tracePath string) {
 	// create the file if it does not exist and open it
 	defer wg.Done()
 
@@ -131,7 +96,7 @@ func writeToTraceFile(routine int, wg *sync.WaitGroup) {
 	// 	return
 	// }
 
-	fileName := "advocateTrace/trace_" + strconv.Itoa(routine) + ".log"
+	fileName := filepath.Join(tracePath, "trace_"+strconv.Itoa(routine)+".log")
 
 	file, err := os.OpenFile(fileName, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
@@ -187,26 +152,8 @@ func deleteEmptyFiles() {
  * InitTracing initializes the tracing.
  * The function creates the trace folder and starts the background memory test.
  * Args:
- * 	- size: The size of the channel used for recording atomic events.
  */
-func InitTracing(size int) {
-	advocateStartTimer = time.Now()
-	// remove the trace folder if it exists
-	err := os.RemoveAll(tracePathRecorded)
-	if err != nil {
-		if !os.IsNotExist(err) {
-			panic(err)
-		}
-	}
-
-	// create the trace folder
-	err = os.Mkdir(tracePathRecorded, 0755)
-	if err != nil {
-		if !os.IsExist(err) {
-			panic(err)
-		}
-	}
-
+func InitTracing() {
 	// if the program panics, but is not in the main routine, no trace is written
 	// to prevent this, the following is done. The corresponding send/recv are in the panic definition
 	blocked := make(chan struct{})
@@ -214,7 +161,7 @@ func InitTracing(size int) {
 	runtime.GetAdvocatePanicChannels(blocked, writingDone)
 	go func() {
 		<-blocked
-		Finish()
+		FinishTracing()
 		writingDone <- struct{}{}
 	}()
 
@@ -230,17 +177,15 @@ func InitTracing(size int) {
 			os.Exit(1)
 		}()
 		if !runtime.GetAdvocateDisabled() {
-			Finish()
+			FinishTracing()
 		}
 		os.Exit(1)
 	}()
 
 	// go writeTraceIfFull()
-	go removeAtomicsIfFull()
-	runtime.InitAdvocate(size)
+	// go removeAtomicsIfFull()
+	runtime.InitAdvocate()
 }
-
-// ============== Reading =================
 
 var timeout = false
 var tracePathRewritten = "rewritten_trace_"
@@ -252,21 +197,21 @@ var tracePathRewritten = "rewritten_trace_"
  * Args:
  * 	- index: The index of the replay case
  * 	- exitCode: Whether the program should exit after the important replay part passed
+ * 	- timeout: Timeout in seconds, 0: no timeout
+ *  - atomic: if true, replay includes atomic
  */
-func EnableReplay(index int, exitCode bool) {
+func InitReplay(index string, exitCode bool, timeout int, atomic bool) {
 	// use first as default
-	if index < 0 {
-		index = 0
-	}
 
 	runtime.SetExitCode(exitCode)
+	runtime.SetReplayAtomic(atomic) // set to true to include replay atomic
 
-	advocateStartTimer = time.Now()
+	println("Set exit code")
 
-	if index == 0 {
+	if index == "0" {
 		tracePathRewritten = "advocateTrace"
 	} else {
-		tracePathRewritten = tracePathRewritten + strconv.Itoa(index)
+		tracePathRewritten = tracePathRewritten + index
 	}
 
 	// if trace folder does not exist, panic
@@ -301,12 +246,75 @@ func EnableReplay(index int, exitCode bool) {
 		}
 	}
 
-	runtime.EnableReplay(timeout)
+	if timeout > 0 {
+		go func() {
+			time.Sleep(time.Duration(timeout) * time.Second)
+			runtime.ExitReplayWithCode(runtime.ExitCodeTimeout)
+			panic("Timeout")
+		}()
+	}
+
+	runtime.EnableReplay()
 }
 
-func EnableReplayWithTimeout(index int, exitCode bool) {
-	timeout = true
-	EnableReplay(index, exitCode)
+func InitReplayTracing(index string, exitCode bool, timeout int, atomic bool) {
+	if index == "-1" {
+		InitTracing()
+		return
+	}
+
+	tracePathRecorded = "advocateTraceReplay_" + index
+
+	// if the program panics, but is not in the main routine, no trace is written
+	// to prevent this, the following is done. The corresponding send/recv are in the panic definition
+	blocked := make(chan struct{})
+	writingDone := make(chan struct{})
+	runtime.GetAdvocatePanicChannels(blocked, writingDone)
+	go func() {
+		<-blocked
+		FinishReplayTracing()
+		writingDone <- struct{}{}
+	}()
+
+	// if the program is terminated by the user, the defer in the header
+	// is not executed. Therefore capture the signal and write the trace.
+	interuptSignal := make(chan os.Signal, 1)
+	signal.Notify(interuptSignal, os.Interrupt)
+	go func() {
+		<-interuptSignal
+		println("\nCancel Run. Write trace. Cancel again to force exit.")
+		go func() {
+			<-interuptSignal
+			os.Exit(1)
+		}()
+		if !runtime.GetAdvocateDisabled() {
+			FinishReplayTracing()
+		}
+		os.Exit(1)
+	}()
+
+	// go writeTraceIfFull()
+	// go removeAtomicsIfFull()
+	runtime.InitAdvocate()
+
+	InitReplay(index, exitCode, timeout, atomic)
+}
+
+func FinishReplayTracing() {
+	if !runtime.IsReplayEnabled() {
+		FinishTracing()
+		return
+	}
+
+	if r := recover(); r != nil {
+		println("Replay failed.")
+	}
+
+	runtime.WaitForReplayFinish(false)
+
+	// runtime.DisableReplay()
+
+	FinishTracing()
 }
 
 /*
@@ -320,7 +328,6 @@ func EnableReplayWithTimeout(index int, exitCode bool) {
  * 	- once
  * 	- waitgroups
  * 	- select
- * For now we ignore atomic operations.
  * We only record the relevant information for each operation.
  * Args:
  * 	- fileName: The name of the file that contains the trace.
@@ -361,11 +368,14 @@ func readTraceFile(fileName string, chanWithoutPartner *map[string]int) (int, ru
 		var selIndex int
 		fields := strings.Split(elem, ",")
 		time, _ = strconv.Atoi(fields[1])
+		tPre, _ := strconv.Atoi(fields[1])
 		switch fields[0] {
 		case "X": // disable replay
 			op = runtime.OperationReplayEnd
 			line, _ = strconv.Atoi(fields[2]) // misuse the line for the exit code
 			runtime.SetExpectedExitCode(line)
+			lastTPre, _ := strconv.Atoi(fields[3]) // missuse pLie for the tPreLast
+			runtime.SetLastTPre(lastTPre)
 		case "G":
 			op = runtime.OperationSpawn
 			// time, _ = strconv.Atoi(fields[1])
@@ -507,19 +517,45 @@ func readTraceFile(fileName string, chanWithoutPartner *map[string]int) (int, ru
 				blocked = true
 			}
 		case "A":
-			// do nothing
+			if !runtime.GetReplayAtomic() {
+				continue
+			}
+			switch fields[3] {
+			case "L":
+				op = runtime.OperationAtomicLoad
+			case "S":
+				op = runtime.OperationAtomicStore
+			case "A":
+				op = runtime.OperationAtomicAdd
+			case "W":
+				op = runtime.OperationAtomicSwap
+			case "C":
+				op = runtime.OperationAtomicCompareAndSwap
+			}
+			pos := strings.Split(fields[4], ":")
+			if len(pos) != 2 {
+				println(elem)
+			}
+			if len(pos) < 2 {
+				runtime.SetReplayAtomic(false)
+				file = ""
+				line = 0
+			} else {
+				file = pos[0]
+				line, _ = strconv.Atoi(pos[1])
+			}
 		case "E":
-			// do nothing
+			continue
 
 		default:
 			panic("Unknown operation " + fields[0] + " in line " + elem + " in file " + fileName + ".")
 		}
-		if time == 0 {
+		if blocked || time == 0 {
 			time = math.MaxInt
 		}
-		if op != runtime.OperationNone && !runtime.AdvocateIgnore(op, file, line) {
+		if op != runtime.OperationNone && !runtime.AdvocateIgnoreReplay(op, file, line) {
 			replayData = append(replayData, runtime.ReplayElement{
-				Op: op, Routine: routineID, Time: time, File: file, Line: line,
+				Op: op, Routine: routineID, Time: time, TimePre: tPre, File: file, Line: line,
 				Blocked: blocked, Suc: suc, PFile: pFile, PLine: pLine,
 				SelIndex: selIndex})
 

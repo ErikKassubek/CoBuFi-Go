@@ -68,8 +68,9 @@ func (o *Once) Do(f func()) {
 	// the o.done.Store must be delayed until after f returns.
 
 	// ADVOCATE-CHANGE-START
-	enabled, valid, replayElem := runtime.WaitForReplay(runtime.OperationOnce, 2)
-	if enabled && valid {
+	wait, ch := runtime.WaitForReplay(runtime.OperationOnce, 2)
+	if wait {
+		replayElem := <-ch
 		if replayElem.Blocked {
 			if o.id == 0 {
 				o.id = runtime.GetAdvocateObjectID()
@@ -102,10 +103,6 @@ func (o *Once) Do(f func()) {
 		// ADVOCATE-CHANGE-END
 	}
 	// ADVOCATE-CHANGE-START
-	if enabled && valid && res != replayElem.Suc {
-		println("advocate once: replay failed")
-		panic("advocate: replay failed")
-	}
 	runtime.AdvocateOncePost(index, res)
 	// ADVOCATE-CHANGE-END
 }
@@ -113,16 +110,16 @@ func (o *Once) Do(f func()) {
 // ADVOCATE-CHANGE-START
 func (o *Once) doSlow(f func()) bool {
 	// ADVOCATE-CHANGE-END
-	o.m.Lock()         // MUST BE LINE 116, OTHERWISE CHANGE IN advocate_trace.go:AdvocateIgnore
-	defer o.m.Unlock() // MUST BE LINE 117, OTHERWISE CHANGE IN advocate_trace.go:AdvocateIgnore
+	o.m.Lock()         // MUST BE LINE 113, OTHERWISE CHANGE IN advocate_trace.go:AdvocateIgnore
+	defer o.m.Unlock() // MUST BE LINE 114, OTHERWISE CHANGE IN advocate_trace.go:AdvocateIgnore
 	if o.done.Load() == 0 {
 		defer o.done.Store(1)
 		f()
 		// ADVOCATE-CHANGE-START
-		return true // MUST BE LINE 122, OTHERWISE CHANGE IN advocate_trace.go:AdvocateIgnore
+		return true // MUST BE LINE 119, OTHERWISE CHANGE IN advocate_trace.go:AdvocateIgnore
 		// ADVOCATE-CHANGE-END
 	}
 	// ADVOCATE-CHANGE-START
-	return false // MUST BE LINE 126, OTHERWISE CHANGE IN advocate_trace.go:AdvocateIgnore
+	return false // MUST BE LINE 123, OTHERWISE CHANGE IN advocate_trace.go:AdvocateIgnore
 	// ADVOCATE-CHANGE-END
 }

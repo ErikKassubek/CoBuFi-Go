@@ -83,9 +83,12 @@ func makechan(t *chantype, size int) *hchan {
 
 	// ADVOCATE-CHANGE-START
 	advocateIgnored := false
-	if size == 1<<16 {
+	if size == 1<<62 {
 		advocateIgnored = true
 		size = 0
+	} else if size == 1<<62+1 {
+		advocateIgnored = true
+		size = 1
 	}
 	// ADVOCATE-CHANGE-END
 
@@ -218,11 +221,10 @@ func chansend(c *hchan, ep unsafe.Pointer, block bool, callerpc uintptr, ignored
 	// ADVOCATE-CHANGE-START
 	// wait until the replay has reached the current point
 	var replayElem ReplayElement
-	var enabled bool
-	var valid bool
 	if !ignored && !c.advocateIgnore {
-		enabled, valid, replayElem = WaitForReplay(OperationChannelSend, 3)
-		if enabled && valid {
+		wait, ch := WaitForReplay(OperationChannelSend, 3)
+		if wait {
+			replayElem = <-ch
 			if replayElem.Blocked {
 				lock(&c.numberSendMutex)
 				c.numberSend++
@@ -284,12 +286,13 @@ func chansend(c *hchan, ep unsafe.Pointer, block bool, callerpc uintptr, ignored
 
 	if c.closed != 0 {
 		unlock(&c.lock)
-		if enabled {
+		if IsReplayEnabled() {
 			IsNextElementReplayEnd(ExitCodeSendClose, true, false)
 		}
 
 		// ADVOCATE-CHANGE-START
 		if !ignored && !c.advocateIgnore {
+			CheckLastTPreReplay(replayElem.TimePre)
 			AdvocateChanPostCausedByClose(advocateIndex)
 		}
 		// ADVOCATE-CHANGE-END
@@ -299,6 +302,7 @@ func chansend(c *hchan, ep unsafe.Pointer, block bool, callerpc uintptr, ignored
 	// ADVOCATE-CHANGE-START
 	if sg := c.recvq.dequeue(replayElem); sg != nil {
 		if !ignored && !c.advocateIgnore {
+			CheckLastTPreReplay(replayElem.TimePre)
 			AdvocateChanPost(advocateIndex)
 		}
 		// ADVOCATE-CHANGE-END
@@ -311,6 +315,7 @@ func chansend(c *hchan, ep unsafe.Pointer, block bool, callerpc uintptr, ignored
 	if c.qcount < c.dataqsiz {
 		// ADVOCATE-CHANGE-START
 		if !ignored && !c.advocateIgnore {
+			CheckLastTPreReplay(replayElem.TimePre)
 			AdvocateChanPost(advocateIndex)
 		}
 		// ADVOCATE-CHANGE-END
@@ -332,6 +337,7 @@ func chansend(c *hchan, ep unsafe.Pointer, block bool, callerpc uintptr, ignored
 	if !block {
 		// ADVOCATE-CHANGE-START
 		if !ignored && !c.advocateIgnore {
+			CheckLastTPreReplay(replayElem.TimePre)
 			AdvocateChanPost(advocateIndex)
 		}
 		// ADVOCATE-CHANGE-END
@@ -386,6 +392,7 @@ func chansend(c *hchan, ep unsafe.Pointer, block bool, callerpc uintptr, ignored
 	}
 	// ADVOCATE-CHANGE-START
 	if !ignored && !c.advocateIgnore {
+		CheckLastTPreReplay(replayElem.TimePre)
 		AdvocateChanPost(advocateIndex)
 	}
 	// ADVOCATE-CHANGE-END
@@ -401,18 +408,20 @@ func chansend(c *hchan, ep unsafe.Pointer, block bool, callerpc uintptr, ignored
 	if closed {
 		// ADVOCATE-CHANGE-START
 		if !ignored && !c.advocateIgnore {
+			CheckLastTPreReplay(replayElem.TimePre)
 			AdvocateChanPostCausedByClose(advocateIndex)
 		}
 		// ADVOCATE-CHANGE-END
 		if c.closed == 0 {
 			throw("chansend: spurious wakeup")
 		}
-		if enabled {
+		if IsReplayEnabled() {
 			IsNextElementReplayEnd(ExitCodeSendClose, true, false)
 		}
 
 		// ADVOCATE-CHANGE-START
 		if !ignored && !c.advocateIgnore {
+			CheckLastTPreReplay(replayElem.TimePre)
 			AdvocateChanPostCausedByClose(advocateIndex)
 		}
 		// ADVOCATE-CHANGE-END
@@ -496,16 +505,19 @@ func closechan(c *hchan) {
 		panic(plainError("close of nil channel"))
 	}
 
-	lock(&c.lock)
-
 	// ADVOCATE-CHANGE-START
 	// AdvocateChanClose is called when a channel is closed. It creates a close event
 	// in the trace.
 	if !c.advocateIgnore {
-		_, _, _ = WaitForReplay(OperationChannelClose, 2)
+		wait, ch := WaitForReplay(OperationChannelClose, 2)
+		if wait {
+			<-ch
+		}
 		AdvocateChanClose(c.id, c.dataqsiz)
 	}
 	// ADVOCATE-CHANGE-END
+
+	lock(&c.lock)
 
 	if c.closed != 0 {
 		unlock(&c.lock)
@@ -630,11 +642,10 @@ func chanrecv(c *hchan, ep unsafe.Pointer, block bool, ignored bool) (selected, 
 	// ADVOCATE-CHANGE-START
 	// wait until the replay has reached the current point
 	var replayElem ReplayElement
-	var enabled bool
-	var valid bool
 	if !ignored && !c.advocateIgnore {
-		enabled, valid, replayElem = WaitForReplay(OperationChannelRecv, 3)
-		if enabled && valid {
+		wait, ch := WaitForReplay(OperationChannelRecv, 3)
+		if wait {
+			replayElem = <-ch
 			if replayElem.Blocked {
 				lock(&c.numberRecvMutex)
 				c.numberRecv++
@@ -704,7 +715,6 @@ func chanrecv(c *hchan, ep unsafe.Pointer, block bool, ignored bool) (selected, 
 		c.numberRecv++
 		unlock(&c.numberRecvMutex)
 		advocateIndex = AdvocateChanRecvPre(c.id, c.numberRecv, c.dataqsiz, false)
-		defer AdvocateChanPost(advocateIndex)
 	}
 	// ADVOCATE-CHANGE-END
 
@@ -719,6 +729,7 @@ func chanrecv(c *hchan, ep unsafe.Pointer, block bool, ignored bool) (selected, 
 			}
 			// ADVOCATE-CHANGE-START
 			if !ignored && !c.advocateIgnore {
+				CheckLastTPreReplay(replayElem.TimePre)
 				AdvocateChanPostCausedByClose(advocateIndex)
 			}
 			// ADVOCATE-CHANGE-END
@@ -735,6 +746,10 @@ func chanrecv(c *hchan, ep unsafe.Pointer, block bool, ignored bool) (selected, 
 			// and add sender's value to the tail of the queue (both map to
 			// the same buffer slot because the queue is full).
 			recv(c, sg, ep, func() { unlock(&c.lock) }, 3)
+			if !ignored && !c.advocateIgnore {
+				CheckLastTPreReplay(replayElem.TimePre)
+				AdvocateChanPost(advocateIndex)
+			}
 			return true, true
 		}
 	}
@@ -755,11 +770,19 @@ func chanrecv(c *hchan, ep unsafe.Pointer, block bool, ignored bool) (selected, 
 		}
 		c.qcount--
 		unlock(&c.lock)
+		if !ignored && !c.advocateIgnore {
+			CheckLastTPreReplay(replayElem.TimePre)
+			AdvocateChanPost(advocateIndex)
+		}
 		return true, true
 	}
 
 	if !block {
 		unlock(&c.lock)
+		if !ignored && !c.advocateIgnore {
+			CheckLastTPreReplay(replayElem.TimePre)
+			AdvocateChanPost(advocateIndex)
+		}
 		return false, false
 	}
 
@@ -814,6 +837,7 @@ func chanrecv(c *hchan, ep unsafe.Pointer, block bool, ignored bool) (selected, 
 
 	// ADVOCATE-CHANGE-START
 	if !success && !ignored && !c.advocateIgnore {
+		CheckLastTPreReplay(replayElem.TimePre)
 		AdvocateChanPostCausedByClose(advocateIndex)
 	}
 	// ADVOCATE-CHANGE-END
@@ -821,6 +845,10 @@ func chanrecv(c *hchan, ep unsafe.Pointer, block bool, ignored bool) (selected, 
 	gp.param = nil
 	mysg.c = nil
 	releaseSudog(mysg)
+	if !ignored && !c.advocateIgnore {
+		CheckLastTPreReplay(replayElem.TimePre)
+		AdvocateChanPost(advocateIndex)
+	}
 	return true, success
 }
 
@@ -919,24 +947,10 @@ func chanparkcommit(gp *g, chanLock unsafe.Pointer) bool {
 func selectnbsend(c *hchan, elem unsafe.Pointer) (selected bool) {
 	// ADVOCATE-CHANGE-START
 	var replayElem ReplayElement
-	var enabled bool
-	var valid bool
 	if c != nil && !c.advocateIgnore {
-		if c != nil && !c.advocateIgnore {
-			enabled, valid, replayElem = WaitForReplay(OperationSelect, 2)
-			if enabled && valid {
-				if replayElem.Blocked {
-					lock(&c.numberSendMutex)
-					c.numberSend++
-					unlock(&c.numberSendMutex)
-					_ = AdvocateChanSendPre(c.id, c.numberSend, c.dataqsiz, false)
-					BlockForever()
-				}
-			}
-		}
-	} else {
-		enabled, valid, replayElem = WaitForReplay(OperationSelect, 2)
-		if enabled && valid {
+		wait, ch := WaitForReplay(OperationSelect, 2)
+		if wait {
+			replayElem = <-ch
 			if replayElem.Blocked {
 				lock(&c.numberSendMutex)
 				c.numberSend++
@@ -947,13 +961,19 @@ func selectnbsend(c *hchan, elem unsafe.Pointer) (selected bool) {
 		}
 	}
 
-	advocateIndex := AdvocateSelectPreOneNonDef(c, true)
+	advocateIndex := -1
+	if !c.advocateIgnore {
+		advocateIndex = AdvocateSelectPreOneNonDef(c, true)
+	}
 	res := chansend(c, elem, false, getcallerpc(), true)
 	if c != nil {
 		lock(&c.numberSendMutex)
 		defer unlock(&c.numberSendMutex)
 	}
-	AdvocateSelectPostOneNonDef(advocateIndex, res, c)
+	if !c.advocateIgnore {
+		CheckLastTPreReplay(replayElem.TimePre)
+		AdvocateSelectPostOneNonDef(advocateIndex, res, c)
+	}
 
 	return res
 	// ADVOCATE-CHANGE-END
@@ -979,24 +999,10 @@ func selectnbrecv(elem unsafe.Pointer, c *hchan) (selected, received bool) {
 	// ADVOCATE-CHANGE-START
 	// see selectnbsend
 	var replayElem ReplayElement
-	var enabled bool
-	var valid bool
 	if c != nil && !c.advocateIgnore {
-		if !c.advocateIgnore {
-			enabled, valid, replayElem = WaitForReplay(OperationSelect, 2)
-			if enabled && valid {
-				if replayElem.Blocked {
-					lock(&c.numberSendMutex)
-					c.numberSend++
-					unlock(&c.numberSendMutex)
-					_ = AdvocateSelectPreOneNonDef(c, false)
-					BlockForever()
-				}
-			}
-		}
-	} else {
-		enabled, valid, replayElem = WaitForReplay(OperationSelect, 2)
-		if enabled && valid {
+		wait, ch := WaitForReplay(OperationSelect, 2)
+		if wait {
+			replayElem = <-ch
 			if replayElem.Blocked {
 				lock(&c.numberSendMutex)
 				c.numberSend++
@@ -1006,13 +1012,20 @@ func selectnbrecv(elem unsafe.Pointer, c *hchan) (selected, received bool) {
 			}
 		}
 	}
-	advocateIndex := AdvocateSelectPreOneNonDef(c, false)
+
+	advocateIndex := -1
+	if !c.advocateIgnore {
+		advocateIndex = AdvocateSelectPreOneNonDef(c, false)
+	}
 	res, recv := chanrecv(c, elem, false, true)
 	if c != nil {
 		lock(&c.numberRecvMutex)
 		defer unlock(&c.numberRecvMutex)
 	}
-	AdvocateSelectPostOneNonDef(advocateIndex, res, c)
+	if !c.advocateIgnore {
+		CheckLastTPreReplay(replayElem.TimePre)
+		AdvocateSelectPostOneNonDef(advocateIndex, res, c)
+	}
 	return res, recv
 
 	// ADVOCATE-CHANGE-END
@@ -1086,16 +1099,14 @@ func (q *waitq) dequeue(rElem ReplayElement) *sudog {
 
 		// ADVOCATE-CHANGE-START
 		// if the channel partner is not correct, the goroutine is not woken up
-		// TODO: durch die ganze Queue durchgehen, ob partner vorhanden, um
-		// zu verhindern, das Umordnung zu Block führt
-		// TODO: oder ganz raus schmeißen, wenn nicht notwendig
-		if replayEnabled && !sgp.replayEnabled {
-			if !(rElem.File == "") && !sgp.c.advocateIgnore {
-				if sgp.pFile != rElem.File || sgp.pLine != rElem.Line {
-					return nil
-				}
-			}
-		}
+		// TODO: is this necessary
+		// if replayEnabled && sgp.replayEnabled {
+		// 	if !(rElem.File == "") && !sgp.c.advocateIgnore {
+		// 		if sgp.pFile != rElem.File || sgp.pLine != rElem.Line {
+		// 			return nil
+		// 		}
+		// 	}
+		// }
 		// ADVOCATE-CHANE-END
 
 		y := sgp.next

@@ -16,7 +16,7 @@ func TestMain(t *testing.T) {
 	communicationContention()
 	channelIterationMisuse()
 
-	time.Sleep(time.Second)
+	time.Sleep(0.5 * time.Second)
 }
 
 // Premature Function Return

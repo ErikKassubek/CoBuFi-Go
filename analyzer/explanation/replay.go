@@ -11,7 +11,6 @@
 package explanation
 
 import (
-	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -19,7 +18,7 @@ import (
 	"strings"
 )
 
-func getRewriteInfo(bugType string, codes map[string]string, index int) map[string]string {
+func getRewriteInfo(bugType string, codes map[string]string, index string) map[string]string {
 	res := make(map[string]string)
 
 	rewPos := rewriteType[bugType]
@@ -33,6 +32,7 @@ func getRewriteInfo(bugType string, codes map[string]string, index int) map[stri
 
 	if rewPos == "Actual" {
 		res["description"] += "The bug is an actual bug. Therefore no rewrite is possibel."
+		codes[fmt.Sprint(index)] = "fail"
 	} else if rewPos == "Possible" {
 		res["description"] += "The bug is a potential bug.\n"
 		res["description"] += "The analyzer has tries to rewrite the trace in such a way, "
@@ -47,6 +47,7 @@ func getRewriteInfo(bugType string, codes map[string]string, index int) map[stri
 		res["description"] += "No rewritten trace was created. This does not need to mean, "
 		res["description"] += "that the leak can not be resolved, especially because the "
 		res["description"] += "analyzer is only aware of executed operations."
+		codes[fmt.Sprint(index)] = "fail"
 	}
 	res["exitCode"], res["exitCodeExplanation"], res["replaySuc"], err = getReplayInfo(codes, index)
 
@@ -106,6 +107,9 @@ func getOutputCodes(path string) map[string]string {
 				replayCode[lastReplayIndex] = "panic"
 			}
 			lastReplayIndex = strings.TrimPrefix(line, replayReadPrefix)
+			if !strings.Contains(lastReplayIndex, "_") {
+				lastReplayIndex = "0_" + lastReplayIndex
+			}
 			lastReplayIndexInfoFound = false
 		} else if strings.HasPrefix(line, exitCodePrefix) {
 			line = strings.TrimPrefix(line, exitCodePrefix)
@@ -118,13 +122,13 @@ func getOutputCodes(path string) map[string]string {
 	return replayCode
 }
 
-func getReplayInfo(replayCode map[string]string, index int) (string, string, string, error) {
+func getReplayInfo(replayCode map[string]string, index string) (string, string, string, error) {
 	if _, ok := replayCode["AdvocateFailExplanationInfo"]; ok {
 		fmt.Println("Could not read")
 		return "", replayCode["AdvocateFailExplanationInfo"], replayCode["AdvocateFailResplaySucInfo"], fmt.Errorf("Could not read output file")
 	}
 
-	exitCode := replayCode[fmt.Sprint(index)]
+	exitCode := replayCode[index]
 	replaySuc := "failed"
 	if exitCode == "double" {
 		replaySuc = "was already performed for this bug in another test"
@@ -139,10 +143,11 @@ func getReplayInfo(replayCode map[string]string, index int) (string, string, str
 
 	exitCodeInt, err := strconv.Atoi(exitCode)
 	if err != nil {
-		res := fmt.Sprintf("Invalid format in output.log. Could not convert exit code %s to int for index %d", exitCode, index)
-		return "", res, "failed", errors.New(res)
+		return "fail", exitCodeExplanation["fail"], "was not run", nil
 	}
-	if exitCodeInt >= 20 || exitCodeInt == 0 {
+	if exitCodeInt == 0 {
+		replaySuc = "ended without confirming the bug"
+	} else if exitCodeInt >= 20 {
 		replaySuc = "was successful"
 	}
 

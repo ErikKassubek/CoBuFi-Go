@@ -18,6 +18,7 @@ Added files:
 - src/runtime/advocate_replay.go
 - src/runtime/internal/atomic/advocate_atomic.go
 - src/advocate/advocate.go
+- src/sync/atomic/advocate_atomic.go
 
 Changed files (marked with ADVOCATE-CHANGE, außer in .s):
 
@@ -26,10 +27,9 @@ Changed files (marked with ADVOCATE-CHANGE, außer in .s):
 - src/runtime/chan.go
 - src/runtime/select.go
 - src/runtime/panic.go
-- src/runtime/internal/atomic/atomic_amd64.go
-- src/runtime/internal/atomic/atomic_amd64.s
-- src/runtime/internal/atomic/atomic_arm64.go
-- src/runtime/internal/atomic/atomic_arm64.s
+- src/sync/atomic/doc.go
+- src/sync/atomic/type.go
+- src/sync/atomic/asm.s
 - src/sync/mutex.go
 - src/sync/rwmutex.go
 - src/sync/waitgroup.go

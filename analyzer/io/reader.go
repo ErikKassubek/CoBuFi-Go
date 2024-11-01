@@ -37,7 +37,7 @@ import (
 func CreateTraceFromFiles(filePath string, ignoreAtomics bool) (int, bool, error) {
 	numberIds := 0
 
-	println("Read trace from " + filePath + "...")
+	println("Read trace from " + filePath)
 
 	// traverse all files in the folder
 	files, err := os.ReadDir(filePath)
@@ -133,7 +133,7 @@ func processElement(element string, routine int, ignoreAtomics bool) error {
 		if ignoreAtomics {
 			return nil
 		}
-		err = analysis.AddTraceElementAtomic(routine, fields[1], fields[2], fields[3])
+		err = analysis.AddTraceElementAtomic(routine, fields[1], fields[2], fields[3], fields[4])
 	case "C":
 		err = analysis.AddTraceElementChannel(routine, fields[1], fields[2],
 			fields[3], fields[4], fields[5], fields[6], fields[7], fields[8])

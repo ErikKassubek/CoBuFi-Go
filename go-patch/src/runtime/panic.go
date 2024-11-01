@@ -721,7 +721,7 @@ func gopanic(e any) {
 	// ADVOCATE - CHANGE - START
 	ExitReplayPanic(e)
 	// write the trace
-	if !advocateDisabled {
+	if !advocateTracingDisabled {
 		advocatePanicWriteBlock <- struct{}{}
 		<-advocatePanicDone
 	}

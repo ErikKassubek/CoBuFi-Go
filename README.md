@@ -128,8 +128,8 @@ The code snippet you need is
 import "advocate"
 ...
 // ======= Preamble Start =======
-    advocate.InitTracing(0)
-    defer advocate.Finish()
+    advocate.InitTracing()
+    defer advocate.FinishTracing()
 // ======= Preamble End =======
 ...
 ```
@@ -138,8 +138,8 @@ Eg. like this
 import "advocate"
 func main(){
     // ======= Preamble Start =======
-    advocate.InitTracing(0)
-    defer advocate.Finish()
+    advocate.InitTracing()
+    defer advocate.FinishTracing()
     // ======= Preamble End =======
 ...
 }
@@ -150,8 +150,8 @@ import "advocate"
 ...
 func TestImportantThings(t *testing.T){
     // ======= Preamble Start =======
-    advocate.InitTracing(0)
-    defer advocate.Finish()
+    advocate.InitTracing()
+    defer advocate.FinishTracing()
     // ======= Preamble End =======
 ...
 }
@@ -200,13 +200,53 @@ Instead want to use this overhead
 
 ```go
 // ======= Preamble Start =======
-advocate.EnableReplay(n)
-defer advocate.WaitForReplayFinish()
+advocate.InitReplay("n", true, m, true)
+defer advocate.FinishReplay()
 // ======= Preamble End =======
 ```
 
-where the variable `n` is the rewritten trace you want to use.
+The variable `n` is the rewritten trace you want to use (to replay the recording, set `n=0`, for the rewritten trace `rewritten_trace_1` set `n=1`)\
+`m` is a timeout in second (to disable timeout set `m=0`).\
+The replay will end with one of the following error codes:
+```
+0:  "The replay terminated without finding a Replay element",
+3:  "The program panicked unexpectedly",
+10: "Timeout",
+20: "Leak: Leaking unbuffered channel or select was unstuck",
+21: "Leak: Leaking buffered channel was unstuck",
+22: "Leak: Leaking Mutex was unstuck",
+23: "Leak: Leaking Cond was unstuck",
+24: "Leak: Leaking WaitGroup was unstuck",
+30: "Send on close",
+31: "Receive on close",
+32: "Negative WaitGroup counter",
+33: "Unlock of unlocked mutex",
+```
+If you do not want an error code, you can set the first `true` in the arguments to `false`.\
+The replay will also perform the atomic operations in the order of the trace. This has the advantage, that the replay is less likely to fail, but it increases the runtime significantly. If you do not want that the atomics are also replayed in the order of the trace, you can set the second `true` to `false`.
+
+
 Note that the method looks for the `rewritten_trace` folder in the same directory as the file is located
+
+To replay and at the same time record a new trace, you can add the following header
+```go
+// ======= Preamble Start =======
+advocate.InitReplayTracing("n", false, m, true)
+defer advocate.FinishReplayTracing()
+// ======= Preamble End =======
+```
+The arguments are the same as in `advocate.InitReplay`. \
+Here it is advisable to set the first bool to `false`.\
+Changing the second bool to false will only effect the replay, but not the recording of the atomics.\
+If `n` is set to `-1`, no replay will be done. It is therefore equivalent to
+```go
+// ======= Preamble Start =======
+advocate.InitTracing()
+defer advocate.FinishTracing()
+// ======= Preamble End =======
+```
+The replay and tracing at the same time is not yet implemented in the toolchain.
+
 
 A more detailed description of how replays work and a list of what bugs are currently supported for replay can be found under [TraceReplay.md](./doc/TraceReplay.md) and [TraceReconstruciton.md](./doc/TraceReconstruction.md).
 

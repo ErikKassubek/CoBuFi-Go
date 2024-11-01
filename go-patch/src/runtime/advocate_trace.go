@@ -2,10 +2,6 @@
 
 package runtime
 
-import (
-	at "runtime/internal/atomic"
-)
-
 type Operation int // enum for operation
 
 const (
@@ -41,7 +37,11 @@ const (
 	OperationCondBroadcast
 	OperationCondWait
 
-	OperationAtomic
+	OperationAtomicLoad
+	OperationAtomicStore
+	OperationAtomicAdd
+	OperationAtomicSwap
+	OperationAtomicCompareAndSwap
 
 	OperationReplayEnd
 )
@@ -53,29 +53,39 @@ const (
 	none
 )
 
-// type advocateTraceElement interface {
-// 	isAdvocateTraceElement()
-// 	toString() string
-// 	getOperation() Operation
-// 	getFile() string
-// 	getLine() int
-// }
-
-type advocateAtomicMapElem struct {
-	addr      uint64
-	operation int
-}
-
-var advocateDisabled = true
-var advocateAtomicMap = make(map[uint64]advocateAtomicMapElem)
-var advocateAtomicMapToID = make(map[uint64]uint64)
-var advocateAtomicMapIDCounter uint64 = 1
-var advocateAtomicMapLock mutex
-var advocateAtomicMapToIDLock mutex
+var advocateTracingDisabled = true
 var advocatePanicWriteBlock chan struct{}
 var advocatePanicDone chan struct{}
 
 // var advocateTraceWritingDisabled = false
+
+func getOperationObjectString(op Operation) string {
+	switch op {
+	case OperationNone:
+		return "None"
+	case OperationSpawn, OperationSpawned, OperationRoutineExit:
+		return "Routine"
+	case OperationChannelSend, OperationChannelRecv, OperationChannelClose:
+		return "Channel"
+	case OperationMutexLock, OperationMutexUnlock, OperationMutexTryLock:
+		return "Mutex"
+	case OperationRWMutexLock, OperationRWMutexUnlock, OperationRWMutexTryLock, OperationRWMutexRLock, OperationRWMutexRUnlock, OperationRWMutexTryRLock:
+		return "RWMutex"
+	case OperationOnce:
+		return "Once"
+	case OperationWaitgroupAddDone, OperationWaitgroupWait:
+		return "Waitgroup"
+	case OperationSelect, OperationSelectCase, OperationSelectDefault:
+		return "Select"
+	case OperationCondSignal, OperationCondBroadcast, OperationCondWait:
+		return "Cond"
+	case OperationAtomicLoad, OperationAtomicStore, OperationAtomicAdd, OperationAtomicSwap, OperationAtomicCompareAndSwap:
+		return "Atomic"
+	case OperationReplayEnd:
+		return "Replay"
+	}
+	return "Unknown"
+}
 
 /*
  * Get the channels used to write the trace on certain panics
@@ -116,36 +126,6 @@ func traceToString(trace *[]string, atomics *[]string) string {
 	res := ""
 
 	println("TraceToString", len(*trace), len(*atomics), len(*trace)+len(*atomics))
-	if !atomicRecordingDisabled {
-		traceIndex := 0
-		atomicIndex := 0
-
-		// merge trace and atomics based on the time
-		for i := 0; i < len(*trace)+len(*atomics); i++ {
-			if i != 0 {
-				res += "\n"
-			}
-			if traceIndex < len(*trace) && atomicIndex < len(*atomics) {
-				traceTime := getTpre((*trace)[traceIndex])
-				atomicTime := getTpre((*atomics)[atomicIndex])
-				if traceTime < atomicTime {
-					res += (*trace)[traceIndex]
-					traceIndex++
-				} else {
-					res += addAtomicInfo((*atomics)[atomicIndex])
-					atomicIndex++
-				}
-			} else if traceIndex < len(*trace) {
-				res += (*trace)[traceIndex]
-				traceIndex++
-			} else {
-				res += addAtomicInfo((*atomics)[atomicIndex])
-				atomicIndex++
-			}
-		}
-
-		return res
-	}
 
 	// if atomic recording is disabled
 	for i, elem := range *trace {
@@ -166,15 +146,10 @@ func getTpre(elem string) int {
  * Add an operation to the trace
  * Args:
  *  elem: element to add to the trace
- *  atomic: if true, the operation is atomic
  * Return:
  * 	index of the element in the trace
  */
-func insertIntoTrace(elem string, atomic bool) int {
-	if atomic {
-		currentGoRoutine().addAtomicToTrace(elem)
-		return -1
-	}
+func insertIntoTrace(elem string) int {
 	return currentGoRoutine().addToTrace(elem)
 }
 
@@ -234,42 +209,6 @@ func TraceToStringByIDChannel(id int, c chan<- string) {
 	if routine, ok := AdvocateRoutines[uint64(id)]; ok {
 		unlock(&AdvocateRoutinesLock)
 		res := ""
-
-		if !atomicRecordingDisabled {
-			traceIndex := 0
-			atomicIndex := 0
-
-			// merge trace and atomics based on the time
-			for i := 0; i < len(routine.Trace)+len(routine.Atomics); i++ {
-				if i != 0 {
-					res += "\n"
-				}
-				if traceIndex < len(routine.Trace) && atomicIndex < len(routine.Atomics) {
-					traceTime := getTpre(routine.Trace[traceIndex])
-					atomicTime := getTpre(routine.Atomics[atomicIndex])
-					if traceTime < atomicTime {
-						res += (routine.Trace)[traceIndex]
-						traceIndex++
-					} else {
-						res += addAtomicInfo(routine.Atomics[atomicIndex])
-						atomicIndex++
-					}
-				} else if traceIndex < len(routine.Trace) {
-					res += (routine.Trace)[traceIndex]
-					traceIndex++
-				} else {
-					res += addAtomicInfo(routine.Atomics[atomicIndex])
-					atomicIndex++
-				}
-
-				if i%1000 == 0 {
-					c <- res
-					res = ""
-				}
-			}
-			c <- res
-			return
-		}
 
 		// if atomic recording is disabled
 		for i, elem := range routine.Trace {
@@ -336,41 +275,15 @@ func GetNumberOfRoutines() int {
  * 	size: size of the channel used to link the atomic recording to the main
  *    recording.
  */
-func InitAdvocate(size int) {
-	disableAtomics := false
-	if size < 0 {
-		size = 0
-		disableAtomics = true
-	}
-	chanSize := (size + 1) * 10000000
-	// link runtime with atomic via channel to receive information about
-	// atomic events
-	c := make(chan at.AtomicElem, chanSize)
-
-	if !disableAtomics {
-		at.AdvocateAtomicLink(c)
-	}
-
-	go func() {
-		for atomic := range c {
-			AdvocateAtomicPost(atomic)
-
-			// go func() {
-			// 	WaitForReplayAtomic(atomic.Operation, atomic.Index)
-			// 	atomic.ChanReturn <- true
-			// }()
-		}
-	}()
-
-	advocateDisabled = false
+func InitAdvocate() {
+	advocateTracingDisabled = false
 }
 
 /*
  * DisableTrace disables the collection of the trace
  */
 func DisableTrace() {
-	at.AdvocateAtomicUnlink()
-	advocateDisabled = true
+	advocateTracingDisabled = true
 }
 
 /*
@@ -379,7 +292,7 @@ func DisableTrace() {
  * 	true if the trace collection is disabled, false otherwise
  */
 func GetAdvocateDisabled() bool {
-	return advocateDisabled
+	return advocateTracingDisabled
 }
 
 // /*
@@ -426,37 +339,28 @@ func DeleteTrace() {
  */
 func AdvocateIgnore(operation Operation, file string, line int) bool {
 	if hasSuffix(file, "advocate/advocate.go") ||
-		hasSuffix(file, "advocate/advocate_replay.go") ||
-		hasSuffix(file, "advocate/advocate_routine.go") ||
-		hasSuffix(file, "advocate/advocate_trace.go") ||
-		hasSuffix(file, "advocate/advocate_utile.go") ||
-		hasSuffix(file, "advocate/advocate_atomic.go") { // internal
+		hasSuffix(file, "runtime/advocate_replay.go") ||
+		hasSuffix(file, "runtime/advocate_routine.go") ||
+		hasSuffix(file, "runtime/advocate_trace.go") ||
+		hasSuffix(file, "runtime/advocate_utile.go") ||
+		hasSuffix(file, "runtime/advocate_atomic.go") { // internal
 		return true
-	}
-
-	// if hasSuffix(file, "testing/testing.go") {
-	// 	return true
-	// }
-
-	if hasSuffix(file, "syscall/env_unix.go") {
+	} else if hasSuffix(file, "syscall/env_unix.go") {
 		return true
-	}
-
-	if hasSuffix(file, "runtime/signal_unix.go") {
+	} else if hasSuffix(file, "runtime/signal_unix.go") {
+		return true
+	} else if hasSuffix(file, "runtime/mgc.go") { // garbage collector
+		return true
+	} else if hasSuffix(file, "runtime/panic.go") {
 		return true
 	}
 
 	switch operation {
-	case OperationSpawn:
-		// garbage collection can cause the replay to get stuck
-		if hasSuffix(file, "runtime/mgc.go") && line == 1215 {
-			return true
-		}
 	case OperationMutexLock, OperationMutexUnlock:
 		// mutex operations in the once can cause the replay to get stuck,
 		// if the once was called by the poll/fd_poll_runtime.go init.
-		if hasSuffix(file, "sync/once.go") && (line == 116 || line == 117 ||
-			line == 122 || line == 126) {
+		if hasSuffix(file, "sync/once.go") && (line == 113 || line == 114 ||
+			line == 119 || line == 123) {
 			return true
 		}
 		// pools
@@ -474,14 +378,6 @@ func AdvocateIgnore(operation Operation, file string, line int) bool {
 		}
 	}
 	return false
-}
-
-func AdvocateIgnoreReplay(operation Operation, file string, line int) bool {
-	if hasSuffix(file, "time/sleep.go") {
-		return true
-	}
-
-	return AdvocateIgnore(operation, file, line)
 }
 
 // ADVOCATE-FILE-END

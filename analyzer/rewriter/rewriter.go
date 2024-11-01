@@ -40,12 +40,13 @@ const (
  * Create a new trace from the given bug
  * Args:
  *   bug (Bug): The bug to create a trace for
+ *   index (int): only used for rewrite select with partner, index of partner
  * Returns:
  *   bool: true if rewrite was needed, false otherwise (e.g. actual bug, warning)
- *
+ *   code: expected exit code
  *   error: An error if the trace could not be created
  */
-func RewriteTrace(bug bugs.Bug) (rewriteNeeded bool, code int, err error) {
+func RewriteTrace(bug bugs.Bug, index int) (rewriteNeeded bool, code int, err error) {
 	timemeasurement.Start("rewrite")
 	defer timemeasurement.End("rewrite")
 
@@ -102,7 +103,7 @@ func RewriteTrace(bug bugs.Bug) (rewriteNeeded bool, code int, err error) {
 	case bugs.LSelectWith:
 		code = exitCodeLeakUnbuf
 		rewriteNeeded = true
-		switch b := (*bug.TraceElement2[0]).(type) {
+		switch b := bug.TraceElement2[0].(type) {
 		case *analysis.TraceElementSelect:
 			err = rewriteUnbufChanLeak(bug)
 		case *analysis.TraceElementChannel:
@@ -131,6 +132,10 @@ func RewriteTrace(bug bugs.Bug) (rewriteNeeded bool, code int, err error) {
 		rewriteNeeded = true
 		code = exitCodeLeakCond
 		err = rewriteCondLeak(bug)
+	case bugs.SNotExecutedWithPartner:
+		rewriteNeeded = true
+		code = exitCodeNone
+		err = rewriteNotExecutedSelect(bug, index)
 	default:
 		err = errors.New("For the given bug type no trace rewriting is implemented")
 	}

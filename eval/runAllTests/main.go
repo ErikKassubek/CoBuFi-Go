@@ -6,19 +6,20 @@ import (
 	"os/exec"
 	"path/filepath"
 	"sync"
+	"time"
 )
 
 func main() {
 	names := []string{
 		// "canonicalTests",
 		"GoBench",
-		"connect",
-		"argo-cd",
-		"kubernetes",
 		"moby",
-		"go-ethereum",
+		"connect",
 		"prometheus",
-		// "etcd",
+		"argo-cd",
+		"go-ethereum",
+		"etcd",
+		"kubernetes",
 	}
 
 	mainPath := "~/Uni/HiWi/ADVOCATE/examples/"
@@ -32,6 +33,7 @@ func main() {
 	fmt.Printf("Changed working directory to: %s\n\n", wd)
 
 	analysisTimeout := "1800" // 1800s = 0.5h
+	replayTimeout := "-1"     // 100 * recording time
 	maxProgAtSameTime := 2
 
 	var wg sync.WaitGroup
@@ -39,14 +41,16 @@ func main() {
 
 	for _, name := range names {
 		wg.Add(1)
-		go runProg(name, mainPath, analysisTimeout, &wg, sem)
+		go runProg(name, mainPath, analysisTimeout, replayTimeout, &wg, sem)
+
+		time.Sleep(time.Second)
 	}
 
 	wg.Wait()
 
 }
 
-func runProg(name, mainPath, analysisTimeout string, wg *sync.WaitGroup, sem chan struct{}) {
+func runProg(name, mainPath, analysisTimeout string, replayTimeout string, wg *sync.WaitGroup, sem chan struct{}) {
 
 	defer wg.Done()
 	defer func() { <-sem }()
@@ -55,7 +59,7 @@ func runProg(name, mainPath, analysisTimeout string, wg *sync.WaitGroup, sem cha
 	fmt.Println("\n\nRun prog ", name)
 	path := filepath.Join(mainPath, name)
 
-	cmd := exec.Command("./tool", "test", "-a", "~/Uni/HiWi/ADVOCATE", "-f", path, "-m", "-s", "-t", "-N", name, "-T", analysisTimeout)
+	cmd := exec.Command("./tool", "test", "-a", "~/Uni/HiWi/ADVOCATE", "-f", path, "-m", "-s", "-t", "-N", name, "-T", analysisTimeout, "-R", replayTimeout)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	fmt.Println(cmd.String())

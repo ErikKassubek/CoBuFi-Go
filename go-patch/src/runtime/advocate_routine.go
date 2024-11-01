@@ -16,11 +16,11 @@ var atomicRecordingDisabled = false
  * Trace: the trace of the routine
  */
 type AdvocateRoutine struct {
-	id      uint64
+	id          uint64
 	maxObjectId uint64
-	G       *g
-	Trace   []string
-	Atomics []string
+	G           *g
+	Trace       []string
+	Atomics     []string
 	// lock    *mutex
 }
 
@@ -33,7 +33,7 @@ type AdvocateRoutine struct {
  */
 func newAdvocateRoutine(g *g) *AdvocateRoutine {
 	routine := &AdvocateRoutine{id: GetAdvocateRoutineID(), maxObjectId: 0,
-		G: g,
+		G:       g,
 		Trace:   make([]string, 0),
 		Atomics: make([]string, 0)}
 
@@ -58,7 +58,7 @@ func newAdvocateRoutine(g *g) *AdvocateRoutine {
  */
 func (gi *AdvocateRoutine) addToTrace(elem string) int {
 	// do nothing if tracer disabled
-	if advocateDisabled {
+	if advocateTracingDisabled {
 		return -1
 	}
 
@@ -108,7 +108,7 @@ func GetIgnoreAtomicOperations() bool {
  * 	elem: the element to add
  */
 func (gi *AdvocateRoutine) addAtomicToTrace(elem string) {
-	if advocateDisabled {
+	if advocateTracingDisabled {
 		return
 	}
 
@@ -139,7 +139,7 @@ func (gi *AdvocateRoutine) getElement(index int) string {
  * 	elem: the new element
  */
 func (gi *AdvocateRoutine) updateElement(index int, elem string) {
-	if advocateDisabled {
+	if advocateTracingDisabled {
 		return
 	}
 

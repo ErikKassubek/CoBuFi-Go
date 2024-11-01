@@ -124,7 +124,11 @@ func selectgo(cas0 *scase, order0 *uint16, pc0 *uintptr, nsends, nrecvs int, blo
 	}
 
 	// ADVOCATE-CHANGE-START
-	replayEnabled, valid, replayElem := WaitForReplay(OperationSelect, 2)
+	var replayElem ReplayElement
+	wait, ch := WaitForReplay(OperationSelect, 2)
+	if wait {
+		replayElem = <-ch
+	}
 	// ADVOCATE-CHANGE-END
 
 	// NOTE: In order to maintain a lean stack size, the number of scases
@@ -232,16 +236,14 @@ func selectgo(cas0 *scase, order0 *uint16, pc0 *uintptr, nsends, nrecvs int, blo
 
 	// ADVOCATE-CHANGE-START
 	// block if replay is enabled and the select is blocked
-	if replayEnabled && valid {
-		if replayElem.Blocked {
-			cas1 := (*[1 << 16]scase)(unsafe.Pointer(cas0))
-			_ = (*[1 << 17]uint16)(unsafe.Pointer(order0))
+	if wait && replayElem.Blocked {
+		cas1 := (*[1 << 16]scase)(unsafe.Pointer(cas0))
+		_ = (*[1 << 17]uint16)(unsafe.Pointer(order0))
 
-			ncases := nsends + nrecvs
-			scases := cas1[:ncases:ncases]
-			_ = AdvocateSelectPre(&scases, nsends, ncases, block, pollorder)
-			BlockForever()
-		}
+		ncases := nsends + nrecvs
+		scases := cas1[:ncases:ncases]
+		_ = AdvocateSelectPre(&scases, nsends, ncases, block, pollorder)
+		BlockForever()
 	}
 
 	// This block is called, if the code runs a select statement.
@@ -276,14 +278,12 @@ func selectgo(cas0 *scase, order0 *uint16, pc0 *uintptr, nsends, nrecvs int, blo
 
 	// ADVOCATE-CHANGE-START
 	// if a default was selected in the trace, also select the default
-	if replayEnabled {
-		if replayElem.Op == OperationSelectDefault {
-			selunlock(scases, lockorder)
-			casi = -1
-			AdvocateSelectPost(advocateIndex, c, casi, lockorder, advocateRClose)
-			// ADVOCATE-CHANGE-END
-			goto retc
-		}
+	if replayEnabled && replayElem.Op == OperationSelectDefault {
+		selunlock(scases, lockorder)
+		casi = -1
+		AdvocateSelectPost(advocateIndex, c, casi, lockorder, advocateRClose)
+		// ADVOCATE-CHANGE-END
+		goto retc
 	}
 
 	for _, casei := range pollorder {
@@ -323,14 +323,16 @@ func selectgo(cas0 *scase, order0 *uint16, pc0 *uintptr, nsends, nrecvs int, blo
 		}
 	}
 
-	if !block {
-		selunlock(scases, lockorder)
-		casi = -1
-		// ADVOCATE-CHANGE-START
-		AdvocateSelectPost(advocateIndex, c, casi, lockorder, advocateRClose)
-		// ADVOCATE-CHANGE-END
-		goto retc
+	// ADVOCATE-CHANGE-START
+	if !replayEnabled {
+		if !block {
+			selunlock(scases, lockorder)
+			casi = -1
+			AdvocateSelectPost(advocateIndex, c, casi, lockorder, advocateRClose)
+			goto retc
+		}
 	}
+	// ADVOCATE-CHANGE-END
 
 	// pass 2 - enqueue on all chans
 	gp = getg()

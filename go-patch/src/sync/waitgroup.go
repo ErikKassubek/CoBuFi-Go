@@ -53,7 +53,10 @@ func (wg *WaitGroup) Add(delta int) {
 	if delta > 0 {
 		skip = 2
 	}
-	enabled, _, _ := runtime.WaitForReplay(runtime.OperationWaitgroupAddDone, skip)
+	wait, ch := runtime.WaitForReplay(runtime.OperationWaitgroupAddDone, skip)
+	if wait {
+		<-ch
+	}
 	// ADVOCATE-CHANGE-END
 
 	if race.Enabled {
@@ -92,7 +95,7 @@ func (wg *WaitGroup) Add(delta int) {
 		race.Read(unsafe.Pointer(&wg.sema))
 	}
 	if v < 0 {
-		if enabled {
+		if runtime.IsReplayEnabled() {
 			runtime.IsNextElementReplayEnd(runtime.ExitCodeNegativeWG, true, true)
 		}
 		panic("sync: negative WaitGroup counter")
@@ -126,8 +129,9 @@ func (wg *WaitGroup) Done() {
 // Wait blocks until the WaitGroup counter is zero.
 func (wg *WaitGroup) Wait() {
 	// ADVOCATE-CHANGE-START
-	enabled, valid, replayElem := runtime.WaitForReplay(runtime.OperationWaitgroupWait, 2)
-	if enabled && valid {
+	wait, ch := runtime.WaitForReplay(runtime.OperationWaitgroupWait, 2)
+	if wait {
+		replayElem := <-ch
 		if replayElem.Blocked {
 			if wg.id == 0 {
 				wg.id = runtime.GetAdvocateObjectID()
@@ -156,7 +160,6 @@ func (wg *WaitGroup) Wait() {
 	// blocks the routine and it is nessesary to record the successful
 	// finish of the wait with a post.
 	advocateIndex := runtime.AdvocateWaitGroupWaitPre(wg.id)
-	defer runtime.AdvocateWaitGroupPost(advocateIndex)
 	// ADVOCATE-CHANGE-END
 
 	for {
@@ -169,6 +172,9 @@ func (wg *WaitGroup) Wait() {
 				race.Enable()
 				race.Acquire(unsafe.Pointer(wg))
 			}
+			// ADVOCATE-CHANGE-START
+			runtime.AdvocateWaitGroupPost(advocateIndex)
+			//ADVOCATE-CHANGE-END
 			return
 		}
 		// Increment waiters count.
@@ -188,6 +194,9 @@ func (wg *WaitGroup) Wait() {
 				race.Enable()
 				race.Acquire(unsafe.Pointer(wg))
 			}
+			// ADVOCATE-CHANGE-START
+			runtime.AdvocateWaitGroupPost(advocateIndex)
+			//ADVOCATE-CHANGE-END
 			return
 		}
 	}

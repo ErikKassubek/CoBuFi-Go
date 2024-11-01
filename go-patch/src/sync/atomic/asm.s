@@ -4,82 +4,86 @@
 
 //go:build !race
 
+// ADVOCATE-CHANGE-START
+
 #include "textflag.h"
 
-TEXT ·SwapInt32(SB),NOSPLIT,$0
+TEXT ·SwapInt32Advocate(SB),NOSPLIT,$0
 	JMP	runtime∕internal∕atomic·Xchg(SB)
 
-TEXT ·SwapUint32(SB),NOSPLIT,$0
+TEXT ·SwapUint32Advocate(SB),NOSPLIT,$0
 	JMP	runtime∕internal∕atomic·Xchg(SB)
 
-TEXT ·SwapInt64(SB),NOSPLIT,$0
+TEXT ·SwapInt64Advocate(SB),NOSPLIT,$0
 	JMP	runtime∕internal∕atomic·Xchg64(SB)
 
-TEXT ·SwapUint64(SB),NOSPLIT,$0
+TEXT ·SwapUint64Advocate(SB),NOSPLIT,$0
 	JMP	runtime∕internal∕atomic·Xchg64(SB)
 
-TEXT ·SwapUintptr(SB),NOSPLIT,$0
+TEXT ·SwapUintptrAdvocate(SB),NOSPLIT,$0
 	JMP	runtime∕internal∕atomic·Xchguintptr(SB)
 
-TEXT ·CompareAndSwapInt32(SB),NOSPLIT,$0
+TEXT ·CompareAndSwapInt32Advocate(SB),NOSPLIT,$0
 	JMP	runtime∕internal∕atomic·Cas(SB)
 
-TEXT ·CompareAndSwapUint32(SB),NOSPLIT,$0
+TEXT ·CompareAndSwapUint32Advocate(SB),NOSPLIT,$0
 	JMP	runtime∕internal∕atomic·Cas(SB)
 
-TEXT ·CompareAndSwapUintptr(SB),NOSPLIT,$0
+TEXT ·CompareAndSwapUintptrAdvocate(SB),NOSPLIT,$0
 	JMP	runtime∕internal∕atomic·Casuintptr(SB)
 
-TEXT ·CompareAndSwapInt64(SB),NOSPLIT,$0
+TEXT ·CompareAndSwapInt64Advocate(SB),NOSPLIT,$0
 	JMP	runtime∕internal∕atomic·Cas64(SB)
 
-TEXT ·CompareAndSwapUint64(SB),NOSPLIT,$0
+TEXT ·CompareAndSwapUint64Advocate(SB),NOSPLIT,$0
 	JMP	runtime∕internal∕atomic·Cas64(SB)
 
-TEXT ·AddInt32(SB),NOSPLIT,$0
+TEXT ·AddInt32Advocate(SB),NOSPLIT,$0
 	JMP	runtime∕internal∕atomic·Xadd(SB)
 
-TEXT ·AddUint32(SB),NOSPLIT,$0
+TEXT ·AddUint32Advocate(SB),NOSPLIT,$0
 	JMP	runtime∕internal∕atomic·Xadd(SB)
 
-TEXT ·AddUintptr(SB),NOSPLIT,$0
+TEXT ·AddUintptrAdvocate(SB),NOSPLIT,$0
 	JMP	runtime∕internal∕atomic·Xadduintptr(SB)
 
-TEXT ·AddInt64(SB),NOSPLIT,$0
+TEXT ·AddInt64Advocate(SB),NOSPLIT,$0
 	JMP	runtime∕internal∕atomic·Xadd64(SB)
 
-TEXT ·AddUint64(SB),NOSPLIT,$0
+TEXT ·AddUint64Advocate(SB),NOSPLIT,$0
 	JMP	runtime∕internal∕atomic·Xadd64(SB)
 
-TEXT ·LoadInt32(SB),NOSPLIT,$0
+TEXT ·LoadInt32Advocate(SB),NOSPLIT,$0
 	JMP	runtime∕internal∕atomic·Load(SB)
 
-TEXT ·LoadUint32(SB),NOSPLIT,$0
+TEXT ·LoadUint32Advocate(SB),NOSPLIT,$0
 	JMP	runtime∕internal∕atomic·Load(SB)
 
-TEXT ·LoadInt64(SB),NOSPLIT,$0
+TEXT ·LoadInt64Advocate(SB),NOSPLIT,$0
 	JMP	runtime∕internal∕atomic·Load64(SB)
 
-TEXT ·LoadUint64(SB),NOSPLIT,$0
+TEXT ·LoadUint64Advocate(SB),NOSPLIT,$0
 	JMP	runtime∕internal∕atomic·Load64(SB)
 
-TEXT ·LoadUintptr(SB),NOSPLIT,$0
+TEXT ·LoadUintptrAdvocate(SB),NOSPLIT,$0
 	JMP	runtime∕internal∕atomic·Loaduintptr(SB)
 
 TEXT ·LoadPointer(SB),NOSPLIT,$0
 	JMP	runtime∕internal∕atomic·Loadp(SB)
 
-TEXT ·StoreInt32(SB),NOSPLIT,$0
+TEXT ·StoreInt32Advocate(SB),NOSPLIT,$0
 	JMP	runtime∕internal∕atomic·Store(SB)
 
-TEXT ·StoreUint32(SB),NOSPLIT,$0
+TEXT ·StoreUint32Advocate(SB),NOSPLIT,$0
 	JMP	runtime∕internal∕atomic·Store(SB)
 
-TEXT ·StoreInt64(SB),NOSPLIT,$0
+TEXT ·StoreInt64Advocate(SB),NOSPLIT,$0
 	JMP	runtime∕internal∕atomic·Store64(SB)
 
-TEXT ·StoreUint64(SB),NOSPLIT,$0
+TEXT ·StoreUint64Advocate(SB),NOSPLIT,$0
 	JMP	runtime∕internal∕atomic·Store64(SB)
 
-TEXT ·StoreUintptr(SB),NOSPLIT,$0
+TEXT ·StoreUintptrAdvocate(SB),NOSPLIT,$0
 	JMP	runtime∕internal∕atomic·Storeuintptr(SB)
+
+// ADVOCATE-CHANGE-END

@@ -148,7 +148,7 @@ func GetTraceElementFromTID(tID string) (*TraceElement, error) {
  *   *TraceElement: The element
  *   error: An error if the element does not exist
  */
-func GetTraceElementFromBugArg(bugArg string) (*TraceElement, error) {
+func GetTraceElementFromBugArg(bugArg string) (TraceElement, error) {
 	splitArg := strings.Split(bugArg, ":")
 
 	if splitArg[0] != "T" {
@@ -171,7 +171,15 @@ func GetTraceElementFromBugArg(bugArg string) (*TraceElement, error) {
 
 	for index, elem := range traces[routine] {
 		if elem.GetTPre() == tPre {
-			return &traces[routine][index], nil
+			return traces[routine][index], nil
+		}
+	}
+
+	for routine, trace := range traces {
+		for index, elem := range trace {
+			if elem.GetTPre() == tPre {
+				return traces[routine][index], nil
+			}
 		}
 	}
 
@@ -466,8 +474,8 @@ func rerunCheckForSelectCaseWithoutPartnerChannel() {
 	for _, trace := range traces {
 		for _, elem := range trace {
 			if e, ok := elem.(*TraceElementChannel); ok {
-				CheckForSelectCaseWithoutPartnerChannel(e.GetID(), e.GetVC(),
-					e.GetTID(), e.Operation() == SendOp, e.IsBuffered())
+				CheckForSelectCaseWithoutPartnerChannel(e, e.GetVC(),
+					e.Operation() == SendOp, e.IsBuffered())
 			}
 		}
 	}
@@ -578,17 +586,17 @@ func ShiftTrace(startTPre int, shift int) bool {
  * Args:
  *   element (traceElement): The element
  */
-func ShiftConcurrentOrAfterToAfter(element *TraceElement) {
+func ShiftConcurrentOrAfterToAfter(element TraceElement) {
 	elemsToShift := make([]TraceElement, 0)
 	minTime := -1
 
 	for _, trace := range traces {
 		for _, elem := range trace {
-			if elem.GetTID() == (*element).GetTID() {
+			if elem.GetTID() == element.GetTID() {
 				continue
 			}
 
-			if !(clock.GetHappensBefore(elem.GetVC(), (*element).GetVC()) == clock.Before) {
+			if !(clock.GetHappensBefore(elem.GetVC(), element.GetVC()) == clock.Before) {
 				elemsToShift = append(elemsToShift, elem)
 				if minTime == -1 || elem.GetTPre() < minTime {
 					minTime = elem.GetTPre()
@@ -597,7 +605,7 @@ func ShiftConcurrentOrAfterToAfter(element *TraceElement) {
 		}
 	}
 
-	distance := (*element).GetTPre() - minTime + 1
+	distance := element.GetTPre() - minTime + 1
 
 	for _, elem := range elemsToShift {
 		tSort := elem.GetTPre()
@@ -613,18 +621,18 @@ func ShiftConcurrentOrAfterToAfter(element *TraceElement) {
  *   element (traceElement): The element
  *   start (traceElement): The time to start shifting (not including)
  */
-func ShiftConcurrentOrAfterToAfterStartingFromElement(element *TraceElement, start int) {
+func ShiftConcurrentOrAfterToAfterStartingFromElement(element TraceElement, start int) {
 	elemsToShift := make([]TraceElement, 0)
 	minTime := -1
 	maxNotMoved := 0
 
 	for _, trace := range traces {
 		for _, elem := range trace {
-			if elem.GetTID() == (*element).GetTID() {
+			if elem.GetTID() == element.GetTID() {
 				continue
 			}
 
-			if !(clock.GetHappensBefore(elem.GetVC(), (*element).GetVC()) == clock.Before) {
+			if !(clock.GetHappensBefore(elem.GetVC(), element.GetVC()) == clock.Before) {
 				if elem.GetTPre() <= start {
 					continue
 				}
@@ -641,9 +649,11 @@ func ShiftConcurrentOrAfterToAfterStartingFromElement(element *TraceElement, sta
 		}
 	}
 
-	(*element).SetT(maxNotMoved + 1)
+	if element.getTpost() == 0 {
+		element.SetT(maxNotMoved + 1)
+	}
 
-	distance := (*element).GetTPre() - minTime + 1
+	distance := element.GetTPre() - minTime + 1
 
 	for _, elem := range elemsToShift {
 		tSort := elem.GetTPre()
@@ -657,7 +667,7 @@ func ShiftConcurrentOrAfterToAfterStartingFromElement(element *TraceElement, sta
  * Args:
  *   element (traceElement): The element
  */
-func ShiftConcurrentToBefore(element *TraceElement) {
+func ShiftConcurrentToBefore(element TraceElement) {
 	ShiftConcurrentOrAfterToAfterStartingFromElement(element, 0)
 }
 
@@ -666,7 +676,7 @@ func ShiftConcurrentToBefore(element *TraceElement) {
  * Args:
  *   element (traceElement): The element
  */
-func RemoveConcurrent(element *TraceElement, tmin int) {
+func RemoveConcurrent(element TraceElement, tmin int) {
 	for routine, trace := range traces {
 		result := make([]TraceElement, 0)
 		for _, elem := range trace {
@@ -675,12 +685,39 @@ func RemoveConcurrent(element *TraceElement, tmin int) {
 				continue
 			}
 
-			if elem.GetTID() == (*element).GetTID() {
+			if elem.GetTID() == element.GetTID() {
 				result = append(result, elem)
 				continue
 			}
 
-			if clock.GetHappensBefore(elem.GetVC(), (*element).GetVC()) != clock.Concurrent {
+			if clock.GetHappensBefore(elem.GetVC(), element.GetVC()) != clock.Concurrent {
+				result = append(result, elem)
+			}
+		}
+		traces[routine] = result
+	}
+}
+
+/*
+ * Remove all elements that are concurrent to the element or must happen after the element
+ * Args:
+ *   element (traceElement): The element
+ */
+func RemoveConcurrentOrAfter(element TraceElement, tmin int) {
+	for routine, trace := range traces {
+		result := make([]TraceElement, 0)
+		for _, elem := range trace {
+			if elem.GetTSort() < tmin {
+				result = append(result, elem)
+				continue
+			}
+
+			if elem.GetTID() == element.GetTID() {
+				result = append(result, elem)
+				continue
+			}
+
+			if clock.GetHappensBefore(elem.GetVC(), element.GetVC()) != clock.Before {
 				result = append(result, elem)
 			}
 		}
@@ -746,7 +783,6 @@ func ShiftRoutine(routine int, startTSort int, shift int) bool {
  */
 func GetPartialTrace(startTime int, endTime int) map[int][]*TraceElement {
 	result := make(map[int][]*TraceElement)
-	println("\n\n")
 	for routine, trace := range traces {
 		for index, elem := range trace {
 			if _, ok := result[routine]; !ok {
@@ -802,6 +838,7 @@ func copyTraceRoutine(trace []TraceElement) []TraceElement {
  *   trace (map[int][]traceElement): The trace
  */
 func SetTrace(trace map[int][]TraceElement) {
+	traces = make(map[int][]TraceElement)
 	traces = CopyTrace(trace)
 }
 

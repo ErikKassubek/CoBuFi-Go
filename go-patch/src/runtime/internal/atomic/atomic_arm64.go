@@ -36,41 +36,14 @@ func Xchguintptr(ptr *uintptr, new uintptr) uintptr
 //go:noescape
 func Load(ptr *uint32) uint32
 
-// ADVOCATE-CHANGE-START
-//
-//go:noescape
-func LoadAdvocate(ptr *uint32) uint32
-
-// ADVOCATE-CHANGE-END
-
 //go:noescape
 func Load8(ptr *uint8) uint8
-
-// ADVOCATE-CHANGE-START
-//
-//go:noescape
-func Load8Advocate(ptr *uint64) uint64
-
-// ADVOCATE-CHANGE-END
 
 //go:noescape
 func Load64(ptr *uint64) uint64
 
-// ADVOCATE-CHANGE-START
-//
-//go:noescape
-func Load64Advocate(ptr *uint64) uint64
-
-// ADVOCATE-CHANGE-END
-
 // NO go:noescape annotation; *ptr escapes if result escapes (#31525)
 func Loadp(ptr unsafe.Pointer) unsafe.Pointer
-
-// ADVOCATE-CHANGE-START
-// NO go:noescape annotation; *ptr escapes if result escapes (#31525)
-func LoadpAdvocate(ptr unsafe.Pointer) unsafe.Pointer
-
-// ADVOCATE-CHANGE-END
 
 //go:noescape
 func LoadAcq(addr *uint32) uint32

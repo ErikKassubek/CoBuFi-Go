@@ -200,11 +200,11 @@ func (co *TraceElementCond) GetVC() clock.VectorClock {
  * Returns:
  *   []*traceElement: The concurrent elements
  */
-func GetConcurrentWaitgroups(element *TraceElement) map[string][]*TraceElement {
-	res := make(map[string][]*TraceElement)
-	res["broadcast"] = make([]*TraceElement, 0)
-	res["signal"] = make([]*TraceElement, 0)
-	res["wait"] = make([]*TraceElement, 0)
+func GetConcurrentWaitgroups(element TraceElement) map[string][]TraceElement {
+	res := make(map[string][]TraceElement)
+	res["broadcast"] = make([]TraceElement, 0)
+	res["signal"] = make([]TraceElement, 0)
+	res["wait"] = make([]TraceElement, 0)
 	for _, trace := range traces {
 		for _, elem := range trace {
 			switch elem.(type) {
@@ -213,7 +213,7 @@ func GetConcurrentWaitgroups(element *TraceElement) map[string][]*TraceElement {
 				continue
 			}
 
-			if elem.GetTID() == (*element).GetTID() {
+			if elem.GetTID() == element.GetTID() {
 				continue
 			}
 
@@ -223,14 +223,14 @@ func GetConcurrentWaitgroups(element *TraceElement) map[string][]*TraceElement {
 				continue
 			}
 
-			if clock.GetHappensBefore((*element).GetVC(), e.GetVC()) == clock.Concurrent {
+			if clock.GetHappensBefore(element.GetVC(), e.GetVC()) == clock.Concurrent {
 				e := elem.(*TraceElementCond)
 				if e.opC == SignalOp {
-					res["signal"] = append(res["signal"], &elem)
+					res["signal"] = append(res["signal"], elem)
 				} else if e.opC == BroadcastOp {
-					res["broadcast"] = append(res["broadcast"], &elem)
+					res["broadcast"] = append(res["broadcast"], elem)
 				} else if e.opC == WaitCondOp {
-					res["wait"] = append(res["wait"], &elem)
+					res["wait"] = append(res["wait"], elem)
 				}
 			}
 		}

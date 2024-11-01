@@ -40,6 +40,7 @@ const (
 	NONE resultLevel = iota
 	CRITICAL
 	WARNING
+	INFORMATION
 )
 
 type ResultType string
@@ -72,6 +73,9 @@ const (
 	LMutex             = "L08"
 	LWaitGroup         = "L09"
 	LCond              = "L10"
+
+	// not executed select
+	SNotExecutedWithPartner = "S00"
 )
 
 var resultTypeMap = map[ResultType]string{
@@ -97,6 +101,8 @@ var resultTypeMap = map[ResultType]string{
 	LMutex:             "Leak on mutex:",
 	LWaitGroup:         "Leak on wait group:",
 	LCond:              "Leak on conditional variable:",
+
+	SNotExecutedWithPartner: "Not executed select with potential partner",
 }
 
 var outputReadableFile string
@@ -106,6 +112,9 @@ var resultsWarningReadable []string
 var resultsCriticalReadable []string
 var resultsWarningMachine []string
 var resultCriticalMachine []string
+var resultInformationMachine []string
+
+var resultWithoutTime []string
 
 /*
 * Print a debug log message if the log level is sufficiant
@@ -130,6 +139,7 @@ type ResultElem interface {
 	isInvalid() bool
 	stringMachine() string
 	stringReadable() string
+	stringMachineShort() string
 }
 
 type TraceElementResult struct {
@@ -141,6 +151,10 @@ type TraceElementResult struct {
 	Line      int
 }
 
+func (t TraceElementResult) stringMachineShort() string {
+	return fmt.Sprintf("T:%d:%d:%s:%s:%d", t.RoutineID, t.ObjID, t.ObjType, t.File, t.Line)
+}
+
 func (t TraceElementResult) stringMachine() string {
 	return fmt.Sprintf("T:%d:%d:%d:%s:%s:%d", t.RoutineID, t.ObjID, t.TPre, t.ObjType, t.File, t.Line)
 }
@@ -150,7 +164,7 @@ func (t TraceElementResult) stringReadable() string {
 }
 
 func (t TraceElementResult) isInvalid() bool {
-	return t.ObjType == ""
+	return t.ObjType == "" || t.Line == -1
 }
 
 type SelectCaseResult struct {
@@ -158,10 +172,15 @@ type SelectCaseResult struct {
 	ObjID   int
 	ObjType string
 	Routine int
+	Index   int
+}
+
+func (s SelectCaseResult) stringMachineShort() string {
+	return fmt.Sprintf("S:%d:%s:%d", s.ObjID, s.ObjType, s.Index)
 }
 
 func (s SelectCaseResult) stringMachine() string {
-	return fmt.Sprintf("S:%d:%s", s.ObjID, s.ObjType)
+	return fmt.Sprintf("S:%d:%s:%d", s.ObjID, s.ObjType, s.Index)
 }
 
 func (s SelectCaseResult) stringReadable() string {
@@ -170,6 +189,12 @@ func (s SelectCaseResult) stringReadable() string {
 
 func (s SelectCaseResult) isInvalid() bool {
 	return s.ObjType == ""
+}
+
+func ignore(file string) bool {
+	return strings.Contains(file, "signal_unix.go") ||
+		strings.Contains(file, "src/advocate/advocate.go")
+
 }
 
 /*
@@ -183,27 +208,26 @@ func Result(level resultLevel, resType ResultType, argType1 string, arg1 []Resul
 		return
 	}
 
-	if arg1[0].isInvalid() {
-		return
-	}
-
-	// ignore signal_unix.go
-	if strings.Contains(arg1[0].stringReadable(), "signal_unix.go") {
-		return
-	}
-
 	foundBug = true
 
 	resultReadable := resultTypeMap[resType] + "\n\t" + argType1 + ": "
 	resultMachine := string(resType) + ","
+	resultMachineShort := string(resType)
 
 	for i, arg := range arg1 {
+		if arg.isInvalid() {
+			return
+		}
+		if ignore(arg.stringMachine()) {
+			return
+		}
 		if i != 0 {
 			resultReadable += ";"
 			resultMachine += ";"
 		}
 		resultReadable += arg.stringReadable()
 		resultMachine += arg.stringMachine()
+		resultMachineShort += arg.stringMachineShort()
 	}
 
 	resultReadable += "\n"
@@ -211,12 +235,19 @@ func Result(level resultLevel, resType ResultType, argType1 string, arg1 []Resul
 		resultReadable += "\t" + argType2 + ": "
 		resultMachine += ","
 		for i, arg := range arg2 {
+			if arg.isInvalid() {
+				return
+			}
+			if ignore(arg.stringMachine()) {
+				return
+			}
 			if i != 0 {
 				resultReadable += ";"
 				resultMachine += ";"
 			}
 			resultReadable += arg.stringReadable()
 			resultMachine += arg.stringMachine()
+			resultMachineShort += arg.stringMachineShort()
 		}
 
 	}
@@ -225,15 +256,22 @@ func Result(level resultLevel, resType ResultType, argType1 string, arg1 []Resul
 	resultMachine += "\n"
 
 	if level == WARNING {
-		if !stringInSlice(resultMachine, resultsWarningMachine) {
+		if !stringInSlice(resultMachineShort, resultWithoutTime) {
 			resultsWarningReadable = append(resultsWarningReadable, resultReadable)
 			resultsWarningMachine = append(resultsWarningMachine, resultMachine)
+			resultWithoutTime = append(resultWithoutTime, resultMachineShort)
 		}
 	} else if level == CRITICAL {
-		println(resultReadable)
-		if !stringInSlice(resultMachine, resultCriticalMachine) {
+		if !stringInSlice(resultMachineShort, resultWithoutTime) {
+			println(resultReadable)
 			resultsCriticalReadable = append(resultsCriticalReadable, resultReadable)
 			resultCriticalMachine = append(resultCriticalMachine, resultMachine)
+			resultWithoutTime = append(resultWithoutTime, resultMachineShort)
+		}
+	} else if level == INFORMATION {
+		if !stringInSlice(resultMachineShort, resultWithoutTime) {
+			resultInformationMachine = append(resultInformationMachine, resultMachine)
+			resultWithoutTime = append(resultWithoutTime, resultMachineShort)
 		}
 	}
 }
@@ -250,6 +288,8 @@ func InitLogging(level int, outReadable string, outMachine string) {
 		level = 0
 	}
 	levelDebug = level
+
+	fmt.Println("Logging: ", outReadable, outMachine)
 
 	outputReadableFile = outReadable
 	outputMachineFile = outMachine
@@ -296,27 +336,35 @@ func PrintSummary(noWarning bool, noPrint bool) int {
 			resMachine += result
 		}
 	}
-	if len(resultsWarningReadable) > 0 && !noWarning {
-		found = true
-		resReadable += "\n-------------------- Warning --------------------\n\n"
-		if !noPrint {
-			fmt.Print("\n-------------------- Warning --------------------\n\n")
-		}
-
-		for _, result := range resultsWarningReadable {
-			resReadable += strconv.Itoa(counter) + " " + result + "\n"
-
+	if !noWarning {
+		if len(resultsWarningReadable) > 0 {
+			found = true
+			resReadable += "\n-------------------- Warning --------------------\n\n"
 			if !noPrint {
-				fmt.Println(strconv.Itoa(counter) + " " + result)
+				fmt.Print("\n-------------------- Warning --------------------\n\n")
 			}
 
-			counter++
+			for _, result := range resultsWarningReadable {
+				resReadable += strconv.Itoa(counter) + " " + result + "\n"
+
+				if !noPrint {
+					fmt.Println(strconv.Itoa(counter) + " " + result)
+				}
+
+				counter++
+			}
+
+			for _, result := range resultsWarningMachine {
+				resMachine += result
+			}
 		}
 
-		for _, result := range resultsWarningMachine {
+		println("RESULTINFO: ", len(resultInformationMachine))
+		for _, result := range resultInformationMachine {
 			resMachine += result
 		}
 	}
+
 	if !found {
 		resReadable += "No bugs found" + "\n"
 
@@ -361,7 +409,7 @@ func PrintSummary(noWarning bool, noPrint bool) int {
 		panic(err)
 	}
 
-	return len(resultCriticalMachine) + len(resultsWarningMachine)
+	return len(resultCriticalMachine) + len(resultsWarningMachine) + len(resultInformationMachine)
 }
 
 func stringInSlice(a string, list []string) bool {

@@ -41,11 +41,21 @@ func statsAnalyzer(pathToResults string) (map[string]map[string]int, error) {
 		"A01": 0, "A02": 0, "A03": 0, "A04": 0, "A05": 0, "P01": 0, "P02": 0,
 		"P03": 0, "P04": 0, "L00": 0, "L01": 0, "L02": 0, "L03": 0, "L04": 0, "L05": 0,
 		"L06": 0, "L07": 0, "L08": 0, "L09": 0, "L10": 0}
+	rerecorded := map[string]int{
+		"A01": 0, "A02": 0, "A03": 0, "A04": 0, "A05": 0, "P01": 0, "P02": 0,
+		"P03": 0, "P04": 0, "L00": 0, "L01": 0, "L02": 0, "L03": 0, "L04": 0, "L05": 0,
+		"L06": 0, "L07": 0, "L08": 0, "L09": 0, "L10": 0}
+	unexpactedPanic := map[string]int{
+		"A01": 0, "A02": 0, "A03": 0, "A04": 0, "A05": 0, "P01": 0, "P02": 0,
+		"P03": 0, "P04": 0, "L00": 0, "L01": 0, "L02": 0, "L03": 0, "L04": 0, "L05": 0,
+		"L06": 0, "L07": 0, "L08": 0, "L09": 0, "L10": 0}
 
 	res := map[string]map[string]int{
 		"detected":         detected,
 		"replayWritten":    replayWriten,
 		"replaySuccessful": replaySuccessful,
+		"rerecorded":       rerecorded,
+		"panic":            unexpactedPanic,
 	}
 
 	bugs := filepath.Join(pathToResults, "bugs")
@@ -126,10 +136,14 @@ func processBugFile(filePath string, info *map[string]map[string]int) error {
 
 			num, err := strconv.Atoi(code)
 			if err != nil {
-				return err
+				num = -1
 			}
 
-			if num >= 20 || num == 0 {
+			if num == 3 {
+				(*info)["unexpectedPanic"][bugType]++
+			}
+
+			if num >= 20 {
 				bug.replaySuc = true
 			}
 		}
@@ -143,6 +157,10 @@ func processBugFile(filePath string, info *map[string]map[string]int) error {
 
 	if bug.replaySuc {
 		(*info)["replaySuccessful"][bugType]++
+	}
+
+	if !strings.Contains(filepath.Base(filePath), "bug_0") {
+		(*info)["rerecorded"][bugType]++
 	}
 
 	return nil
