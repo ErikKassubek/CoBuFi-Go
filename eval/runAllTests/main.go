@@ -12,11 +12,11 @@ import (
 func main() {
 	names := []string{
 		// "canonicalTests",
-		"GoBench",
-		"moby",
-		"connect",
-		"prometheus",
-		"argo-cd",
+		// "GoBench",
+		// "moby",
+		// "connect",
+		// "prometheus",
+		// "argo-cd",
 		"go-ethereum",
 		"etcd",
 		"kubernetes",
