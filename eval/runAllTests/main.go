@@ -18,8 +18,8 @@ func main() {
 		// "prometheus",
 		// "argo-cd",
 		"go-ethereum",
-		"etcd",
-		"kubernetes",
+		// "etcd",
+		// "kubernetes",
 	}
 
 	mainPath := "~/Uni/HiWi/ADVOCATE/examples/"
@@ -42,8 +42,7 @@ func main() {
 	for _, name := range names {
 		wg.Add(1)
 		go runProg(name, mainPath, analysisTimeout, replayTimeout, &wg, sem)
-
-		time.Sleep(time.Second)
+		time.Sleep(2 * time.Second)
 	}
 
 	wg.Wait()

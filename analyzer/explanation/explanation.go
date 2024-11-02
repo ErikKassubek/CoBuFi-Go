@@ -156,13 +156,6 @@ func readAnalysisResults(path string, index int, fileWithHeader string, headerLi
 			file := fields[5]
 			line := fields[6]
 
-			pos := file + ":" + line
-
-			if slices.Contains(posAlreadyKnown, pos) {
-				continue
-			}
-			posAlreadyKnown = append(posAlreadyKnown, pos)
-
 			// correct the line number, if the file is the main file of the program
 			// because of the inserted preamble
 			if file == fileWithHeader {
@@ -173,6 +166,13 @@ func readAnalysisResults(path string, index int, fileWithHeader string, headerLi
 					line = fmt.Sprint(lineInt - 1) // only import
 				}
 			}
+
+			pos := file + ":" + line
+
+			if slices.Contains(posAlreadyKnown, pos) {
+				continue
+			}
+			posAlreadyKnown = append(posAlreadyKnown, pos)
 
 			bugPos[i] = append(bugPos[i], pos)
 		}

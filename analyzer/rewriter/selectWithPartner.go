@@ -43,7 +43,10 @@ func rewriteNotExecutedSelect(bug bugs.Bug, index int) error {
 		bug.TraceElement1[0].(*analysis.TraceElementSelect).SetCase(ca.ID, analysis.RecvOp)
 	}
 
-	analysis.RemoveElementFromTrace(bug.TraceElement1[0].(*analysis.TraceElementSelect).GetPartner().GetTID())
+	partner := bug.TraceElement1[0].(*analysis.TraceElementSelect).GetPartner()
+	if partner != nil {
+		analysis.RemoveElementFromTrace(bug.TraceElement1[0].(*analysis.TraceElementSelect).GetPartner().GetTID())
+	}
 
 	return nil
 }

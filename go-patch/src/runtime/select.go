@@ -281,6 +281,7 @@ func selectgo(cas0 *scase, order0 *uint16, pc0 *uintptr, nsends, nrecvs int, blo
 	if replayEnabled && replayElem.Op == OperationSelectDefault {
 		selunlock(scases, lockorder)
 		casi = -1
+		CheckLastTPreReplay(replayElem.TimePre)
 		AdvocateSelectPost(advocateIndex, c, casi, lockorder, advocateRClose)
 		// ADVOCATE-CHANGE-END
 		goto retc
@@ -328,6 +329,7 @@ func selectgo(cas0 *scase, order0 *uint16, pc0 *uintptr, nsends, nrecvs int, blo
 		if !block {
 			selunlock(scases, lockorder)
 			casi = -1
+			CheckLastTPreReplay(replayElem.TimePre)
 			AdvocateSelectPost(advocateIndex, c, casi, lockorder, advocateRClose)
 			goto retc
 		}
@@ -479,6 +481,7 @@ func selectgo(cas0 *scase, order0 *uint16, pc0 *uintptr, nsends, nrecvs int, blo
 
 	// ADVOCATE-CHANGE-START
 	advocateRClose = !caseSuccess
+	CheckLastTPreReplay(replayElem.TimePre)
 	AdvocateSelectPost(advocateIndex, c, casi, lockorder, advocateRClose)
 	// ADVOCATE-CHANGE-END
 	selunlock(scases, lockorder)
@@ -510,6 +513,7 @@ bufrecv:
 	}
 	c.qcount--
 	// ADVOCATE-CHANGE-START
+	CheckLastTPreReplay(replayElem.TimePre)
 	AdvocateSelectPost(advocateIndex, c, casi, lockorder, advocateRClose)
 	// ADVOCATE-CHANGE-END
 	selunlock(scases, lockorder)
@@ -534,6 +538,7 @@ bufsend:
 	}
 	c.qcount++
 	// ADVOCATE-CHANGE-START
+	CheckLastTPreReplay(replayElem.TimePre)
 	AdvocateSelectPost(advocateIndex, c, casi, lockorder, advocateRClose)
 	// ADVOCATE-CHANGE-END
 	selunlock(scases, lockorder)
@@ -547,6 +552,7 @@ recv:
 	}
 	recvOK = true
 	// ADVOCATE-CHANGE-START
+	CheckLastTPreReplay(replayElem.TimePre)
 	AdvocateSelectPost(advocateIndex, c, casi, lockorder, advocateRClose)
 	// ADVOCATE-CHANGE-END
 	goto retc
@@ -554,6 +560,7 @@ recv:
 rclose:
 	// ADVOCATE-CHANGE-START
 	advocateRClose = true
+	CheckLastTPreReplay(replayElem.TimePre)
 	AdvocateSelectPost(advocateIndex, c, casi, lockorder, advocateRClose)
 	// ADVOCATE-CHANGE-END
 	// read at end of closed channel
@@ -579,6 +586,7 @@ send:
 		asanread(cas.elem, c.elemtype.Size_)
 	}
 	// ADVOCATE-CHANGE-START
+	CheckLastTPreReplay(replayElem.TimePre)
 	AdvocateSelectPost(advocateIndex, c, casi, lockorder, advocateRClose)
 	// ADVOCATE-CHANGE-END
 	send(c, sg, cas.elem, func() { selunlock(scases, lockorder) }, 2)
@@ -597,6 +605,7 @@ sclose:
 	// send on closed channel
 	// ADVOCATE-CHANGE-START
 	advocateRClose = true
+	CheckLastTPreReplay(replayElem.TimePre)
 	AdvocateSelectPost(advocateIndex, c, casi, lockorder, advocateRClose)
 	// ADVOCATE-CHANGE-END
 	selunlock(scases, lockorder)
@@ -605,6 +614,7 @@ sclose:
 	}
 
 	// ADVOCATE-CHANGE-START
+	CheckLastTPreReplay(replayElem.TimePre)
 	AdvocateSelectPost(advocateIndex, c, casi, lockorder, advocateRClose)
 	// ADVOCATE-CHANGE-END
 

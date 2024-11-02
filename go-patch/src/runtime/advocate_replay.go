@@ -262,6 +262,7 @@ func WaitForReplayFinish(exit bool) {
 		_ = i
 	}
 
+	println("StuckReplayExecutedSuc: ", stuckReplayExecutedSuc)
 	if stuckReplayExecutedSuc {
 		ExitReplayWithCode(expectedExitCode)
 	} else {

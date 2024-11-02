@@ -464,10 +464,14 @@ func (se *TraceElementSelect) SetCase(chanID int, op OpChannel) error {
 
 	found := false
 	for i, c := range se.cases {
-		fmt.Println(c.id, c.opC, chanID, op)
+		fmt.Println(se.ToString())
 		if c.id == chanID && c.opC == op {
 			tPost := se.getTpost()
-			se.cases[se.chosenIndex].SetTPost(0)
+			if !se.chosenDefault {
+				se.cases[se.chosenIndex].SetTPost(0)
+			} else {
+				se.chosenDefault = false
+			}
 			se.cases[i].SetTPost(tPost)
 			se.chosenIndex = i
 			se.chosenDefault = false
