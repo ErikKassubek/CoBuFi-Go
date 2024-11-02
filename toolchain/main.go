@@ -31,6 +31,7 @@ var (
 	timeoutAna     int
 	timeoutReplay  int
 	numberRerecord int
+	testNameFlag   string
 )
 
 func init() {
@@ -47,6 +48,7 @@ func init() {
 	flag.IntVar(&timeoutAna, "T", -1, "Set a timeout in seconds for each run of the analyzer")
 	flag.IntVar(&timeoutReplay, "R", 0, "Set a timeout for each replay")
 	flag.IntVar(&numberRerecord, "r", 10, "limit the number of rerecordings/reanalyses of not executed select cases (per test), set to 0 to not reanalyze, set to -1 to remove limit, default: 10")
+	flag.StringVar(&testNameFlag, "n", "", "set which test to run. If not set, all tests will be run"
 }
 
 func main() {
@@ -169,6 +171,7 @@ func printHelpUnit() {
 	fmt.Println("  -m       : check for never executed operations")
 	fmt.Println("  -s       : create statistics about the analyzed program")
 	fmt.Println("  -N [name]: give a name for the analyzed program. Only required if -s or -t is set")
+	fmt.Println("  -n [name]: name of the test to run. If not set, all tests will be run")
 	fmt.Println("  -T [sec] : set a time limit for each analyzer run")
 	fmt.Println("  -R [sec] : set a time limit for each replay run, if 0 there is no timeout, if -1, the timeout is set to 100 times the recording time")
 	fmt.Println("  -L       : disable the rerecording and analysis of replays of leaks")
