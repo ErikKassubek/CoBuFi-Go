@@ -159,7 +159,7 @@ func runWorkflowUnit(pathToAdvocate, dir, progName string,
 		fmt.Printf("Attempted tests: %d\n", attemptedTests)
 		fmt.Printf("Skipped tests: %d\n", skippedTests)
 	} else {
-		fmt.Printf("Finished full work flow for %s/n", testNameFlag)
+		fmt.Printf("Finished full work flow for %s\n", testNameFlag)
 	}
 
 	return nil
