@@ -55,7 +55,7 @@ func statsAnalyzer(pathToResults string) (map[string]map[string]int, error) {
 		"replayWritten":    replayWriten,
 		"replaySuccessful": replaySuccessful,
 		"rerecorded":       rerecorded,
-		"panic":            unexpactedPanic,
+		"unexpectedPanic":  unexpactedPanic,
 	}
 
 	bugs := filepath.Join(pathToResults, "bugs")
