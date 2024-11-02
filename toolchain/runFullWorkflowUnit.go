@@ -79,11 +79,14 @@ func runWorkflowUnit(pathToAdvocate, dir, progName string,
 
 	resultPath := filepath.Join(dir, "advocateResult")
 
+	ranTest := false
 	// Process each test file
 	for _, file := range testFiles {
-		fmt.Printf("\n\nProgress %s: %d/%d\n", progName, currentFile, totalFiles)
-		fmt.Printf("\nProcessing file: %s\n", file)
-
+		if testNameFlag != "" {
+		        fmt.Printf("\n\nProgress %s: %d/%d\n", progName, currentFile, totalFiles)
+		        fmt.Printf("\nProcessing file: %s\n", file)
+                }
+		
 		packagePath := filepath.Dir(file)
 		testFunctions, err := findTestFunctions(file)
 		if err != nil {
@@ -92,6 +95,11 @@ func runWorkflowUnit(pathToAdvocate, dir, progName string,
 		}
 
 		for _, testFunc := range testFunctions {
+			if testNameFlag != "" && testFlagName != testFunc {
+				continue
+			}
+			ranTest = true
+			
 			attemptedTests++
 			packageName := filepath.Base(packagePath)
 			fileName := filepath.Base(file)
@@ -132,8 +140,13 @@ func runWorkflowUnit(pathToAdvocate, dir, progName string,
 		currentFile++
 	}
 
+	if !ranTest {
+		fmt.Printf("Could not find test function %s/n", testNameFlag)
+		return
+	}
+
 	// Check for untriggered selects
-	if notExecuted {
+	if notExecuted && testNameFlag != "" {
 		fmt.Println("Check for untriggered selects and not executed progs")
 		err := runCommand(pathToAnalyzer, "check", "-R", filepath.Join(dir, "advocateResult"), "-P", dir)
 		if err != nil {
@@ -142,9 +155,12 @@ func runWorkflowUnit(pathToAdvocate, dir, progName string,
 	}
 
 	// Output test summary
-	fmt.Println("Finished full workflow for all tests")
-	fmt.Printf("Attempted tests: %d\n", attemptedTests)
-	fmt.Printf("Skipped tests: %d\n", skippedTests)
+	if testNameFlag != "" {
+	        fmt.Println("Finished full workflow for all tests")
+	        fmt.Printf("Attempted tests: %d\n", attemptedTests)
+	        fmt.Printf("Skipped tests: %d\n", skippedTests)
+	} else {
+		fmt.Printf("Finished full work flow for %s/n, testNameFlag)
 
 	return nil
 }
