@@ -82,7 +82,7 @@ func runWorkflowUnit(pathToAdvocate, dir, progName string,
 	ranTest := false
 	// Process each test file
 	for _, file := range testFiles {
-		if testNameFlag != "" {
+		if testNameFlag == "" {
 			fmt.Printf("\n\nProgress %s: %d/%d\n", progName, currentFile, totalFiles)
 			fmt.Printf("\nProcessing file: %s\n", file)
 		}
@@ -94,10 +94,8 @@ func runWorkflowUnit(pathToAdvocate, dir, progName string,
 			continue
 		}
 
-		fmt.Println(testFunctions)
 		for _, testFunc := range testFunctions {
 			if testNameFlag != "" && testNameFlag != testFunc {
-				fmt.Println("Skip ", testFunc)
 				continue
 			}
 			ranTest = true
@@ -143,8 +141,7 @@ func runWorkflowUnit(pathToAdvocate, dir, progName string,
 	}
 
 	if testNameFlag != "" && !ranTest {
-		fmt.Printf("Could not find test function %s\n", testNameFlag)
-		return fmt.Errorf("could not find test function %s\n", testNameFlag)
+		return fmt.Errorf("Could not find test function %s\n", testNameFlag)
 	}
 
 	// Check for untriggered selects
@@ -157,7 +154,7 @@ func runWorkflowUnit(pathToAdvocate, dir, progName string,
 	}
 
 	// Output test summary
-	if testNameFlag != "" {
+	if testNameFlag == "" {
 		fmt.Println("Finished full workflow for all tests")
 		fmt.Printf("Attempted tests: %d\n", attemptedTests)
 		fmt.Printf("Skipped tests: %d\n", skippedTests)
