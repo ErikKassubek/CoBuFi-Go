@@ -83,10 +83,10 @@ func runWorkflowUnit(pathToAdvocate, dir, progName string,
 	// Process each test file
 	for _, file := range testFiles {
 		if testNameFlag != "" {
-		        fmt.Printf("\n\nProgress %s: %d/%d\n", progName, currentFile, totalFiles)
-		        fmt.Printf("\nProcessing file: %s\n", file)
-                }
-		
+			fmt.Printf("\n\nProgress %s: %d/%d\n", progName, currentFile, totalFiles)
+			fmt.Printf("\nProcessing file: %s\n", file)
+		}
+
 		packagePath := filepath.Dir(file)
 		testFunctions, err := findTestFunctions(file)
 		if err != nil {
@@ -94,12 +94,14 @@ func runWorkflowUnit(pathToAdvocate, dir, progName string,
 			continue
 		}
 
+		fmt.Println(testFunctions)
 		for _, testFunc := range testFunctions {
-			if testNameFlag != "" && testFlagName != testFunc {
+			if testNameFlag != "" && testNameFlag != testFunc {
+				fmt.Println("Skip ", testFunc)
 				continue
 			}
 			ranTest = true
-			
+
 			attemptedTests++
 			packageName := filepath.Base(packagePath)
 			fileName := filepath.Base(file)
@@ -140,9 +142,9 @@ func runWorkflowUnit(pathToAdvocate, dir, progName string,
 		currentFile++
 	}
 
-	if !ranTest {
-		fmt.Printf("Could not find test function %s/n", testNameFlag)
-		return
+	if testNameFlag != "" && !ranTest {
+		fmt.Printf("Could not find test function %s\n", testNameFlag)
+		return fmt.Errorf("could not find test function %s\n", testNameFlag)
 	}
 
 	// Check for untriggered selects
@@ -156,11 +158,12 @@ func runWorkflowUnit(pathToAdvocate, dir, progName string,
 
 	// Output test summary
 	if testNameFlag != "" {
-	        fmt.Println("Finished full workflow for all tests")
-	        fmt.Printf("Attempted tests: %d\n", attemptedTests)
-	        fmt.Printf("Skipped tests: %d\n", skippedTests)
+		fmt.Println("Finished full workflow for all tests")
+		fmt.Printf("Attempted tests: %d\n", attemptedTests)
+		fmt.Printf("Skipped tests: %d\n", skippedTests)
 	} else {
-		fmt.Printf("Finished full work flow for %s/n, testNameFlag)
+		fmt.Printf("Finished full work flow for %s/n", testNameFlag)
+	}
 
 	return nil
 }

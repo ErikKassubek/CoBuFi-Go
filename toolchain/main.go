@@ -48,7 +48,7 @@ func init() {
 	flag.IntVar(&timeoutAna, "T", -1, "Set a timeout in seconds for each run of the analyzer")
 	flag.IntVar(&timeoutReplay, "R", 0, "Set a timeout for each replay")
 	flag.IntVar(&numberRerecord, "r", 10, "limit the number of rerecordings/reanalyses of not executed select cases (per test), set to 0 to not reanalyze, set to -1 to remove limit, default: 10")
-	flag.StringVar(&testNameFlag, "n", "", "set which test to run. If not set, all tests will be run"
+	flag.StringVar(&testNameFlag, "n", "", "set which test to run. If not set, all tests will be run")
 }
 
 func main() {
