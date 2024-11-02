@@ -103,6 +103,10 @@ For main, the following arg is also required
 
 - `-E [name]`: only for main, name of the executable of the program
 
+For test, the following arg can be set to run only one test. If it is not set, all tests will be run
+
+- `-n [name]`: name of the test to run
+
 The following arguments can be set:
 
 - `-t`: if set, the toolchain will measure the runtime of the runs and analysis. It will also run the tests/the program without any recording or replay to measure a base time
