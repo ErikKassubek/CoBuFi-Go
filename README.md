@@ -39,12 +39,12 @@ A more in detail explanation of how it works can be found [here](./doc/Analysis.
 ### Preparation
 Before Advocate can be used, it must first be build.
 
-First you need to build the [analyzer](https://github.com/ErikKassubek/ADVOCATE/tree/rewriteToolchain/analyzer)
-and if you want to use it the [toolchain](https://github.com/ErikKassubek/ADVOCATE/tree/rewriteToolchain/toolchain).
+First you need to build the [analyzer](https://github.com/ErikKassubek/ADVOCATE/tree/main/analyzer)
+and if you want to use it the [toolchain](https://github.com/ErikKassubek/ADVOCATE/tree/main/toolchain).
 If you do not wish to use the script but to run the step manually, you do not need to build the toolchain.
 The two programs are go programs and can just be build using `go build`.
 
-Additionally, the modified go runtime must be build. The runtime can be found in [go-patch](https://github.com/ErikKassubek/ADVOCATE/tree/rewriteToolchain/go-patch).
+Additionally, the modified go runtime must be build. The runtime can be found in [go-patch](https://github.com/ErikKassubek/ADVOCATE/tree/main/go-patch).
 To build it run the
 ```shell
 ./src/make.bash
@@ -66,7 +66,7 @@ If you use the toolchain script, this will be done automatically.
 
 ### Using AdvocateGo with the toolchain scipt
 There is a script that will come in handy when working with AdvocateGo.
-The script can be found [here](./toolchain/toolchain/).
+The script can be found [here](https://github.com/ErikKassubek/ADVOCATE/tree/main/toolchain).
 
 <!-- Currently the script only works for analyzing program using its unit tests.
 To analyze programs when running its main function, the steps have to be
