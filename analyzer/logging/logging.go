@@ -152,7 +152,7 @@ type TraceElementResult struct {
 }
 
 func (t TraceElementResult) stringMachineShort() string {
-	return fmt.Sprintf("T:%d:%d:%s:%s:%d", t.RoutineID, t.ObjID, t.ObjType, t.File, t.Line)
+	return fmt.Sprintf("T:%d:%s:%s:%d", t.ObjID, t.ObjType, t.File, t.Line)
 }
 
 func (t TraceElementResult) stringMachine() string {
