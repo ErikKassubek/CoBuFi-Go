@@ -61,7 +61,7 @@ func runWorkflowUnit(pathToAdvocate, dir, progName string,
 	}
 	fmt.Printf("In directory: %s\n", dir)
 
-	runCommand("go", "mod", "tidy")
+	// runCommand("go", "mod", "tidy")
 
 	os.RemoveAll("advocateResult")
 	if err := os.MkdirAll("advocateResult", os.ModePerm); err != nil {

@@ -63,6 +63,11 @@ export GOROOT=$HOME/ADVOCATE/go-patch/
 ```
 If you use the toolchain script, this will be done automatically.
 
+> [!IMPORTANT]
+> The program to analyze must use go 1.22(.3)
+> Make sure, that the program does not choose another version/toolchain. The output `/home/.../go/pkg/mod/golang.org/toolchain@v0.0.1-go1.23.0.linux-amd64/src/advocate` or similar indicates a problem with the used version.
+> AdvocateGo currently does not work for programs requiring go 1.23
+
 
 ### Using AdvocateGo with the toolchain scipt
 There is a script that will come in handy when working with AdvocateGo.

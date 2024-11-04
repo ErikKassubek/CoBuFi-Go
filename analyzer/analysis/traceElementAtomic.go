@@ -260,10 +260,6 @@ func (at *TraceElementAtomic) ToString() string {
 
 	res += "," + at.pos
 
-	if at.pos == "" {
-		println("pos is empty")
-	}
-
 	return res
 }
 
