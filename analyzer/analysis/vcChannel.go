@@ -232,7 +232,7 @@ func Recv(ch *TraceElementChannel, vc map[int]clock.VectorClock, fifo bool) {
 
 	if bufferedVCs[ch.id][0].oID != ch.oID {
 		found := false
-		for i := 1; i < ch.qSize; i++ {
+		for i := 1; i < len(bufferedVCs[ch.id]); i++ {
 			if bufferedVCs[ch.id][i].oID == ch.oID {
 				found = true
 				bufferedVCs[ch.id][0] = bufferedVCs[ch.id][i]
