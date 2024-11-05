@@ -70,27 +70,21 @@ If you use the toolchain script, this will be done automatically.
 
 
 ### Using AdvocateGo with the toolchain scipt
-There is a script that will come in handy when working with AdvocateGo.
-The script can be found [here](https://github.com/ErikKassubek/ADVOCATE/tree/main/toolchain).
+The toolchain can be found [here](https://github.com/ErikKassubek/ADVOCATE/tree/main/toolchain).
 
 <!-- Currently the script only works for analyzing program using its unit tests.
 To analyze programs when running its main function, the steps have to be
 performed manually. For this see below in section Manual Analysis. -->
 
-The script is able to analyzer both full programs as well as unit tests.
+The toolchain is able to analyzer both full programs as well as unit tests, but we recommend to apply it to the unit tests.
 To automatically run it with full programs, the program must be buildable
 with `go build`
 
 It will automatically insert and remove the required headers.
 It will run the program or test, analyze it and automatically run rewrites and
-replays is possible. It will then create an overview over the found bugs
-as well as statistics about
+replays is possible. It will then create an overview over the found bugs as well as statistics.
 
-- Overview of predicted bugs
-- Overview of expected exit codes (after rewrite)
-- Overview of actual exit codes that appeared after running the reordered programs
-
-The script can be run with
+The toolchain can be run with
 ```
 ./toolchain main [args]
 ```
@@ -101,8 +95,8 @@ to run a full program with a main function or with
 to run the unit tests.
 The following args are required:
 
-- `-a [path]`: path to the ADVOCATE directory
-- `-f [path]`: path to the program containing the test files
+- `-a [path]`: path to the ADVOCATE directory (`~/Advocate`)
+- `-f [path]`: path to the folder containing the test files for test or path to the main file for main. (e.g. `~/Advocate/examples`)
 
 For main, the following arg is also required
 
@@ -124,7 +118,7 @@ If either `-t` or `-s` is set, the following arg must be set:
 
 
 
-Its result and additional information (rewritten traces, logs, etc) will be written to `advocateResult`.
+Its results and additional information (rewritten traces, logs, etc) will be written to `advocateResult`.
 
 
 ### Using AdvocateGo with Manual Analysis
@@ -182,19 +176,17 @@ After you run your program you will find that it generated the folder `advocateT
 If you are curious about the structure of said trace, you can find an in depth explanation [here](./doc/Trace.md)
 It contains a record of what operation ran in what thread during the execution of your program.
 
-This acts as input for the analyzer located under `./analyzer/analyzer`.
+This acts as input for the analyzer located under `~.Advocate/analyzer`.
 It can be run like so
 ```shell
-./analyzer/analyzer -t advocateTrace
+./analyzer run -t ~/Advocate/examples/advocateTrace
 ```
-#### Output
+where `~/Advocate/examples/advocateTrace` is the path to the recorded trace.
+
 Running the analyzer will generate 3 files for you
 - machine_readable.log (good for parsing and further analysis)
-- human readable.log (more readable representation of bug predictions)
-- rewritten_Trace (a trace in which the bug it was rewritten for would occur)
-
-A more detailed explanation of the file contents can be found under [AnalysisResult.md](./doc/AnalysisResult.md)
-
+- human_readable.log (more readable representation of bug predictions)
+- rewritten_Trace_* (traces which the bug it was rewritten for could occur)
 
 
 #### Step 4: Replay
@@ -254,36 +246,8 @@ advocate.InitTracing()
 defer advocate.FinishTracing()
 // ======= Preamble End =======
 ```
-The replay and tracing at the same time is not yet implemented in the toolchain.
 
-
-A more detailed description of how replays work and a list of what bugs are currently supported for replay can be found under [TraceReplay.md](./doc/TraceReplay.md) and [TraceReconstruciton.md](./doc/TraceReconstruction.md).
-
-
-
-
-<!-- Likewise [main overhead remover](./toolchain/overHeadRemover/remover.go) will remove the overhead
-#### For Unit Tests
-[Unit test overhead inserter]() additionally requires the test name you want to apply the overhead to. Apart from that it works just like with [main method overhead inserter](#for-main-methods)
-
-Likewise [overhead remover](./toolchain/overHeadRemover/remover.go) will remove the overhead if is present.
-### Analyzing an existing local project
-#### Main Method
-[runFullWorkflowOnMain.bash](./toolchain/runFullWorkflowMainMethod/runFullWorkflowMain.bash) accepts a single go file containing a main method automatically runs the analysis + replay on all unit tests. After running you will additionally get a csv file that lists all predicted and confirmed bugs. (ongoing)
-
-Its result and additional information (rewritten traces, logs, etc) will be written to. `advocateResult`
-
-#### Unit Tests
-[runFullWorkflowOnAllUnitTests.bash](./toolchain/runFullWorkflowOnAllUnitTests/runFullWorkflowOnAllUnitTests.bash) takes an entire project and automatically runs the analysis + replay on all unit tests. After running you will additionally get a csv file that lists all predicted and confirmed bugs. (ongoing)
-
-Its result and additional information (rewritten traces, logs, etc) will be written to. `advocateResult` -->
-<!-- ## Generate Statistics
-After analyzing you can evaluate your `advocateResult` folder with [generateStatistics.go](./toolchain/generateStatisticsFromAdvocateResult/generateStatistics.go). It will provide following information.
-- Overview of predicted bugs
-- Overview of expected exit codes (after rewrite)
-- Overview of actual exit codes that appeared after running the reordered programs -->
-
-## Warning
+### Warning
 It is the users responsibility of the user to make sure, that the input to
 the program, including e.g. API calls are equal for the recording and the
 tracing. Otherwise the replay is likely to get stuck.

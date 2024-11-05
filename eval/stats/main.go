@@ -27,6 +27,10 @@ func main() {
 
 		fileType, progName := getFileInfo(info.Name())
 
+		if progName == "total" {
+			return nil
+		}
+
 		switch fileType {
 		case "statsAll", "statsAnalysis", "statsTrace":
 			stats(path, progName, fileType)
@@ -56,11 +60,11 @@ func stats(path string, progName string, progType string) {
 	numberElems := 0
 	switch progType {
 	case "statsAll":
-		numberElems = 85
+		numberElems = 126
 	case "statsAnalysis":
-		numberElems = 7
-	case "statsTrace":
 		numberElems = 9
+	case "statsTrace":
+		numberElems = 10
 	}
 
 	dataSum := make([]int, numberElems)
@@ -71,7 +75,6 @@ func stats(path string, progName string, progType string) {
 		if i == 0 || len(data) == 0 {
 			continue
 		}
-
 		// ignore the test name
 		data = data[1:]
 
@@ -99,7 +102,7 @@ func times(path string, progName string) {
 
 	lines := strings.Split(data, "\n")
 
-	numberElems := 9
+	numberElems := 10
 
 	total := make([]float64, numberElems)
 
@@ -146,11 +149,11 @@ func writeToFile[T int | float64](data []T, progName string, progType string, nu
 	if newFile {
 		switch progType {
 		case "statsAll":
-			_, err = file.WriteString("ProgramName,NumberOfTests,NumberOfEvents,NumberOfGoroutines,NumberOfNotEmptyGoroutines,NumberOfSpawnEvents,NumberOfRoutineEndEvents,NumberOfAtomics,NumberOfAtomicEvents,NumberOfChannels,NumberOfBufferedChannels,NumberOfUnbufferedChannels,NumberOfChannelEvents,NumberOfBufferedChannelEvents,NumberOfUnbufferedChannelEvents,NumberOfSelectEvents,NumberOfSelectCases,NumberOfSelectNonDefaultEvents,NumberOfSelectDefaultEvents,NumberOfMutex,NumberOfMutexEvents,NumberOfWaitgroup,NumberOfWaitgroupEvent,NumberOfCondVariables,NumberOfCondVariablesEvents,NumberOfOnce,NumberOfOnceOperations,NumberOfDetectedA01,NumberOfDetectedA02,NumberOfDetectedA03,NumberOfDetectedA04,NumberOfDetectedA05,NumberOfDetectedP01,NumberOfDetectedP02,NumberOfDetectedP03,NumberOfDetectedP04,NumberOfDetectedL00,NumberOfDetectedL01,NumberOfDetectedL02,NumberOfDetectedL03,NumberOfDetectedL04,NumberOfDetectedL05,NumberOfDetectedL06,NumberOfDetectedL07,NumberOfDetectedL08,NumberOfDetectedL09,NumberOfDetectedL10,NumberOfReplayWrittenA01,NumberOfReplayWrittenA02,NumberOfReplayWrittenA03,NumberOfReplayWrittenA04,NumberOfReplayWrittenA05,NumberOfReplayWrittenP01,NumberOfReplayWrittenP02,NumberOfReplayWrittenP03,NumberOfReplayWrittenP04,NumberOfReplayWrittenL00,NumberOfReplayWrittenL01,NumberOfReplayWrittenL02,NumberOfReplayWrittenL03,NumberOfReplayWrittenL04,NumberOfReplayWrittenL05,NumberOfReplayWrittenL06,NumberOfReplayWrittenL07,NumberOfReplayWrittenL08,NumberOfReplayWrittenL09,NumberOfReplayWrittenL10,NumberOfReplaySuccessfulA01,NumberOfReplaySuccessfulA02,NumberOfReplaySuccessfulA03,NumberOfReplaySuccessfulA04,NumberOfReplaySuccessfulA05,NumberOfReplaySuccessfulP01,NumberOfReplaySuccessfulP02,NumberOfReplaySuccessfulP03,NumberOfReplaySuccessfulP04,NumberOfReplaySuccessfulL00,NumberOfReplaySuccessfulL01,NumberOfReplaySuccessfulL02,NumberOfReplaySuccessfulL03,NumberOfReplaySuccessfulL04,NumberOfReplaySuccessfulL05,NumberOfReplaySuccessfulL06,NumberOfReplaySuccessfulL07,NumberOfReplaySuccessfulL08,NumberOfReplaySuccessfulL09,NumberOfReplaySuccessfulL10\n")
+			_, err = file.WriteString("TestName,NumberOfEvents,NumberOfGoroutines,NumberOfNotEmptyGoroutines,NumberOfSpawnEvents,NumberOfRoutineEndEvents,NumberOfAtomics,NumberOfAtomicEvents,NumberOfChannels,NumberOfBufferedChannels,NumberOfUnbufferedChannels,NumberOfChannelEvents,NumberOfBufferedChannelEvents,NumberOfUnbufferedChannelEvents,NumberOfSelectEvents,NumberOfSelectCases,NumberOfSelectNonDefaultEvents,NumberOfSelectDefaultEvents,NumberOfMutex,NumberOfMutexEvents,NumberOfWaitgroup,NumberOfWaitgroupEvent,NumberOfCondVariables,NumberOfCondVariablesEvents,NumberOfOnce,NumberOfOnceOperations,NumberOfDetectedA01,NumberOfDetectedA02,NumberOfDetectedA03,NumberOfDetectedA04,NumberOfDetectedA05,NumberOfDetectedP01,NumberOfDetectedP02,NumberOfDetectedP03,NumberOfDetectedP04,NumberOfDetectedL00,NumberOfDetectedL01,NumberOfDetectedL02,NumberOfDetectedL03,NumberOfDetectedL04,NumberOfDetectedL05,NumberOfDetectedL06,NumberOfDetectedL07,NumberOfDetectedL08,NumberOfDetectedL09,NumberOfDetectedL10,NumberOfReplayWrittenA01,NumberOfReplayWrittenA02,NumberOfReplayWrittenA03,NumberOfReplayWrittenA04,NumberOfReplayWrittenA05,NumberOfReplayWrittenP01,NumberOfReplayWrittenP02,NumberOfReplayWrittenP03,NumberOfReplayWrittenP04,NumberOfReplayWrittenL00,NumberOfReplayWrittenL01,NumberOfReplayWrittenL02,NumberOfReplayWrittenL03,NumberOfReplayWrittenL04,NumberOfReplayWrittenL05,NumberOfReplayWrittenL06,NumberOfReplayWrittenL07,NumberOfReplayWrittenL08,NumberOfReplayWrittenL09,NumberOfReplayWrittenL10,NumberOfReplaySuccessfulA01,NumberOfReplaySuccessfulA02,NumberOfReplaySuccessfulA03,NumberOfReplaySuccessfulA04,NumberOfReplaySuccessfulA05,NumberOfReplaySuccessfulP01,NumberOfReplaySuccessfulP02,NumberOfReplaySuccessfulP03,NumberOfReplaySuccessfulP04,NumberOfReplaySuccessfulL00,NumberOfReplaySuccessfulL01,NumberOfReplaySuccessfulL02,NumberOfReplaySuccessfulL03,NumberOfReplaySuccessfulL04,NumberOfReplaySuccessfulL05,NumberOfReplaySuccessfulL06,NumberOfReplaySuccessfulL07,NumberOfReplaySuccessfulL08,NumberOfReplaySuccessfulL09,NumberOfReplaySuccessfulL10,NumberOfRerecordedA01,NumberOfRerecordedA02,NumberOfRerecordedA03,NumberOfRerecordedA04,NumberOfRerecordedA05,NumberOfRerecordedP01,NumberOfRerecordedP02,NumberOfRerecordedP03,NumberOfRerecordedP04,NumberOfRerecordedL00,NumberOfRerecordedL01,NumberOfRerecordedL02,NumberOfRerecordedL03,NumberOfRerecordedL04,NumberOfRerecordedL05,NumberOfRerecordedL06,NumberOfRerecordedL07,NumberOfRerecordedL08,NumberOfRerecordedL09,NumberOfRerecordedL10,NumberOfUnexpectedPanicA01,NumberOfUnexpectedPanicA02,NumberOfUnexpectedPanicA03,NumberOfUnexpectedPanicA04,NumberOfUnexpectedPanicA05,NumberOfUnexpectedPanicP01,NumberOfUnexpectedPanicP02,NumberOfUnexpectedPanicP03,NumberOfUnexpectedPanicP04,NumberOfUnexpectedPanicL00,NumberOfUnexpectedPanicL01,NumberOfUnexpectedPanicL02,NumberOfUnexpectedPanicL03,NumberOfUnexpectedPanicL04,NumberOfUnexpectedPanicL05,NumberOfUnexpectedPanicL06,NumberOfUnexpectedPanicL07,NumberOfUnexpectedPanicL08,NumberOfUnexpectedPanicL09,NumberOfUnexpectedPanicL10\n")
 		case "statsAnalysis":
-			_, err = file.WriteString("ProgramName,NumberOfLeaks,NumberOfLeaksWithRewrite,NumberOfLeaksResolvedViaReplay,NumberOfPanics,NumberOfPanicsVerifiedViaReplay\n")
+			_, err = file.WriteString("TestName,NumberOfLeaks,NumberOfLeaksWithRewrite,NumberOfLeaksResolvedViaReplay,NumberOfPanics,NumberOfPanicsVerifiedViaReplay,NumberOfLeaksDetectedWithRerecording,NumberOfPanicsDetectedWithRerecording,NumberOfUnexpectedPanicsInReplay\n")
 		case "statsTrace":
-			_, err = file.WriteString("ProgramName,NumberOfEvents,NumberOfGoroutines,NumberOfAtomicEvents,NumberOfChannelEvents,NumberOfSelectEvents,NumberOfMutexEvents,NumberOfWaitgroupEvents,NumberOfCondVariablesEvents,NumberOfOnceOperations\n")
+			_, err = file.WriteString("TestName,NumberOfEvents,NumberOfGoroutines,NumberOfAtomicEvents,NumberOfChannelEvents,NumberOfSelectEvents,NumberOfMutexEvents,NumberOfWaitgroupEvents,NumberOfCondVariablesEvents,NumberOfOnceOperations\n")
 		case "times":
 			_, err = file.WriteString("TestName,ExecTime,ExecTimeWithTracing,AnalyzerTime,AnalysisTime,HBAnalysisTime,TimeToIdentifyLeaksPlusFindingPoentialPartners,TimeToIdentifyPanicBugs,ReplayTime,NumberAnalysis,NumberReplay\n")
 		}
@@ -161,10 +164,6 @@ func writeToFile[T int | float64](data []T, progName string, progType string, nu
 	}
 
 	line := progName
-	if progType == "statsAll" {
-
-	}
-
 	for _, num := range data {
 		line += ","
 		switch v := any(num).(type) {
