@@ -286,11 +286,11 @@ func chansend(c *hchan, ep unsafe.Pointer, block bool, callerpc uintptr, ignored
 
 	if c.closed != 0 {
 		unlock(&c.lock)
+		// ADVOCATE-CHANGE-START
 		if IsReplayEnabled() {
 			IsNextElementReplayEnd(ExitCodeSendClose, true, false)
 		}
 
-		// ADVOCATE-CHANGE-START
 		if !ignored && !c.advocateIgnore {
 			CheckLastTPreReplay(replayElem.TimePre)
 			AdvocateChanPostCausedByClose(advocateIndex)
@@ -415,11 +415,11 @@ func chansend(c *hchan, ep unsafe.Pointer, block bool, callerpc uintptr, ignored
 		if c.closed == 0 {
 			throw("chansend: spurious wakeup")
 		}
+		// ADVOCATE-CHANGE-START
 		if IsReplayEnabled() {
 			IsNextElementReplayEnd(ExitCodeSendClose, true, false)
 		}
 
-		// ADVOCATE-CHANGE-START
 		if !ignored && !c.advocateIgnore {
 			CheckLastTPreReplay(replayElem.TimePre)
 			AdvocateChanPostCausedByClose(advocateIndex)
@@ -629,9 +629,11 @@ func chanrecv(c *hchan, ep unsafe.Pointer, block bool, ignored bool) (selected, 
 	}
 
 	if c == nil {
+		// ADVOCATE-CHANGE-START
 		if !ignored {
 			AdvocateChanRecvPre(0, 0, 0, true)
 		}
+		// ADVOCATE-CHANGE-END
 		if !block {
 			return
 		}
@@ -746,10 +748,12 @@ func chanrecv(c *hchan, ep unsafe.Pointer, block bool, ignored bool) (selected, 
 			// and add sender's value to the tail of the queue (both map to
 			// the same buffer slot because the queue is full).
 			recv(c, sg, ep, func() { unlock(&c.lock) }, 3)
+			// ADVOCATE-CHANGE-START
 			if !ignored && !c.advocateIgnore {
 				CheckLastTPreReplay(replayElem.TimePre)
 				AdvocateChanPost(advocateIndex)
 			}
+			// ADVOCATE-CHANGE-END
 			return true, true
 		}
 	}
@@ -770,19 +774,23 @@ func chanrecv(c *hchan, ep unsafe.Pointer, block bool, ignored bool) (selected, 
 		}
 		c.qcount--
 		unlock(&c.lock)
+		// ADVOCATE-CHANGE-START
 		if !ignored && !c.advocateIgnore {
 			CheckLastTPreReplay(replayElem.TimePre)
 			AdvocateChanPost(advocateIndex)
 		}
+		// ADVOCATE-CHANGE-END
 		return true, true
 	}
 
 	if !block {
 		unlock(&c.lock)
+		// ADVOCATE-CHANGE-START
 		if !ignored && !c.advocateIgnore {
 			CheckLastTPreReplay(replayElem.TimePre)
 			AdvocateChanPost(advocateIndex)
 		}
+		// ADVOCATE-CHANGE-END
 		return false, false
 	}
 
@@ -845,10 +853,12 @@ func chanrecv(c *hchan, ep unsafe.Pointer, block bool, ignored bool) (selected, 
 	gp.param = nil
 	mysg.c = nil
 	releaseSudog(mysg)
+	// ADVOCATE-CHANGE-START
 	if !ignored && !c.advocateIgnore {
 		CheckLastTPreReplay(replayElem.TimePre)
 		AdvocateChanPost(advocateIndex)
 	}
+	// ADVOCATE-CHANGE-END
 	return true, success
 }
 
@@ -1099,9 +1109,8 @@ func (q *waitq) dequeue(rElem ReplayElement) *sudog {
 
 		// ADVOCATE-CHANGE-START
 		// if the channel partner is not correct, the goroutine is not woken up
-		// TODO: is this necessary
 		// if replayEnabled && sgp.replayEnabled {
-		// 	if !(rElem.File == "") && !sgp.c.advocateIgnore {
+		// 	if !(rElem.File == "" || rElem.Line == 0) && !sgp.c.advocateIgnore {
 		// 		if sgp.pFile != rElem.File || sgp.pLine != rElem.Line {
 		// 			return nil
 		// 		}

@@ -16,7 +16,6 @@ Added files:
 - src/runtime/advocate_trace_waitgroup.go
 - src/runtime/advocate_util.go
 - src/runtime/advocate_replay.go
-- src/runtime/internal/atomic/advocate_atomic.go
 - src/advocate/advocate.go
 - src/sync/atomic/advocate_atomic.go
 

@@ -718,14 +718,14 @@ var panicnil = &godebugInc{name: "panicnil"}
 
 // The implementation of the predeclared function panic.
 func gopanic(e any) {
-	// ADVOCATE - CHANGE - START
+	// ADVOCATE-CHANGE-START
 	ExitReplayPanic(e)
 	// write the trace
 	if !advocateTracingDisabled {
 		advocatePanicWriteBlock <- struct{}{}
 		<-advocatePanicDone
 	}
-	// ADVOCATE - CHANGE - END
+	// ADVOCATE-CHANGE-END
 	if e == nil {
 		if debug.panicnil.Load() != 1 {
 			e = new(PanicNilError)

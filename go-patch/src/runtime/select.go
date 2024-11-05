@@ -283,9 +283,9 @@ func selectgo(cas0 *scase, order0 *uint16, pc0 *uintptr, nsends, nrecvs int, blo
 		casi = -1
 		CheckLastTPreReplay(replayElem.TimePre)
 		AdvocateSelectPost(advocateIndex, c, casi, lockorder, advocateRClose)
-		// ADVOCATE-CHANGE-END
 		goto retc
 	}
+	// ADVOCATE-CHANGE-END
 
 	for _, casei := range pollorder {
 		casi = int(casei)
@@ -608,12 +608,14 @@ sclose:
 	CheckLastTPreReplay(replayElem.TimePre)
 	AdvocateSelectPost(advocateIndex, c, casi, lockorder, advocateRClose)
 	// ADVOCATE-CHANGE-END
+
 	selunlock(scases, lockorder)
+
+	// ADVOCATE-CHANGE-START
 	if IsReplayEnabled() {
 		IsNextElementReplayEnd(ExitCodeSendClose, true, false)
 	}
 
-	// ADVOCATE-CHANGE-START
 	CheckLastTPreReplay(replayElem.TimePre)
 	AdvocateSelectPost(advocateIndex, c, casi, lockorder, advocateRClose)
 	// ADVOCATE-CHANGE-END
