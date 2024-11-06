@@ -13,15 +13,15 @@ func main() {
 	names := []string{
 		// "canonicalTests",
 		// "GoBench",
-		"moby",
-		"connect",
-		"prometheus",
+		// "prometheus",
+		// "moby",
+		// "hugo",
+		// "connect",
 		"argo-cd",
-		"beego",
 		"grpc-go",
-		"hugo",
-		"syncthing",
 		"go-ethereum",
+		"syncthing",
+		"beego",
 	}
 
 	mainPath := "~/Uni/HiWi/ADVOCATE/examples/"
@@ -36,7 +36,7 @@ func main() {
 
 	analysisTimeout := "1800" // 1800s = 0.5h
 	replayTimeout := "-1"     // 100 * recording time
-	maxProgAtSameTime := 2
+	maxProgAtSameTime := 3
 
 	var wg sync.WaitGroup
 	sem := make(chan struct{}, maxProgAtSameTime)

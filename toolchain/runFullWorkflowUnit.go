@@ -341,12 +341,12 @@ func unitTestFullWorkflow(pathToAdvocate string, dir string,
 
 	lenRewTraces := unitTestReplay(pathToGoRoot, pathToPatchedGoRuntime, dir, pkg, file, testName, resTimes, false)
 
-	la := 0
-	lrt, la := unitTestReanalyzeLeaks(pathToGoRoot, pathToPatchedGoRuntime, pathToAnalyzer, dir, pkg, file, testName, output, resTimes)
+	// la := 0
+	// lrt, la := unitTestReanalyzeLeaks(pathToGoRoot, pathToPatchedGoRuntime, pathToAnalyzer, dir, pkg, file, testName, output, resTimes)
 
-	lenRewTraces += lrt
+	// lenRewTraces += lrt
 
-	return resTimes, lenRewTraces, la + 1, nil
+	return resTimes, lenRewTraces, 0, nil
 }
 
 func unitTestRun(pkg, file, testName string, resTimes map[string]time.Duration) {
@@ -536,7 +536,8 @@ func unitTestReanalyzeLeaks(pathToGoRoot, pathToPatchedGoRuntime, pathToAnalyzer
 		unitTestAnalyzer(pathToAnalyzer, dir, pkg, traceName, output, resTimes, number)
 	}
 	numberRerecord = 0
-	nrRewTrace := unitTestReplay(pathToGoRoot, pathToPatchedGoRuntime, dir, pkg, file, testName, resTimes, true)
+	recorded := false // for now do not rerecord
+	nrRewTrace := unitTestReplay(pathToGoRoot, pathToPatchedGoRuntime, dir, pkg, file, testName, resTimes, recorded)
 
 	return nrRewTrace, len(rerecordedTraces)
 }
