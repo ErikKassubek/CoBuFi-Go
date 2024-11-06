@@ -13,16 +13,15 @@ func main() {
 	names := []string{
 		// "canonicalTests",
 		// "GoBench",
-		// "moby",
-		// "connect",
-		// "prometheus",
-		// "argo-cd",
-		// "go-ethereum",
-
+		"moby",
+		"connect",
+		"prometheus",
+		"argo-cd",
 		"beego",
+		"grpc-go",
 		"hugo",
 		"syncthing",
-		"grpc-go",
+		"go-ethereum",
 	}
 
 	mainPath := "~/Uni/HiWi/ADVOCATE/examples/"

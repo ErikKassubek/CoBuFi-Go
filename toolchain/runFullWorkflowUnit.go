@@ -25,7 +25,7 @@ import (
 )
 
 const (
-	timeout = "10m"
+	timeout = "5m"
 )
 
 /*

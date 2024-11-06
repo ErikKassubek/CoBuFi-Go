@@ -464,7 +464,6 @@ func (se *TraceElementSelect) SetCase(chanID int, op OpChannel) error {
 
 	found := false
 	for i, c := range se.cases {
-		fmt.Println(se.ToString())
 		if c.id == chanID && c.opC == op {
 			tPost := se.getTpost()
 			if !se.chosenDefault {
@@ -530,16 +529,12 @@ func (se *TraceElementSelect) ToString() string {
 func (se *TraceElementSelect) updateVectorClock() {
 	leak := se.chosenDefault || se.tPost == 0
 
-	if leak {
-		se.vc = currentVCHb[se.routine].Copy()
-	} else {
-		se.vc = se.chosenCase.vc.Copy()
-	}
+	se.vc = currentVCHb[se.routine].Copy()
 
-	if leak {
-		currentVCHb[se.routine] = currentVCHb[se.routine].Inc(se.routine)
-	} else {
+	currentVCHb[se.routine] = currentVCHb[se.routine].Inc(se.routine)
+	if !leak {
 		// update the vector clock
+		se.chosenCase.vc = se.vc.Copy()
 		se.chosenCase.updateVectorClock()
 	}
 
