@@ -1,4 +1,4 @@
-# Once
+# End routine
 
 When a routine is ended, an element is added to the trace.
 The element is not added if the routine is ended because of a panic in another routine or because the main routine terminated.
