@@ -1,13 +1,15 @@
 #!/bin/bash
 
-# Define the fixed folder paths
+# Get the directory where the script is located
+BASE_DIR="$(dirname "$(realpath "$0")")"
+
+# Define the folder paths relative to the base directory
 FOLDER_PATHS=(
-    "/home/erik/Advocate/analyzer/"
-    "/home/erik/Advocate/toolchain"
-    "/home/erik/Advocate/eval/runAllTests"
+    "$BASE_DIR/analyzer/"
+    "$BASE_DIR/toolchain"
 )
 
-GO_RUNTIME_PATH="/home/advocatego/ADVOCATE/go-patch/src"
+GO_RUNTIME_PATH="$BASE_DIR/go-patch/src"
 
 # Loop through the folder paths
 for FOLDER_PATH in "${FOLDER_PATHS[@]}"
@@ -39,9 +41,9 @@ cd "$GO_RUNTIME_PATH" || { echo "Folder not found! Skipping..."; return; }
 # Check if go build was successful
 echo
 if [ $? -eq 0 ]; then
-	echo "Building runtime successful in $GO_RUNTIME_PATH"
+    echo "Building runtime successful in $GO_RUNTIME_PATH"
 else
-	echo "Building runtime failed in $GO_RUNTIME_PATH"
+    echo "Building runtime failed in $GO_RUNTIME_PATH"
 fi
 
 echo # Print a blank line for readability
