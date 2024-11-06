@@ -47,7 +47,7 @@ func headerInserterUnit(fileName string, testName string, replay bool, replayNum
 		return errors.New("Test Method not found in file")
 	}
 
-	return addHeaderUnit(fileName, testName, replay, replayNumber, timeoutReplay, record, true)
+	return addHeaderUnit(fileName, testName, replay, replayNumber, timeoutReplay, record)
 }
 
 /*
@@ -121,7 +121,7 @@ func testExists(fileName string, testName string) (bool, error) {
  * Returns:
  *    error
  */
-func addHeaderUnit(fileName string, testName string, replay bool, replayNumber string, timeoutReplay int, record bool, atomicRepl bool) error {
+func addHeaderUnit(fileName string, testName string, replay bool, replayNumber string, timeoutReplay int, record bool) error {
 	importAdded := false
 	file, err := os.OpenFile(fileName, os.O_RDWR, 0644)
 	if err != nil {
@@ -149,7 +149,7 @@ func addHeaderUnit(fileName string, testName string, replay bool, replayNumber s
 		}
 
 		atomicReplayStr := "false"
-		if atomicRepl {
+		if replayAtomic {
 			atomicReplayStr = "true"
 		}
 

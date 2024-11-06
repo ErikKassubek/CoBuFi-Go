@@ -13,11 +13,11 @@ func main() {
 	names := []string{
 		// "canonicalTests",
 		// "GoBench",
-		// "prometheus",
 		// "moby",
 		// "hugo",
 		// "connect",
 		"argo-cd",
+		"prometheus",
 		"grpc-go",
 		"go-ethereum",
 		"syncthing",
@@ -61,6 +61,10 @@ func runProg(name, mainPath, analysisTimeout string, replayTimeout string, wg *s
 	path := filepath.Join(mainPath, name)
 
 	cmd := exec.Command("./tool", "test", "-a", "~/Uni/HiWi/ADVOCATE", "-f", path, "-m", "-s", "-t", "-N", name, "-T", analysisTimeout, "-R", replayTimeout)
+	if name == "argo-cd" || name == "prometheus" {
+		cmd = exec.Command("./tool", "test", "-a", "~/Uni/HiWi/ADVOCATE", "-f", path, "-m", "-s", "-t", "-N", name, "-T", analysisTimeout, "-R", replayTimeout, "-A")
+	}
+
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	fmt.Println(cmd.String())
