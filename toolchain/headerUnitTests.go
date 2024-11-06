@@ -47,7 +47,7 @@ func headerInserterUnit(fileName string, testName string, replay bool, replayNum
 		return errors.New("Test Method not found in file")
 	}
 
-	return addHeaderUnit(fileName, testName, replay, replayNumber, timeoutReplay, record)
+	return addHeaderUnit(fileName, testName, replay, replayNumber, timeoutReplay, record, true)
 }
 
 /*
@@ -121,7 +121,7 @@ func testExists(fileName string, testName string) (bool, error) {
  * Returns:
  *    error
  */
-func addHeaderUnit(fileName string, testName string, replay bool, replayNumber string, timeoutReplay int, record bool) error {
+func addHeaderUnit(fileName string, testName string, replay bool, replayNumber string, timeoutReplay int, record bool, atomicRepl bool) error {
 	importAdded := false
 	file, err := os.OpenFile(fileName, os.O_RDWR, 0644)
 	if err != nil {
@@ -148,19 +148,24 @@ func addHeaderUnit(fileName string, testName string, replay bool, replayNumber s
 			importAdded = true
 		}
 
+		atomicReplayStr := "false"
+		if atomicRepl {
+			atomicReplayStr = "true"
+		}
+
 		if strings.Contains(line, "func "+testName) {
 
 			if replay {
 				if record {
 					lines = append(lines, fmt.Sprintf(`	// ======= Preamble Start =======
-  advocate.InitReplayTracing("%s", false, %d, false)
+  advocate.InitReplayTracing("%s", false, %d, %s)
   defer advocate.FinishReplayTracing()
-  // ======= Preamble End =======`, replayNumber, timeoutReplay))
+  // ======= Preamble End =======`, replayNumber, timeoutReplay, atomicReplayStr))
 				} else {
 					lines = append(lines, fmt.Sprintf(`	// ======= Preamble Start =======
-  advocate.InitReplay("%s", false, %d, false)
+  advocate.InitReplay("%s", false, %d, %s)
   defer advocate.FinishReplay()
-  // ======= Preamble End =======`, replayNumber, timeoutReplay))
+  // ======= Preamble End =======`, replayNumber, timeoutReplay, atomicReplayStr))
 				}
 			} else {
 				lines = append(lines, `	// ======= Preamble Start =======
