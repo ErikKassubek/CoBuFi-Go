@@ -618,6 +618,8 @@ func ExitReplayPanic(msg any) {
 				m == "sync: unlock of unlocked mutex" {
 				ExitReplayWithCode(ExitCodeUnlockBeforeLock)
 			}
+		} else if hasPrefix(m, "test timed out after") {
+			ExitReplayWithCode(ExitCodeTimeout)
 		}
 	}
 

@@ -18,10 +18,10 @@ func main() {
 		// "connect",
 		"argo-cd",
 		"prometheus",
-		"grpc-go",
-		"go-ethereum",
-		"syncthing",
-		"beego",
+		// "grpc-go",
+		// "go-ethereum",
+		// "syncthing",
+		// "beego",
 	}
 
 	mainPath := "~/Uni/HiWi/ADVOCATE/examples/"
