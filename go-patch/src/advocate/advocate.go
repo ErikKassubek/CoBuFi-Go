@@ -62,6 +62,8 @@ func FinishReplay() {
 	}
 
 	runtime.WaitForReplayFinish(true)
+
+	runtime.ExitReplayWithCode(runtime.ExitCodeDefault)
 }
 
 /*

@@ -532,7 +532,11 @@ func rewriteCondLeak(bug bugs.Bug) error {
 
 	wait.SetT(wait.GetTPre())
 
-	analysis.AddTraceElementReplay(wait.GetTPre()+1, exitCodeLeakCond, max(bug.TraceElement1[0].GetTPre(), bug.TraceElement2[0].GetTPre()))
+	if len(bug.TraceElement2) == 0 {
+		analysis.AddTraceElementReplay(wait.GetTPre()+1, exitCodeLeakCond, bug.TraceElement1[0].GetTPre())
+	} else {
+		analysis.AddTraceElementReplay(wait.GetTPre()+1, exitCodeLeakCond, max(bug.TraceElement1[0].GetTPre(), bug.TraceElement2[0].GetTPre()))
+	}
 
 	if couldRewrite {
 		return nil

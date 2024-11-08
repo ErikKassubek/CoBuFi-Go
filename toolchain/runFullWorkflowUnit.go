@@ -482,9 +482,10 @@ func unitTestReplay(pathToGoRoot, pathToPatchedGoRuntime, dir, pkg, file, testNa
 
 	timeoutRepl := time.Duration(0)
 	if timeoutReplay == -1 {
-		timeoutRepl = 100 * resTimes["record"]
+		timeoutRepl = 10 * resTimes["record"]
+		timeoutRepl = min(timeoutRepl, time.Duration(10)*time.Minute)
 	} else {
-		timeoutRepl += time.Duration(timeoutReplay) * time.Second
+		timeoutRepl = time.Duration(timeoutReplay) * time.Second
 	}
 
 	rerecordCounter := 0
@@ -510,7 +511,7 @@ func unitTestReplay(pathToGoRoot, pathToPatchedGoRuntime, dir, pkg, file, testNa
 
 		fmt.Printf("\nRun replay %d/%d\n", i+1, len(rewrittenTraces))
 		startTime := time.Now()
-		runCommand(pathToPatchedGoRuntime, "test", "-v", "-count=1", "-run="+testName, "./"+pkg)
+		runCommand(pathToPatchedGoRuntime, "test", "-v", "-count=1", "-timeout", "15m", "-run="+testName, "./"+pkg)
 		resTimes["replay"] += time.Since(startTime)
 		fmt.Println("Add replay time: ", resTimes["replay"])
 

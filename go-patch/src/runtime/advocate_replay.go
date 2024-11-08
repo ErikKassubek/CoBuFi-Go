@@ -226,7 +226,7 @@ func DisableReplay() {
 
 	lock(&waitingOpsMutex)
 	for _, replCh := range waitingOps {
-		replCh.ch <- ReplayElement{Blocked: true}
+		replCh.ch <- ReplayElement{Blocked: false}
 	}
 	unlock(&waitingOpsMutex)
 
@@ -239,27 +239,31 @@ func DisableReplay() {
  * the program to terminate before the trace is finished.
  */
 func WaitForReplayFinish(exit bool) {
-	for {
-		lock(&replayDoneLock)
-		if replayDone >= numberElementsInTrace {
+	println("Wait for replay finish")
+
+	if !IsReplayEnabled() {
+		for {
+			lock(&replayDoneLock)
+			if replayDone >= numberElementsInTrace {
+				unlock(&replayDoneLock)
+				break
+			}
 			unlock(&replayDoneLock)
-			break
+
+			if !replayEnabled {
+				break
+			}
+
+			slowExecution()
 		}
-		unlock(&replayDoneLock)
 
-		if !replayEnabled {
-			break
+		DisableReplay()
+
+		// wait long enough, that all operations that have been released in the displayReplay
+		// can record the pre
+		for i := 0; i < 1000000; i++ {
+			_ = i
 		}
-
-		slowExecution()
-	}
-
-	DisableReplay()
-
-	// wait long enough, that all operations that have been released in the displayReplay
-	// can record the pre
-	for i := 0; i < 1000000; i++ {
-		_ = i
 	}
 
 	println("StuckReplayExecutedSuc: ", stuckReplayExecutedSuc)
@@ -309,7 +313,8 @@ func ReleaseWaits() {
 		key := replayElem.File + ":" + intToString(replayElem.Line)
 		if key == lastKey {
 			lastCounter++
-			if lastCounter > 3000000 {
+			// println(lastCounter)
+			if lastCounter == 5000000 {
 				var oldest = replayChan{nil, -1}
 				oldestKey := ""
 				lock(&waitingOpsMutex)
@@ -322,8 +327,9 @@ func ReleaseWaits() {
 				unlock(&waitingOpsMutex)
 				if oldestKey != "" {
 					oldest.ch <- replayElem
+					lastCounter = 0
 
-					foundReplayElement(routine)
+					foundReplayElement(replayElem.Routine)
 
 					lock(&replayDoneLock)
 					replayDone++
@@ -333,6 +339,9 @@ func ReleaseWaits() {
 					delete(waitingOps, oldestKey)
 					unlock(&waitingOpsMutex)
 				}
+			}
+			if lastCounter%25000000 == 0 && len(waitingOps) == 0 {
+				DisableReplay()
 			}
 		}
 
@@ -346,15 +355,14 @@ func ReleaseWaits() {
 		}
 
 		if key != lastKey {
-			// println("Next: ", key)
 			lastKey = key
-			lastCounter = 0
 		}
 
 		lock(&waitingOpsMutex)
 		if replCh, ok := waitingOps[key]; ok {
 			unlock(&waitingOpsMutex)
 			replCh.ch <- replayElem
+			lastCounter = 0
 
 			foundReplayElement(routine)
 
@@ -420,7 +428,6 @@ func WaitForReplayPath(op Operation, file string, line int) (bool, chan ReplayEl
 	// routine := GetRoutineID()
 	// key := uint64ToString(routine) + ":" + file + ":" + intToString(line)
 	key := file + ":" + intToString(line)
-	// println("Wait: ", key, len(waitingOps)+1)
 
 	ch := make(chan ReplayElement, 1<<62) // 1<<62 + 0 makes sure, that the channel is ignored for replay. The actual size is 0
 
@@ -510,8 +517,6 @@ func getNextReplayElement() (int, ReplayElement) {
  */
 func IsNextElementReplayEnd(code int, runExit bool, overwrite bool) bool {
 	_, next := getNextReplayElement()
-
-	println("InNexElementReplayEnd")
 
 	if overwrite && code == expectedExitCode {
 		ExitReplayWithCode(code)

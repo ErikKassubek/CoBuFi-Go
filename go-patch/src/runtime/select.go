@@ -278,7 +278,7 @@ func selectgo(cas0 *scase, order0 *uint16, pc0 *uintptr, nsends, nrecvs int, blo
 
 	// ADVOCATE-CHANGE-START
 	// if a default was selected in the trace, also select the default
-	if replayEnabled && replayElem.Op == OperationSelectDefault {
+	if wait && replayEnabled && replayElem.Op == OperationSelectDefault {
 		selunlock(scases, lockorder)
 		casi = -1
 		CheckLastTPreReplay(replayElem.TimePre)
@@ -292,9 +292,23 @@ func selectgo(cas0 *scase, order0 *uint16, pc0 *uintptr, nsends, nrecvs int, blo
 		cas = &scases[casi]
 		c = cas.c
 
+		// ADVOCATE-CHANGE-START
+		// make sure, only the correct case is enqueued
+		if wait && replayEnabled {
+			if casi != replayElem.SelIndex {
+				continue
+			}
+		}
+		// // ADVOCATE-CHANGE-END
+
 		if casi >= nsends {
 			// ADVOCATE-CHANGE-START
 			sg = c.sendq.dequeue(replayElem)
+			if wait && replayEnabled && !c.advocateIgnore && sg != nil {
+				sg.replayEnabled = true
+				sg.pFile = replayElem.PFile
+				sg.pLine = replayElem.PLine
+			}
 			// ADVOCATE-CHANGE-END
 			if sg != nil {
 				goto recv
@@ -314,6 +328,11 @@ func selectgo(cas0 *scase, order0 *uint16, pc0 *uintptr, nsends, nrecvs int, blo
 			}
 			// ADVOCATE-CHANGE-START
 			sg = c.recvq.dequeue(replayElem)
+			if wait && replayEnabled && !c.advocateIgnore && sg != nil {
+				sg.replayEnabled = true
+				sg.pFile = replayElem.PFile
+				sg.pLine = replayElem.PLine
+			}
 			// ADVOCATE-CHANGE-END
 			if sg != nil {
 				goto send
@@ -325,7 +344,7 @@ func selectgo(cas0 *scase, order0 *uint16, pc0 *uintptr, nsends, nrecvs int, blo
 	}
 
 	// ADVOCATE-CHANGE-START
-	if !replayEnabled {
+	if !wait || !replayEnabled {
 		if !block {
 			selunlock(scases, lockorder)
 			casi = -1
@@ -363,13 +382,13 @@ func selectgo(cas0 *scase, order0 *uint16, pc0 *uintptr, nsends, nrecvs int, blo
 
 		// ADVOCATE-CHANGE-START
 		// make sure, only the correct case is enqueued
-		if replayEnabled {
+		if wait && replayEnabled {
 			if casi != replayElem.SelIndex {
 				continue
 			}
 		}
 
-		if replayEnabled && !c.advocateIgnore {
+		if wait && replayEnabled && !c.advocateIgnore {
 			sg.replayEnabled = true
 			sg.pFile = replayElem.PFile
 			sg.pLine = replayElem.PLine
@@ -414,9 +433,9 @@ func selectgo(cas0 *scase, order0 *uint16, pc0 *uintptr, nsends, nrecvs int, blo
 		sg1.c = nil
 	}
 	gp.waiting = nil
-
 	for _, casei := range lockorder {
 		k = &scases[casei]
+
 		if sg == sglist {
 			// sg has already been dequeued by the G that woke us up.
 			casi = int(casei)
