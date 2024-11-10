@@ -16,12 +16,17 @@ func main() {
 		// "moby",
 		// "hugo",
 		// "connect",
-		"argo-cd",
-		"prometheus",
+		// "argo-cd",
+		// "prometheus",
 		// "grpc-go",
 		// "go-ethereum",
 		// "syncthing",
 		// "beego",
+		// "nsq",
+		"terraform",
+		"caddy",
+		"bleve",
+		"bosun",
 	}
 
 	mainPath := "~/Uni/HiWi/ADVOCATE/examples/"

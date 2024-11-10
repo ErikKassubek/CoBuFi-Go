@@ -972,7 +972,7 @@ func selectnbsend(c *hchan, elem unsafe.Pointer) (selected bool) {
 	}
 
 	advocateIndex := -1
-	if !c.advocateIgnore {
+	if c != nil && !c.advocateIgnore {
 		advocateIndex = AdvocateSelectPreOneNonDef(c, true)
 	}
 	res := chansend(c, elem, false, getcallerpc(), true)
@@ -980,7 +980,7 @@ func selectnbsend(c *hchan, elem unsafe.Pointer) (selected bool) {
 		lock(&c.numberSendMutex)
 		defer unlock(&c.numberSendMutex)
 	}
-	if !c.advocateIgnore {
+	if c != nil && !c.advocateIgnore {
 		CheckLastTPreReplay(replayElem.TimePre)
 		AdvocateSelectPostOneNonDef(advocateIndex, res, c)
 	}
@@ -1024,7 +1024,7 @@ func selectnbrecv(elem unsafe.Pointer, c *hchan) (selected, received bool) {
 	}
 
 	advocateIndex := -1
-	if !c.advocateIgnore {
+	if c != nil && !c.advocateIgnore {
 		advocateIndex = AdvocateSelectPreOneNonDef(c, false)
 	}
 	res, recv := chanrecv(c, elem, false, true)
@@ -1032,7 +1032,7 @@ func selectnbrecv(elem unsafe.Pointer, c *hchan) (selected, received bool) {
 		lock(&c.numberRecvMutex)
 		defer unlock(&c.numberRecvMutex)
 	}
-	if !c.advocateIgnore {
+	if c != nil && !c.advocateIgnore {
 		CheckLastTPreReplay(replayElem.TimePre)
 		AdvocateSelectPostOneNonDef(advocateIndex, res, c)
 	}
