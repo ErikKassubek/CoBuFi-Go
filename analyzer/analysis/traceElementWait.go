@@ -48,7 +48,6 @@ type TraceElementWait struct {
 	delta   int
 	val     int
 	pos     string
-	tID     string
 	vc      clock.VectorClock
 }
 
@@ -109,7 +108,6 @@ func AddTraceElementWait(routine int, tpre string,
 		delta:   delta_int,
 		val:     val_int,
 		pos:     pos,
-		tID:     pos + "@" + tpre,
 	}
 
 	return AddElementToTrace(&elem)
@@ -181,7 +179,7 @@ func (wa *TraceElementWait) GetPos() string {
  *   string: The tID of the element
  */
 func (wa *TraceElementWait) GetTID() string {
-	return wa.tID
+	return wa.pos + "@" + strconv.Itoa(wa.tPre)
 }
 
 /*
@@ -320,7 +318,6 @@ func (wa *TraceElementWait) Copy() TraceElement {
 		delta:   wa.delta,
 		val:     wa.val,
 		pos:     wa.pos,
-		tID:     wa.tID,
 		vc:      wa.vc.Copy(),
 	}
 }

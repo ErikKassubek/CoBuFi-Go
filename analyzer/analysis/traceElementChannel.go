@@ -40,7 +40,7 @@ var maxOpID = make(map[int]int)
 *   tpost (int): The timestamp at the end of the event
 *   id (int): The id of the channel
 *   opC (int, enum): The operation on the channel
-*   exec (int, enum): The execution status of the operation
+*   cl (bool): Whether the channel has closed
 *   oId (int): The id of the other communication
 *   qSize (int): The size of the channel queue
 *   qCount (int): The number of elements in the queue after the operation
@@ -62,7 +62,6 @@ type TraceElementChannel struct {
 	pos     string
 	sel     *TraceElementSelect
 	partner *TraceElementChannel
-	tID     string
 	vc      clock.VectorClock
 }
 
@@ -79,7 +78,6 @@ type TraceElementChannel struct {
 *   oId (string): The id of the other communication
 *   qSize (string): The size of the channel queue
 *   pos (string): The position of the channel operation in the code
-*   tID (string): The id of the trace element, contains the position and the tpre
  */
 func AddTraceElementChannel(routine int, tPre string,
 	tPost string, id string, opC string, cl string, oID string, qSize string,
@@ -129,9 +127,6 @@ func AddTraceElementChannel(routine int, tPre string,
 	if err != nil {
 		return errors.New("qSize is not an integer")
 	}
-
-	tIDStr := pos + "@" + strconv.Itoa(tPreInt)
-
 	elem := TraceElementChannel{
 		routine: routine,
 		tPre:    tPreInt,
@@ -142,7 +137,6 @@ func AddTraceElementChannel(routine int, tPre string,
 		oID:     oIDInt,
 		qSize:   qSizeInt,
 		pos:     pos,
-		tID:     tIDStr,
 	}
 
 	// check if partner was already processed, otherwise add to channelWithoutPartner
@@ -228,7 +222,7 @@ func (ch *TraceElementChannel) GetPos() string {
  *   string: The tID of the element
  */
 func (ch *TraceElementChannel) GetTID() string {
-	return ch.tID
+	return ch.pos + "@" + strconv.Itoa(ch.tPre)
 }
 
 /*
@@ -518,7 +512,7 @@ func (ch *TraceElementChannel) updateVectorClock() {
 						ch.ToString(), logging.DEBUG)
 					SendC(ch)
 				} else {
-					logging.Debug("Could not find partner for "+ch.tID, logging.INFO)
+					logging.Debug("Could not find partner for "+ch.GetTID(), logging.INFO)
 					StuckChan(ch.routine, currentVCHb)
 				}
 			}
@@ -537,7 +531,7 @@ func (ch *TraceElementChannel) updateVectorClock() {
 						ch.ToString(), logging.DEBUG)
 					RecvC(ch, currentVCHb, false)
 				} else {
-					logging.Debug("Could not find partner for "+ch.tID, logging.INFO)
+					logging.Debug("Could not find partner for "+ch.GetTID(), logging.INFO)
 					StuckChan(ch.routine, currentVCHb)
 				}
 			}
@@ -633,7 +627,6 @@ func (ch *TraceElementChannel) Copy() TraceElement {
 		pos:     ch.pos,
 		sel:     ch.sel,
 		partner: ch.partner,
-		tID:     ch.tID,
 		vc:      ch.vc.Copy(),
 	}
 	return &newCh

@@ -17,7 +17,7 @@ import (
 )
 
 // vector clock for each wait group
-var wg map[int]clock.VectorClock = make(map[int]clock.VectorClock)
+var lastChangeWG map[int]clock.VectorClock = make(map[int]clock.VectorClock)
 
 /*
  * Create a new wg if needed
@@ -26,8 +26,8 @@ var wg map[int]clock.VectorClock = make(map[int]clock.VectorClock)
  *   nRout (int): The number of routines in the trace
  */
 func newWg(index int, nRout int) {
-	if _, ok := wg[index]; !ok {
-		wg[index] = clock.NewVectorClock(nRout)
+	if _, ok := lastChangeWG[index]; !ok {
+		lastChangeWG[index] = clock.NewVectorClock(nRout)
 	}
 }
 
@@ -39,7 +39,7 @@ func newWg(index int, nRout int) {
  */
 func Change(wa *TraceElementWait, vc map[int]clock.VectorClock) {
 	newWg(wa.id, vc[wa.id].GetSize())
-	wg[wa.id] = wg[wa.id].Sync(vc[wa.routine])
+	lastChangeWG[wa.id] = lastChangeWG[wa.id].Sync(vc[wa.routine])
 	vc[wa.routine] = vc[wa.routine].Inc(wa.routine)
 
 	if analysisCases["doneBeforeAdd"] {
@@ -58,7 +58,7 @@ func Change(wa *TraceElementWait, vc map[int]clock.VectorClock) {
 func Wait(wa *TraceElementWait, vc map[int]clock.VectorClock) {
 	newWg(wa.id, vc[wa.id].GetSize())
 	if wa.tPost != 0 {
-		vc[wa.routine] = vc[wa.routine].Sync(wg[wa.id])
+		vc[wa.routine] = vc[wa.routine].Sync(lastChangeWG[wa.id])
 		vc[wa.routine] = vc[wa.routine].Inc(wa.routine)
 	}
 }

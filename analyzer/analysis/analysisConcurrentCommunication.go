@@ -43,7 +43,7 @@ func checkForConcurrentRecv(ch *TraceElementChannel, vc map[int]clock.VectorCloc
 		happensBefore := clock.GetHappensBefore(elem[ch.id].Vc, vc[ch.routine])
 		if happensBefore == clock.Concurrent {
 
-			file1, line1, tPre1, err := infoFromTID(ch.tID)
+			file1, line1, tPre1, err := infoFromTID(ch.GetTID())
 			if err != nil {
 				logging.Debug(err.Error(), logging.ERROR)
 				return
@@ -79,6 +79,6 @@ func checkForConcurrentRecv(ch *TraceElementChannel, vc map[int]clock.VectorCloc
 			lastRecvRoutine[ch.routine] = make(map[int]VectorClockTID)
 		}
 
-		lastRecvRoutine[ch.routine][ch.id] = VectorClockTID{vc[ch.routine].Copy(), ch.tID, ch.routine}
+		lastRecvRoutine[ch.routine][ch.id] = VectorClockTID{vc[ch.routine].Copy(), ch.GetTID(), ch.routine}
 	}
 }

@@ -35,7 +35,7 @@ func newOSuc(index int, nRout int) {
  */
 func DoSuc(on *TraceElementOnce, vc map[int]clock.VectorClock) {
 	newOSuc(on.id, vc[on.id].GetSize())
-	oSuc[on.id] = vc[on.routine]
+	oSuc[on.id] = vc[on.routine].Copy()
 	vc[on.routine] = vc[on.routine].Inc(on.routine)
 }
 

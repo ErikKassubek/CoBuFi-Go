@@ -57,7 +57,7 @@ func Lock(mu *TraceElementMutex, vc map[int]clock.VectorClock, wVc map[int]clock
 
 	if analysisCases["mixedDeadlock"] {
 		timemeasurement.Start("other")
-		lockSetAddLock(mu.routine, mu.id, mu.tID, wVc[mu.routine])
+		lockSetAddLock(mu.routine, mu.id, mu.GetTID(), wVc[mu.routine])
 		timemeasurement.End("other")
 	}
 }
@@ -112,7 +112,7 @@ func RLock(mu *TraceElementMutex, vc map[int]clock.VectorClock, wVc map[int]cloc
 
 	if analysisCases["mixedDeadlock"] {
 		timemeasurement.Start("other")
-		lockSetAddLock(mu.routine, mu.id, mu.tID, wVc[mu.routine])
+		lockSetAddLock(mu.routine, mu.id, mu.GetTID(), wVc[mu.routine])
 		timemeasurement.End("other")
 	}
 }

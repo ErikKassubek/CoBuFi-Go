@@ -10,9 +10,11 @@
 
 package analysis
 
-import "analyzer/clock"
+import (
+	"analyzer/clock"
+)
 
-var lastCondRelease = make(map[int]int) // -> id -> routine
+var currentlyWaiting = make(map[int][]int) // -> id -> []routine
 
 /*
  * Update and calculate the vector clocks given a wait operation
@@ -22,7 +24,10 @@ var lastCondRelease = make(map[int]int) // -> id -> routine
  */
 func CondWait(co *TraceElementCond, vc map[int]clock.VectorClock) {
 	if co.tPost != 0 { // not leak
-		vc[co.routine].Sync(vc[lastCondRelease[co.id]])
+		if _, ok := currentlyWaiting[co.id]; !ok {
+			currentlyWaiting[co.id] = make([]int, 0)
+		}
+		currentlyWaiting[co.id] = append(currentlyWaiting[co.id], co.routine)
 	}
 	vc[co.routine].Inc(co.routine)
 }
@@ -34,9 +39,12 @@ func CondWait(co *TraceElementCond, vc map[int]clock.VectorClock) {
  *   vc (map[int]VectorClock): The current vector clocks
  */
 func CondSignal(co *TraceElementCond, vc map[int]clock.VectorClock) {
+	if len(currentlyWaiting[co.id]) != 0 {
+		tWait := currentlyWaiting[co.id][0]
+		currentlyWaiting[co.id] = currentlyWaiting[co.id][1:]
+		vc[tWait] = vc[tWait].Sync(vc[co.routine])
+	}
 	vc[co.routine].Inc(co.routine)
-
-	lastCondRelease[co.id] = co.routine
 }
 
 /*
@@ -46,6 +54,10 @@ func CondSignal(co *TraceElementCond, vc map[int]clock.VectorClock) {
  *   vc (map[int]VectorClock): The current vector clocks
  */
 func CondBroadcast(co *TraceElementCond, vc map[int]clock.VectorClock) {
+	for _, wait := range currentlyWaiting[co.id] {
+		vc[wait] = vc[wait].Sync(vc[co.routine])
+	}
+	currentlyWaiting[co.id] = make([]int, 0)
+
 	vc[co.routine].Inc(co.routine)
-	lastCondRelease[co.id] = co.routine
 }

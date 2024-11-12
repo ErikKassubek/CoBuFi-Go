@@ -45,7 +45,7 @@ func Unbuffered(sender TraceElement, recv TraceElement, vc map[int]clock.VectorC
 		timemeasurement.Start("End")
 	}
 
-	if sender.getTpost() != 0 && recv.getTpost() == 0 {
+	if sender.getTpost() != 0 && recv.getTpost() != 0 {
 
 		if mostRecentReceive[recv.GetRoutine()] == nil {
 			mostRecentReceive[recv.GetRoutine()] = make(map[int]VectorClockTID3)
@@ -156,20 +156,20 @@ func Send(ch *TraceElementChannel, vc map[int]clock.VectorClock, fifo bool) {
 		vc[ch.routine] = vc[ch.routine].Sync(mostRecentSend[ch.routine][ch.id].Vc)
 	}
 
-	bufferedVCs[ch.id][count] = bufferedVC{true, ch.oID, vc[ch.routine].Copy(), ch.routine, ch.tID}
-
-	bufferedVCsCount[ch.id]++
-
 	// for detection of send on closed
 	hasSend[ch.id] = true
 	mostRecentSend[ch.routine][ch.id] = VectorClockTID3{ch, mostRecentSend[ch.routine][ch.id].Vc.Sync(vc[ch.routine]), ch.id}
 
 	vc[ch.routine] = vc[ch.routine].Inc(ch.routine)
 
+	bufferedVCs[ch.id][count] = bufferedVC{true, ch.oID, vc[ch.routine].Copy(), ch.routine, ch.GetTID()}
+
+	bufferedVCsCount[ch.id]++
+
 	if analysisCases["sendOnClosed"] {
 		timemeasurement.Start("panic")
 		if _, ok := closeData[ch.id]; ok {
-			foundSendOnClosedChannel(ch.routine, ch.id, ch.tID)
+			foundSendOnClosedChannel(ch.routine, ch.id, ch.GetTID())
 		}
 		timemeasurement.End("panic")
 	}
@@ -182,7 +182,7 @@ func Send(ch *TraceElementChannel, vc map[int]clock.VectorClock, fifo bool) {
 
 	if analysisCases["leak"] {
 		timemeasurement.Start("leak")
-		CheckForLeakChannelRun(ch.routine, ch.id, VectorClockTID{vc[ch.routine].Copy(), ch.tID, ch.routine}, 0, true)
+		CheckForLeakChannelRun(ch.routine, ch.id, VectorClockTID{vc[ch.routine].Copy(), ch.GetTID(), ch.routine}, 0, true)
 		timemeasurement.End("leak")
 	}
 
@@ -270,12 +270,12 @@ func Recv(ch *TraceElementChannel, vc map[int]clock.VectorClock, fifo bool) {
 
 	if analysisCases["mixedDeadlock"] {
 		timemeasurement.Start("other")
-		checkForMixedDeadlock(routSend, ch.routine, tIDSend, ch.tID)
+		checkForMixedDeadlock(routSend, ch.routine, tIDSend, ch.GetTID())
 		timemeasurement.End("other")
 	}
 	if analysisCases["leak"] {
 		timemeasurement.Start("leak")
-		CheckForLeakChannelRun(ch.routine, ch.id, VectorClockTID{vc[ch.routine].Copy(), ch.tID, ch.routine}, 1, true)
+		CheckForLeakChannelRun(ch.routine, ch.id, VectorClockTID{vc[ch.routine].Copy(), ch.GetTID(), ch.routine}, 1, true)
 		timemeasurement.End("leak")
 	}
 
@@ -309,6 +309,8 @@ func Close(ch *TraceElementChannel, vc map[int]clock.VectorClock) {
 		return
 	}
 
+	ch.cl = true
+
 	if analysisCases["closeOnClosed"] {
 		timemeasurement.Start("other")
 		checkForClosedOnClosed(ch) // must be called before closePos is updated
@@ -331,7 +333,7 @@ func Close(ch *TraceElementChannel, vc map[int]clock.VectorClock) {
 
 	if analysisCases["leak"] {
 		timemeasurement.Start("leak")
-		CheckForLeakChannelRun(ch.routine, ch.id, VectorClockTID{vc[ch.routine].Copy(), ch.tID, ch.routine}, 2, true)
+		CheckForLeakChannelRun(ch.routine, ch.id, VectorClockTID{vc[ch.routine].Copy(), ch.GetTID(), ch.routine}, 2, true)
 		timemeasurement.End("leak")
 	}
 }
@@ -339,7 +341,7 @@ func Close(ch *TraceElementChannel, vc map[int]clock.VectorClock) {
 func SendC(ch *TraceElementChannel) {
 	timemeasurement.Start("other")
 	if analysisCases["sendOnClosed"] {
-		foundSendOnClosedChannel(ch.routine, ch.id, ch.tID)
+		foundSendOnClosedChannel(ch.routine, ch.id, ch.GetTID())
 	}
 	timemeasurement.End("other")
 }
@@ -372,13 +374,13 @@ func RecvC(ch *TraceElementChannel, vc map[int]clock.VectorClock, buffered bool)
 	}
 
 	if analysisCases["mixedDeadlock"] {
-		checkForMixedDeadlock(closeData[ch.id].routine, ch.routine, closeData[ch.id].tID, ch.tID)
+		checkForMixedDeadlock(closeData[ch.id].routine, ch.routine, closeData[ch.id].GetTID(), ch.GetTID())
 	}
 	timemeasurement.End("other")
 
 	if analysisCases["leak"] {
 		timemeasurement.Start("leak")
-		CheckForLeakChannelRun(ch.routine, ch.id, VectorClockTID{vc[ch.routine].Copy(), ch.tID, ch.routine}, 1, buffered)
+		CheckForLeakChannelRun(ch.routine, ch.id, VectorClockTID{vc[ch.routine].Copy(), ch.GetTID(), ch.routine}, 1, buffered)
 		timemeasurement.End("leak")
 	}
 }

@@ -24,14 +24,12 @@ import (
 *   tpost (int): The timestamp at the end of the event
 *   id (int): The id of the new go statement
 *  pos (string): The position of the trace element in the file
-*  tID (string): The id of the trace element, contains the position and the tpost
  */
 type TraceElementFork struct {
 	routine int
 	tPost   int
 	id      int
 	pos     string
-	tID     string
 	vc      clock.VectorClock
 }
 
@@ -55,14 +53,11 @@ func AddTraceElementFork(routine int, tPost string, id string, pos string) error
 		return errors.New("id is not an integer")
 	}
 
-	tIDStr := pos + "@" + strconv.Itoa(tPostInt)
-
 	elem := TraceElementFork{
 		routine: routine,
 		tPost:   tPostInt,
 		id:      idInt,
 		pos:     pos,
-		tID:     tIDStr,
 	}
 	return AddElementToTrace(&elem)
 }
@@ -129,7 +124,7 @@ func (fo *TraceElementFork) GetPos() string {
  *   string: The tID of the element
  */
 func (fo *TraceElementFork) GetTID() string {
-	return fo.tID
+	return fo.pos + "@" + strconv.Itoa(fo.tPost)
 }
 
 /*
@@ -223,7 +218,6 @@ func (fo *TraceElementFork) Copy() TraceElement {
 		tPost:   fo.tPost,
 		id:      fo.id,
 		pos:     fo.pos,
-		tID:     fo.tID,
 		vc:      fo.vc.Copy(),
 	}
 }

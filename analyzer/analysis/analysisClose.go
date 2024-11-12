@@ -45,7 +45,7 @@ func checkForCommunicationOnClosedChannel(ch *TraceElementChannel) {
 					return
 				}
 
-				file2, line2, tPre2, err := infoFromTID(ch.tID) // close
+				file2, line2, tPre2, err := infoFromTID(ch.GetTID()) // close
 				if err != nil {
 					logging.Debug(err.Error(), logging.ERROR)
 					return
@@ -94,7 +94,7 @@ func checkForCommunicationOnClosedChannel(ch *TraceElementChannel) {
 					return
 				}
 
-				file2, line2, tPre2, err := infoFromTID(ch.tID) // close
+				file2, line2, tPre2, err := infoFromTID(ch.GetTID()) // close
 				if err != nil {
 					logging.Debug(err.Error(), logging.ERROR)
 					return
@@ -142,7 +142,7 @@ func foundSendOnClosedChannel(routineID int, id int, posSend string) {
 		return
 	}
 
-	posClose := closeData[id].tID
+	posClose := closeData[id].GetTID()
 	if posClose == "" || posSend == "" || posClose == "\n" || posSend == "\n" {
 		return
 	}
@@ -195,12 +195,12 @@ func foundReceiveOnClosedChannel(ch *TraceElementChannel) {
 		return
 	}
 
-	posClose := closeData[ch.id].tID
-	if posClose == "" || ch.tID == "" || posClose == "\n" || ch.tID == "\n" {
+	posClose := closeData[ch.id].GetTID()
+	if posClose == "" || ch.GetTID() == "" || posClose == "\n" || ch.GetTID() == "\n" {
 		return
 	}
 
-	file1, line1, tPre1, err := infoFromTID(ch.tID)
+	file1, line1, tPre1, err := infoFromTID(ch.GetTID())
 	if err != nil {
 		logging.Debug(err.Error(), logging.ERROR)
 		return
@@ -245,17 +245,17 @@ func checkForClosedOnClosed(ch *TraceElementChannel) {
 	defer timemeasurement.End("panic")
 
 	if oldClose, ok := closeData[ch.id]; ok {
-		if oldClose.tID == "" || oldClose.tID == "\n" || ch.tID == "" || ch.tID == "\n" {
+		if oldClose.GetTID() == "" || oldClose.GetTID() == "\n" || ch.GetTID() == "" || ch.GetTID() == "\n" {
 			return
 		}
 
-		file1, line1, tPre1, err := infoFromTID(oldClose.tID)
+		file1, line1, tPre1, err := infoFromTID(oldClose.GetTID())
 		if err != nil {
 			logging.Debug(err.Error(), logging.ERROR)
 			return
 		}
 
-		file2, line2, tPre2, err := infoFromTID(oldClose.tID)
+		file2, line2, tPre2, err := infoFromTID(oldClose.GetTID())
 		if err != nil {
 			logging.Debug(err.Error(), logging.ERROR)
 			return

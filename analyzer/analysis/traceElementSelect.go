@@ -34,7 +34,6 @@ import (
  *   chosenCase (traceElementSelectCase): The chosen case, nil if default case chosen
  *   chosenDefault (bool): if the default case was chosen
  *   pos (string): The position of the select statement in the code
- *   tID (string): The id of the trace element, contains the position and the tpre
  */
 type TraceElementSelect struct {
 	routine         int
@@ -47,7 +46,6 @@ type TraceElementSelect struct {
 	containsDefault bool
 	chosenDefault   bool
 	pos             string
-	tID             string
 	vc              clock.VectorClock
 }
 
@@ -86,8 +84,6 @@ func AddTraceElementSelect(routine int, tPre string,
 		return errors.New("chosenIndex is not an integer")
 	}
 
-	tID := pos + "@" + tPre
-
 	elem := TraceElementSelect{
 		routine:     routine,
 		tPre:        tPreInt,
@@ -95,7 +91,6 @@ func AddTraceElementSelect(routine int, tPre string,
 		id:          idInt,
 		chosenIndex: chosenIndexInt,
 		pos:         pos,
-		tID:         tID,
 	}
 
 	cs := strings.Split(cases, "~")
@@ -157,8 +152,6 @@ func AddTraceElementSelect(routine int, tPre string,
 			return errors.New("c_oSize is not an integer")
 		}
 
-		tIDStr := pos + "@" + strconv.Itoa(cTPre)
-
 		elemCase := TraceElementChannel{
 			routine: routine,
 			tPre:    cTPre,
@@ -170,7 +163,6 @@ func AddTraceElementSelect(routine int, tPre string,
 			qSize:   cOSize,
 			sel:     &elem,
 			pos:     pos,
-			tID:     tIDStr,
 		}
 
 		casesList = append(casesList, elemCase)
@@ -278,7 +270,7 @@ func (se *TraceElementSelect) GetPos() string {
  *   string: The tID of the element
  */
 func (se *TraceElementSelect) GetTID() string {
-	return se.tID
+	return se.pos + "@" + strconv.Itoa(se.tPre)
 }
 
 /*
@@ -570,7 +562,7 @@ func (se *TraceElementSelect) updateVectorClock() {
 			CheckForLeakChannelRun(se.routine, c.id,
 				VectorClockTID{
 					Vc:      se.vc.Copy(),
-					TID:     se.tID,
+					TID:     se.GetTID(),
 					Routine: se.routine},
 				int(c.opC), c.IsBuffered())
 		}
@@ -604,7 +596,6 @@ func (se *TraceElementSelect) Copy() TraceElement {
 		containsDefault: se.containsDefault,
 		chosenDefault:   se.chosenDefault,
 		pos:             se.pos,
-		tID:             se.tID,
 		vc:              se.vc.Copy(),
 	}
 }

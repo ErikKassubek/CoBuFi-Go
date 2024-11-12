@@ -28,7 +28,6 @@ import (
  *   id (int): The id of the mutex
  *   suc (bool): Whether the operation was successful
  *   pos (string): The position of the mutex operation in the code
- *   tID (string): The id of the trace element, contains the position and the tpre
  */
 type TraceElementOnce struct {
 	routine int
@@ -37,7 +36,6 @@ type TraceElementOnce struct {
 	id      int
 	suc     bool
 	pos     string
-	tID     string
 	vc      clock.VectorClock
 }
 
@@ -74,8 +72,6 @@ func AddTraceElementOnce(routine int, tPre string,
 		return errors.New("suc is not a boolean")
 	}
 
-	tIDStr := pos + "@" + strconv.Itoa(tPreInt)
-
 	elem := TraceElementOnce{
 		routine: routine,
 		tPre:    tPreInt,
@@ -83,7 +79,6 @@ func AddTraceElementOnce(routine int, tPre string,
 		id:      idInt,
 		suc:     sucBool,
 		pos:     pos,
-		tID:     tIDStr,
 	}
 
 	return AddElementToTrace(&elem)
@@ -155,7 +150,7 @@ func (on *TraceElementOnce) GetPos() string {
  *   string: The tID of the element
  */
 func (on *TraceElementOnce) GetTID() string {
-	return on.tID
+	return on.pos + "@" + strconv.Itoa(on.tPre)
 }
 
 /*
@@ -272,7 +267,6 @@ func (on *TraceElementOnce) Copy() TraceElement {
 		id:      on.id,
 		suc:     on.suc,
 		pos:     on.pos,
-		tID:     on.tID,
 		vc:      on.vc.Copy(),
 	}
 }

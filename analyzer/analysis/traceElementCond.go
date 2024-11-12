@@ -44,7 +44,6 @@ type TraceElementCond struct {
 	id      int
 	opC     OpCond
 	pos     string
-	tID     string
 	vc      clock.VectorClock
 }
 
@@ -58,7 +57,6 @@ type TraceElementCond struct {
  *   id (string): The id of the condition variable
  *   opC (string): The operation on the condition variable
  *   pos (string): The position of the condition variable operation in the code
- *   tID (string): The id of the trace element, contains the position and the tpre
  */
 func AddTraceElementCond(routine int, tPre string, tPost string, id string, opN string, pos string) error {
 	tPreInt, err := strconv.Atoi(tPre)
@@ -85,8 +83,6 @@ func AddTraceElementCond(routine int, tPre string, tPost string, id string, opN 
 		return errors.New("op is not a valid operation")
 	}
 
-	tIDStr := pos + "@" + strconv.Itoa(tPreInt)
-
 	elem := TraceElementCond{
 		routine: routine,
 		tPre:    tPreInt,
@@ -94,7 +90,6 @@ func AddTraceElementCond(routine int, tPre string, tPost string, id string, opN 
 		id:      idInt,
 		opC:     op,
 		pos:     pos,
-		tID:     tIDStr,
 	}
 
 	return AddElementToTrace(&elem)
@@ -171,7 +166,7 @@ func (co *TraceElementCond) GetPos() string {
  *   string: The tID of the element
  */
 func (co *TraceElementCond) GetTID() string {
-	return co.tID
+	return co.pos + "@" + strconv.Itoa(co.tPre)
 }
 
 /*
@@ -365,7 +360,6 @@ func (co *TraceElementCond) Copy() TraceElement {
 		id:      co.id,
 		opC:     co.opC,
 		pos:     co.pos,
-		tID:     co.tID,
 		vc:      co.vc.Copy(),
 	}
 }

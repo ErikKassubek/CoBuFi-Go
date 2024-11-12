@@ -16,7 +16,6 @@ import (
 	"analyzer/utils"
 	"errors"
 	"fmt"
-	"strconv"
 )
 
 /*
@@ -47,9 +46,6 @@ func checkForDoneBeforeAddAdd(wa *TraceElementWait) {
 
 	// add the vector clock and position to the list
 	for i := 0; i < wa.delta; i++ {
-		if wa.delta > 1 {
-			wa.tID = wa.tID + "+" + strconv.Itoa(i) // add a unique identifier to the position
-		}
 		wgAdd[wa.id] = append(wgAdd[wa.id], wa)
 	}
 }

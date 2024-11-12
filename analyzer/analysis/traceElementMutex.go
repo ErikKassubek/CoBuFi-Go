@@ -44,8 +44,6 @@ const (
  *   opM (opMutex): The operation on the mutex
  *   suc (bool): Whether the operation was successful (only for trylock else always true)
  *   pos (string): The position of the mutex operation in the code
- *   tID (string): The id of the trace element, contains the position and the tpre
- *   partner (*TraceElementMutex): The partner of the mutex operation
  */
 type TraceElementMutex struct {
 	routine int
@@ -56,8 +54,6 @@ type TraceElementMutex struct {
 	opM     OpMutex
 	suc     bool
 	pos     string
-	tID     string
-	partner *TraceElementMutex
 	vc      clock.VectorClock
 }
 
@@ -120,8 +116,6 @@ func AddTraceElementMutex(routine int, tPre string,
 		return errors.New("suc is not a boolean")
 	}
 
-	tIDStr := pos + "@" + strconv.Itoa(tPreInt)
-
 	elem := TraceElementMutex{
 		routine: routine,
 		tPre:    tPreInt,
@@ -131,7 +125,6 @@ func AddTraceElementMutex(routine int, tPre string,
 		opM:     opMInt,
 		suc:     sucBool,
 		pos:     pos,
-		tID:     tIDStr,
 	}
 
 	return AddElementToTrace(&elem)
@@ -203,7 +196,7 @@ func (mu *TraceElementMutex) GetPos() string {
  *   string: The tID of the element
  */
 func (mu *TraceElementMutex) GetTID() string {
-	return mu.tID
+	return mu.pos + "@" + strconv.Itoa(mu.tPre)
 }
 
 /*
@@ -342,9 +335,6 @@ func (mu *TraceElementMutex) ToString() string {
 	return res
 }
 
-// mutex operations, for which no partner has been found yet
-var mutexNoPartner []*TraceElementMutex
-
 /*
 * Update the vector clock of the trace and element
 * MARK: VectorClock
@@ -456,7 +446,6 @@ func (mu *TraceElementMutex) Copy() TraceElement {
 		opM:     mu.opM,
 		suc:     mu.suc,
 		pos:     mu.pos,
-		tID:     mu.tID,
 		vc:      mu.vc.Copy(),
 	}
 }

@@ -151,7 +151,7 @@ func CyclicDeadlockMutexLock(mu *TraceElementMutex, rLock bool, vc clock.VectorC
 
 	// add the lock element to the lock tree
 	// update the current lock
-	node := currentNode[mu.routine][len(currentNode[mu.routine])-1].addChild(mu.id, mu.tID, mu.rw, rLock, vc.Copy(), getCurrentLockSet(mu.routine))
+	node := currentNode[mu.routine][len(currentNode[mu.routine])-1].addChild(mu.id, mu.GetTID(), mu.rw, rLock, vc.Copy(), getCurrentLockSet(mu.routine))
 	currentNode[mu.routine] = append(currentNode[mu.routine], node)
 	nodesPerID[mu.id][mu.routine] = append(nodesPerID[mu.id][mu.routine], node)
 }

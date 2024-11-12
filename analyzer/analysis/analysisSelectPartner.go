@@ -245,7 +245,7 @@ func CheckForSelectCaseWithoutPartnerSelect(se *TraceElementSelect, caseChanIds 
 		}
 
 		selectCases = append(selectCases,
-			allSelectCase{se, id, VectorClockTID{vc, se.tID, se.routine}, send, buffered, found, partner, executed})
+			allSelectCase{se, id, VectorClockTID{vc, se.GetTID(), se.routine}, send, buffered, found, partner, executed})
 
 	}
 }

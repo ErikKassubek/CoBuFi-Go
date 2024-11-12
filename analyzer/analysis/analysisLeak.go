@@ -43,7 +43,7 @@ func CheckForLeakChannelStuck(ch *TraceElementChannel, vc clock.VectorClock) {
 			return // close
 		}
 
-		file, line, tPre, err := infoFromTID(ch.tID)
+		file, line, tPre, err := infoFromTID(ch.GetTID())
 		if err != nil {
 			logging.Debug("Error in infoFromTID", logging.ERROR)
 			return
@@ -71,7 +71,7 @@ func CheckForLeakChannelStuck(ch *TraceElementChannel, vc clock.VectorClock) {
 						bugType = logging.LBufferedWith
 					}
 
-					file1, line1, tPre1, err := infoFromTID(ch.tID)
+					file1, line1, tPre1, err := infoFromTID(ch.GetTID())
 					if err != nil {
 						logging.Debug("Error in infoFromTID", logging.ERROR)
 						return
@@ -104,7 +104,7 @@ func CheckForLeakChannelStuck(ch *TraceElementChannel, vc clock.VectorClock) {
 						bugType = logging.LBufferedWith
 					}
 
-					file1, line1, tPre1, err1 := infoFromTID(ch.tID)
+					file1, line1, tPre1, err1 := infoFromTID(ch.GetTID())
 					if err1 != nil {
 						logging.Debug("Error in infoFromTID", logging.ERROR)
 						return
@@ -131,7 +131,7 @@ func CheckForLeakChannelStuck(ch *TraceElementChannel, vc clock.VectorClock) {
 	}
 
 	if !foundPartner {
-		leakingChannels[ch.id] = append(leakingChannels[ch.id], VectorClockTID2{ch.routine, ch.id, vc, ch.tID, int(ch.opC), -1, buffered, false, 0})
+		leakingChannels[ch.id] = append(leakingChannels[ch.id], VectorClockTID2{ch.routine, ch.id, vc, ch.GetTID(), int(ch.opC), -1, buffered, false, 0})
 	}
 }
 
@@ -414,7 +414,7 @@ func CheckForLeakSelectStuck(se *TraceElementSelect, ids []int, buffered []bool,
 	foundPartner := false
 
 	if len(ids) == 0 {
-		file, line, _, err := infoFromTID(se.tID)
+		file, line, _, err := infoFromTID(se.GetTID())
 		if err != nil {
 			logging.Debug("Error in infoFromTID", logging.ERROR)
 			return
@@ -434,7 +434,7 @@ func CheckForLeakSelectStuck(se *TraceElementSelect, ids []int, buffered []bool,
 			for routinePartner, mrr := range mostRecentReceive {
 				if recv, ok := mrr[id]; ok {
 					if clock.GetHappensBefore(vc, mrr[id].Vc) == clock.Concurrent {
-						file1, line1, _, err1 := infoFromTID(se.tID) // select
+						file1, line1, _, err1 := infoFromTID(se.GetTID()) // select
 						if err1 != nil {
 							logging.Debug("Error in infoFromTID", logging.ERROR)
 							return
@@ -460,7 +460,7 @@ func CheckForLeakSelectStuck(se *TraceElementSelect, ids []int, buffered []bool,
 			for routinePartner, mrs := range mostRecentSend {
 				if send, ok := mrs[id]; ok {
 					if clock.GetHappensBefore(vc, mrs[id].Vc) == clock.Concurrent {
-						file1, line1, _, err1 := infoFromTID(se.tID) // select
+						file1, line1, _, err1 := infoFromTID(se.GetTID()) // select
 						if err1 != nil {
 							logging.Debug("Error in infoFromTID", logging.ERROR)
 							return
@@ -484,12 +484,12 @@ func CheckForLeakSelectStuck(se *TraceElementSelect, ids []int, buffered []bool,
 				}
 			}
 			if cl, ok := closeData[id]; ok {
-				file1, line1, _, err1 := infoFromTID(se.tID) // select
+				file1, line1, _, err1 := infoFromTID(se.GetTID()) // select
 				if err1 != nil {
 					logging.Debug("Error in infoFromTID", logging.ERROR)
 					return
 				}
-				file2, line2, tPre2, err2 := infoFromTID(cl.tID) // partner
+				file2, line2, tPre2, err2 := infoFromTID(cl.GetTID()) // partner
 				if err2 != nil {
 					logging.Debug("Error in infoFromTID", logging.ERROR)
 					return
@@ -511,7 +511,7 @@ func CheckForLeakSelectStuck(se *TraceElementSelect, ids []int, buffered []bool,
 	if !foundPartner {
 		for i, id := range ids {
 			// add all select operations to leaking Channels,
-			leakingChannels[id] = append(leakingChannels[id], VectorClockTID2{se.routine, id, vc, se.tID, opTypes[i], se.tPre, buffered[i], true, se.id})
+			leakingChannels[id] = append(leakingChannels[id], VectorClockTID2{se.routine, id, vc, se.GetTID(), opTypes[i], se.tPre, buffered[i], true, se.id})
 		}
 	}
 }
@@ -523,7 +523,7 @@ func CheckForLeakSelectStuck(se *TraceElementSelect, ids []int, buffered []bool,
  *   mu (*TraceElementMutex): The trace element
  */
 func CheckForLeakMutex(mu *TraceElementMutex) {
-	file1, line1, tPre1, err := infoFromTID(mu.tID)
+	file1, line1, tPre1, err := infoFromTID(mu.GetTID())
 	if err != nil {
 		logging.Debug("Error in infoFromTID", logging.ERROR)
 		return
@@ -585,7 +585,7 @@ func addMostRecentAcquireTotal(mu *TraceElementMutex, vc clock.VectorClock, op i
  *   wa (*TraceElementWait): The trace element
  */
 func CheckForLeakWait(wa *TraceElementWait) {
-	file, line, tPre, err := infoFromTID(wa.tID)
+	file, line, tPre, err := infoFromTID(wa.GetTID())
 	if err != nil {
 		logging.Debug("Error in infoFromTID", logging.ERROR)
 		return
@@ -605,7 +605,7 @@ func CheckForLeakWait(wa *TraceElementWait) {
  *   co (*TraceElementCond): The trace element
  */
 func CheckForLeakCond(co *TraceElementCond) {
-	file, line, tPre, err := infoFromTID(co.tID)
+	file, line, tPre, err := infoFromTID(co.GetTID())
 	if err != nil {
 		logging.Debug("Error in infoFromTID", logging.ERROR)
 		return
