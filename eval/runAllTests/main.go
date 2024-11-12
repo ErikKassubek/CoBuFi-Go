@@ -23,8 +23,6 @@ func main() {
 		// "syncthing",
 		// "beego",
 		// "nsq",
-		"terraform",
-		"caddy",
 		"bleve",
 		"bosun",
 	}
@@ -41,7 +39,7 @@ func main() {
 
 	analysisTimeout := "1800" // 1800s = 0.5h
 	replayTimeout := "-1"     // 100 * recording time
-	maxProgAtSameTime := 3
+	maxProgAtSameTime := 2
 
 	var wg sync.WaitGroup
 	sem := make(chan struct{}, maxProgAtSameTime)

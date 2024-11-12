@@ -36,6 +36,9 @@ type VectorClock struct {
  *   (vectorClock): The new vector clock
  */
 func NewVectorClock(size int) VectorClock {
+	if size < 0 {
+		size = 0
+	}
 	c := make(map[int]int)
 	for i := 1; i <= size; i++ {
 		c[i] = 0
@@ -48,18 +51,31 @@ func NewVectorClock(size int) VectorClock {
 }
 
 /*
- * Create a vector clock from values. Mostly used for testing
+ * Create a new vector clock and set it
  * Args:
  *   size (int): The size of the vector clock
- *   clock (map[int]int): The values of the vector clock
- * Returns:
- *   vectorClock: the new vector clock
+ *   cl (map[int]int): The vector clock
  */
-func CreateVectorClock(size int, clock map[int]int) VectorClock {
-	return VectorClock{
-		size:  size,
-		clock: clock,
+func NewVectorClockSet(size int, cl map[int]int) VectorClock {
+	clock := NewVectorClock(size)
+
+	if cl == nil {
+		return clock
 	}
+
+	if size < 0 {
+		size = 0
+	}
+
+	for i := 1; i <= size; i++ {
+		if _, ok := cl[i]; !ok {
+			clock.clock[i] = 0
+		} else {
+			clock.clock[i] = cl[i]
+		}
+	}
+
+	return clock
 }
 
 /*
@@ -105,9 +121,14 @@ func (vc VectorClock) ToString() string {
  *   (vectorClock): The vector clock
  */
 func (vc VectorClock) Inc(routine int) VectorClock {
+	if routine > vc.size {
+		return vc
+	}
+
 	if vc.clock == nil {
 		vc.clock = make(map[int]int)
 	}
+
 	vc.clock[routine]++
 	return vc
 }
@@ -132,6 +153,7 @@ func (vc VectorClock) Sync(rec VectorClock) VectorClock {
 	if rec.size == 0 {
 		return vc.Copy()
 	}
+
 	copy := rec.Copy()
 	for i := 1; i <= vc.size; i++ {
 		if vc.clock[i] > copy.clock[i] {
@@ -153,43 +175,4 @@ func (vc VectorClock) Copy() VectorClock {
 		newVc.clock[i] = vc.clock[i]
 	}
 	return newVc
-}
-
-/*
- * Get the happens before relation between two operations given there
- * vector clocks
- * Args:
- *   vc1 (vectorClock): The first vector clock
- *   vc2 (vectorClock): The second vector clock
- * Returns:
- *   happensBefore: The happens before relation between the two vector clocks
- */
-func GetHappensBefore(vc1 VectorClock, vc2 VectorClock) HappensBefore {
-	if isCause(vc1, vc2) {
-		return Before
-	}
-	if isCause(vc2, vc1) {
-		return After
-	}
-	return Concurrent
-}
-
-/*
- * Check if vc1 is a cause of vc2
- * Args:
- *   vc1 (vectorClock): The first vector clock
- *   vc2 (vectorClock): The second vector clock
- * Returns:
- *   bool: True if vc1 is a cause of vc2, false otherwise
- */
-func isCause(vc1 VectorClock, vc2 VectorClock) bool {
-	atLeastOneSmaller := false
-	for i := 1; i <= vc1.size; i++ {
-		if vc1.clock[i] > vc2.clock[i] {
-			return false
-		} else if vc1.clock[i] < vc2.clock[i] {
-			atLeastOneSmaller = true
-		}
-	}
-	return atLeastOneSmaller
 }

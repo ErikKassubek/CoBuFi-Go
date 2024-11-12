@@ -99,7 +99,6 @@ func Unbuffered(sender TraceElement, recv TraceElement, vc map[int]clock.VectorC
 		CheckForLeakChannelRun(recv.GetRoutine(), sender.GetID(), VectorClockTID{vc[recv.GetRoutine()].Copy(), recv.GetTID(), recv.GetRoutine()}, 1, false)
 		timemeasurement.End("leak")
 	}
-
 }
 
 type holdObj struct {

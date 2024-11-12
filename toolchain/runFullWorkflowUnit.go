@@ -83,8 +83,11 @@ func runWorkflowUnit(pathToAdvocate, dir, progName string,
 	// Process each test file
 	for _, file := range testFiles {
 		if testNameFlag == "" {
-			fmt.Printf("\n\nProgress %s: %d/%d\n", progName, currentFile, totalFiles)
+			fmt.Println("\n\n=================================================")
+			fmt.Printf("Progress %s: %d/%d", progName, currentFile, totalFiles)
 			fmt.Printf("\nProcessing file: %s\n", file)
+			fmt.Println("=================================================\n\n")
+
 		}
 
 		packagePath := filepath.Dir(file)

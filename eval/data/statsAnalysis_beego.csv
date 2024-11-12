@@ -18,10 +18,10 @@ TestFileCacheDelete,0,0,0,0,0,0,0,0
 TestMemcacheCache,1,0,0,0,0,0,0,0
 TestReadThroughCache_Memcache_Get,0,0,0,0,0,0,0,0
 TestRandomExpireCache,1,0,0,0,0,0,0,0
-TestWithRandomExpireOffsetFunc,0,0,0,0,0,0,0,0
+TestWithRandomExpireOffsetFunc,1,0,0,0,0,0,0,0
 TestReadThroughCache_Memory_Get,1,0,0,0,0,0,0,0
 TestReadThroughCache_file_Get,0,0,0,0,0,0,0,0
-TestRedisCache,1,0,0,0,0,0,0,0
+TestRedisCache,0,0,0,0,0,0,0,0
 TestCacheScan,1,0,0,0,0,0,0,0
 TestReadThroughCache_redis_Get,1,0,0,0,0,0,0,0
 TestCache_associate,0,0,0,0,0,0,0,0
@@ -40,7 +40,7 @@ TestFilterChain,0,0,0,0,0,0,0,0
 TestContains,0,0,0,0,0,0,0,0
 TestFilterChainBuilderFilterChain,0,0,0,0,0,0,0,0
 TestFilterChainBuilderFilterChain,0,0,0,0,0,0,0,0
-TestFilterChainBuilderFilterChain,1,1,0,0,0,0,0,0
+TestFilterChainBuilderFilterChain,0,0,0,0,0,0,0,0
 TestNewHttpResponseWithJsonBody,0,0,0,0,0,0,0,0
 TestNewClient,0,0,0,0,0,0,0,0
 TestClient,3,0,0,0,0,0,0,0
@@ -49,6 +49,7 @@ TestNewBeegoRequest,0,0,0,0,0,0,0,0
 TestNewBeegoRequestWithCtx,0,0,0,0,0,0,0,0
 TestBeegoHTTPRequestSetProtocolVersion,0,0,0,0,0,0,0,0
 TestBeegoHTTPRequestHeader,0,0,0,0,0,0,0,0
+TestBeegoHTTPRequestSetHost,0,0,0,0,0,0,0,0
 TestBeegoHTTPRequestParam,0,0,0,0,0,0,0,0
 TestBeegoHTTPRequestBody,0,0,0,0,0,0,0,0
 TestBeegoHTTPRequestXMLBody,0,0,0,0,0,0,0,0
@@ -72,7 +73,7 @@ TestParseOrder,0,0,0,0,0,0,0,0
 TestOrderGetColumn,0,0,0,0,0,0,0,0
 TestSortString,0,0,0,0,0,0,0,0
 TestDefaultValueFilterChainBuilderFilterChain,0,0,0,0,0,0,0,0
-TestFilterChainBuilderFilterChain,2,1,0,0,0,0,0,0
+TestFilterChainBuilderFilterChain,2,0,0,0,0,0,0,0
 TestFilterChainBuilderFilterChain,0,0,0,0,0,0,0,0
 TestFilterChainBuilderFilterChain1,0,0,0,0,0,0,0,0
 TestNewHintTime,0,0,0,0,0,0,0,0
@@ -86,7 +87,6 @@ TestUseIndex,0,0,0,0,0,0,0,0
 TestUseIndex0,0,0,0,0,0,0,0,0
 TestForUpdate,0,0,0,0,0,0,0,0
 TestDefaultRelDepth,0,0,0,0,0,0,0,0
-TestRelDepth,0,0,0,0,0,0,0,0
 TestLimit,0,0,0,0,0,0,0,0
 TestOffset,0,0,0,0,0,0,0,0
 TestOrderBy,0,0,0,0,0,0,0,0
@@ -148,6 +148,7 @@ TestAccessLog_format,0,0,0,0,0,0,0,0
 TestConn,1,0,0,0,0,0,0,0
 TestReconnect,2,0,0,0,0,0,0,0
 TestConnWriter_Format,0,0,0,0,0,0,0,0
+TestConsole,0,0,0,0,0,0,0,0
 TestConsoleNoColor,0,0,0,0,0,0,0,0
 TestConsoleAsync,0,0,0,0,0,0,0,0
 TestFormat,0,0,0,0,0,0,0,0
@@ -158,13 +159,13 @@ TestFilePermWithPrefixPath,1,0,0,0,0,0,0,0
 TestFile1,1,0,0,0,0,0,0,0
 TestFile2,1,0,0,0,0,0,0,0
 TestFileDailyRotate_01,3,0,0,0,0,0,0,0
-TestFileDailyRotate_02,3,0,0,0,0,0,0,0
-TestFileDailyRotate_03,0,0,0,0,0,0,0,0
-TestFileDailyRotate_04,1,0,0,0,0,0,0,0
+TestFileDailyRotate_02,0,0,0,0,0,0,0,0
+TestFileDailyRotate_03,3,0,0,0,0,0,0,0
+TestFileDailyRotate_04,3,0,0,0,0,0,0,0
 TestFileDailyRotate_05,3,0,0,0,0,0,0,0
 TestFileDailyRotate_06,3,0,0,0,0,0,0,0
-TestFileHourlyRotate_01,0,0,0,0,0,0,0,0
-TestFileHourlyRotate_02,0,0,0,0,0,0,0,0
+TestFileHourlyRotate_01,2,0,0,0,0,0,0,0
+TestFileHourlyRotate_02,3,0,0,0,0,0,0,0
 TestFileHourlyRotate_03,3,0,0,0,0,0,0,0
 TestFileHourlyRotate_04,3,0,0,0,0,0,0,0
 TestFileHourlyRotate_05,3,0,0,0,0,0,0,0
@@ -179,7 +180,7 @@ TestBeeLogger_AsyncNonBlockWrite,1,0,0,0,0,0,0,0
 TestFormatHeader_0,0,0,0,0,0,0,0,0
 TestFormatHeader_1,0,0,0,0,0,0,0,0
 TestFiles_1,9,0,0,0,0,0,0,0
-TestSmtp,4,0,0,0,0,0,0,0
+TestSmtp,0,0,0,0,0,0,0,0
 TestGetFuncName,0,0,0,0,0,0,0,0
 TestPrint,0,0,0,0,0,0,0,0
 TestPrintPoint,0,0,0,0,0,0,0,0
@@ -190,7 +191,7 @@ TestFileExists,0,0,0,0,0,0,0,0
 TestSearchFile,0,0,0,0,0,0,0,0
 TestGrepFile,0,0,0,0,0,0,0,0
 TestKVs,0,0,0,0,0,0,0,0
-TestMail,4,0,0,0,0,0,0,0
+TestMail,0,0,0,0,0,0,0,0
 TestRand_01,0,0,0,0,0,0,0,0
 TestNewBeeMap,0,0,0,0,0,0,0,0
 TestSet,0,0,0,0,0,0,0,0
@@ -255,7 +256,6 @@ Test_Parsers,0,0,0,0,0,0,0,0
 TestGetInt,0,0,0,0,0,0,0,0
 TestGetInt8,0,0,0,0,0,0,0,0
 TestGetInt16,0,0,0,0,0,0,0,0
-TestGetInt32,0,0,0,0,0,0,0,0
 TestGetInt64,0,0,0,0,0,0,0,0
 TestGetUint8,0,0,0,0,0,0,0,0
 TestGetUint16,0,0,0,0,0,0,0,0
@@ -347,6 +347,7 @@ TestCtrlPost,0,0,0,0,0,0,0,0
 TestRouterHandler,0,0,0,0,0,0,0,0
 TestRouterHandlerAll,0,0,0,0,0,0,0,0
 TestRouterFunc,0,0,0,0,0,0,0,0
+TestInsertFilter,0,0,0,0,0,0,0,0
 TestParamResetFilter,0,0,0,0,0,0,0,0
 TestFilterBeforeRouter,0,0,0,0,0,0,0,0
 TestFilterBeforeExec,0,0,0,0,0,0,0,0
@@ -458,7 +459,6 @@ TestHtmlquote,0,0,0,0,0,0,0,0
 TestHtmlunquote,0,0,0,0,0,0,0,0
 TestParseForm,0,0,0,0,0,0,0,0
 TestRenderForm,0,0,0,0,0,0,0,0
-TestRenderFormField,0,0,0,0,0,0,0,0
 TestParseFormTag,0,0,0,0,0,0,0,0
 TestMapGet,0,0,0,0,0,0,0,0
 Test_eq,0,0,0,0,0,0,0,0
@@ -477,8 +477,8 @@ TestUnregisterFixedRouteLevel1,0,0,0,0,0,0,0,0
 TestUnregisterFixedRouteLevel2,0,0,0,0,0,0,0,0
 TestRunTaskCommand_Execute,0,0,0,0,0,0,0,0
 TestListTaskCommand_Execute,0,0,0,0,0,0,0,0
-TestParse,2,1,0,0,0,0,0,0
-TestModifyTaskListAfterRunning,2,2,0,0,0,0,0,0
+TestParse,0,0,0,0,0,0,0,0
+TestModifyTaskListAfterRunning,2,1,0,0,0,0,0,0
 TestSpec,1,0,0,0,0,0,0,0
 TestTimeout,4,1,0,0,0,0,0,0
 TestTask_Run,0,0,0,0,0,0,0,0

@@ -10,11 +10,15 @@
 
 package utils
 
+import "strings"
+
 /*
 * Check if a slice Contains an element
 * Args:
 *   s: slice to check
 *   e: element to check
+* Returns:
+*   bool: true is e in s, false otherwise
  */
 func Contains(s []string, e string) bool {
 	for _, a := range s {
@@ -23,4 +27,25 @@ func Contains(s []string, e string) bool {
 		}
 	}
 	return false
+}
+
+/*
+ * Split the string into two parts at the last occurrence of the separator
+ * Args:
+ *   str (string): string to split
+ *   sep (string): separator to split at
+ * Returns:
+ *   []string: If sep in string: list with two elements split at the sep,
+ *     if not then list containing str
+ */
+func SplitAtLast(str string, sep string) []string {
+	if sep == "" {
+		return []string{str}
+	}
+
+	i := strings.LastIndex(str, sep)
+	if i == -1 {
+		return []string{str}
+	}
+	return []string{str[:i], str[i+1:]}
 }
