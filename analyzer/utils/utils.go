@@ -13,16 +13,25 @@ package utils
 import "strings"
 
 /*
-* Check if a slice Contains an element
+* Check if a slice ContainsString an element
 * Args:
 *   s: slice to check
 *   e: element to check
 * Returns:
 *   bool: true is e in s, false otherwise
  */
-func Contains(s []string, e string) bool {
+func ContainsString(s []string, e string) bool {
 	for _, a := range s {
 		if a == e {
+			return true
+		}
+	}
+	return false
+}
+
+func ContainsInt(slice []int, elem int) bool {
+	for _, e := range slice {
+		if e == elem {
 			return true
 		}
 	}

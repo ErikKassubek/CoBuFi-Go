@@ -74,7 +74,7 @@ func checkForUnlockBeforeLock() {
 
 		if maxFlow < nrUnlock {
 			for _, l := range allLocks[id] {
-				if !utils.Contains(graph["t"], l.GetTID()) {
+				if !utils.ContainsString(graph["t"], l.GetTID()) {
 					locks = append(locks, l)
 				}
 			}

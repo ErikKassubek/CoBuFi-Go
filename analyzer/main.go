@@ -342,7 +342,7 @@ func addAlreadyProcessed(alreadyProcessed map[bugs.ResultType][]string, ignoreRe
 		if _, ok := alreadyProcessed[bug.Type]; !ok {
 			alreadyProcessed[bug.Type] = make([]string, 0)
 		} else {
-			if utils.Contains(alreadyProcessed[bug.Type], bugStr) {
+			if utils.ContainsString(alreadyProcessed[bug.Type], bugStr) {
 				continue
 			}
 		}
@@ -409,7 +409,7 @@ func rewriteTrace(outMachine string, newTrace string, resultIndex int,
 		if _, ok := (*rewrittenTrace)[bug.Type]; !ok {
 			(*rewrittenTrace)[bug.Type] = make([]string, 0)
 		} else {
-			if utils.Contains((*rewrittenTrace)[bug.Type], bugString) {
+			if utils.ContainsString((*rewrittenTrace)[bug.Type], bugString) {
 				fmt.Println("Bug was already rewritten before")
 				fmt.Println("Skip rewrite")
 				return false, true, nil

@@ -65,7 +65,7 @@ func AddTraceElementAtomic(routine int, tpost string,
 
 	idInt, err := strconv.Atoi(id)
 	if err != nil {
-		return errors.New("tpost is not an integer")
+		return errors.New("id is not an integer")
 	}
 
 	var opAInt opAtomic
@@ -157,7 +157,7 @@ func (at *TraceElementAtomic) GetPos() string {
  *   string: The tID of the element
  */
 func (at *TraceElementAtomic) GetTID() string {
-	return "A@" + strconv.Itoa(at.tPost)
+	return at.pos + "@" + strconv.Itoa(at.tPost)
 }
 
 /*
@@ -215,7 +215,6 @@ func (at *TraceElementAtomic) SetTPre(tPre int) {
  *   tSort (int): The timer of the element
  */
 func (at *TraceElementAtomic) SetTSort(tSort int) {
-	at.SetTPre(tSort)
 	at.tPost = tSort
 }
 
@@ -226,7 +225,6 @@ func (at *TraceElementAtomic) SetTSort(tSort int) {
  *   tSort (int): The timer of the element
  */
 func (at *TraceElementAtomic) SetTWithoutNotExecuted(tSort int) {
-	at.SetTPre(tSort)
 	if at.tPost != 0 {
 		at.tPost = tSort
 	}

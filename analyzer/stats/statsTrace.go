@@ -11,6 +11,7 @@
 package stats
 
 import (
+	"analyzer/utils"
 	"bufio"
 	"errors"
 	"fmt"
@@ -127,7 +128,7 @@ func parseTraceFile(tracePath string, stats *map[string]int, known *map[string][
 			(*stats)["numberOfSpawns"]++
 		case "A":
 			(*stats)["numberAtomicOperations"]++
-			if !contains((*known)["atomic"], fields[2]) {
+			if !utils.ContainsString((*known)["atomic"], fields[2]) {
 				(*stats)["numberAtomics"]++
 				(*known)["atomic"] = append((*known)["atomic"], fields[2])
 			}
@@ -138,7 +139,7 @@ func parseTraceFile(tracePath string, stats *map[string]int, known *map[string][
 			} else {
 				(*stats)["numberBufferedOps"]++
 			}
-			if !contains((*known)["channel"], fields[3]) {
+			if !utils.ContainsString((*known)["channel"], fields[3]) {
 				(*stats)["numberChannels"]++
 				if fields[7] == "0" {
 					(*stats)["numberUnbufferedChannels"]++
@@ -158,25 +159,25 @@ func parseTraceFile(tracePath string, stats *map[string]int, known *map[string][
 			}
 		case "M":
 			(*stats)["numberMutexOperations"]++
-			if !contains((*known)["mutex"], fields[3]) {
+			if !utils.ContainsString((*known)["mutex"], fields[3]) {
 				(*stats)["numberMutexes"]++
 				(*known)["mutex"] = append((*known)["mutex"], fields[3])
 			}
 		case "W":
 			(*stats)["numberWaitGroupOperations"]++
-			if !contains((*known)["waitGroup"], fields[3]) {
+			if !utils.ContainsString((*known)["waitGroup"], fields[3]) {
 				(*stats)["numberWaitGroups"]++
 				(*known)["waitGroup"] = append((*known)["waitGroup"], fields[3])
 			}
 		case "O":
 			(*stats)["numberOnceOperations"]++
-			if !contains((*known)["once"], fields[3]) {
+			if !utils.ContainsString((*known)["once"], fields[3]) {
 				(*stats)["numberOnce"]++
 				(*known)["once"] = append((*known)["once"], fields[3])
 			}
 		case "N":
 			(*stats)["numberCondVarOperations"]++
-			if !contains((*known)["condVar"], fields[3]) {
+			if !utils.ContainsString((*known)["condVar"], fields[3]) {
 				(*stats)["numberCondVars"]++
 				(*known)["condVar"] = append((*known)["condVar"], fields[3])
 			}
@@ -208,13 +209,4 @@ func getRoutineFromFileName(fileName string) (int, error) {
 	}
 
 	return routine, nil
-}
-
-func contains(arr []string, str string) bool {
-	for _, a := range arr {
-		if a == str {
-			return true
-		}
-	}
-	return false
 }

@@ -247,61 +247,6 @@ func ShortenRoutineIndex(routine int, index int, incl bool) {
 }
 
 /*
- * Switch the timer of two elements
- * Args:
- *   element1 (traceElement): The first element
- *   element2 (traceElement): The second element
- */
-func SwitchTimer(element1 *TraceElement, element2 *TraceElement) {
-	routine1 := (*element1).GetRoutine()
-	routine2 := (*element2).GetRoutine()
-	tSort1 := (*element1).GetTSort()
-	for index, elem := range traces[routine1] {
-		if elem.GetTSort() == (*element1).GetTSort() {
-			traces[routine1][index].SetT((*element2).GetTSort())
-		}
-	}
-	for index, elem := range traces[routine2] {
-		if elem.GetTSort() == (*element2).GetTSort() {
-			traces[routine2][index].SetT(tSort1)
-			break
-		}
-	}
-
-}
-
-/*
- * Move the time of elements back by steps, excluding the routines in
- * excludedRoutines
- * Args:
- *   startTime (int): The time to start moving back from
- *   steps (int): The number of steps to move back
- *   excludedRoutines ([]int): The routines to exclude
- */
-// func MoveTimeBack(startTime int, steps int, excludedRoutines []int) {
-// 	println("Move Time Back")
-// 	println("Start Time: ", startTime)
-// 	println("Steps: ", steps)
-// 	for routine, localTrace := range traces {
-// 		for _, elem := range localTrace {
-// 			if elem.GetTSort() >= startTime && !contains(excludedRoutines, routine) {
-// 				elem.SetTWithoutNotExecuted(elem.GetTSort() + steps)
-// 			}
-// 		}
-// 	}
-// 	Sort()
-// }
-
-func contains(slice []int, elem int) bool {
-	for _, e := range slice {
-		if e == elem {
-			return true
-		}
-	}
-	return false
-}
-
-/*
  * Set the number of routines
  * Args:
  *   n (int): The number of routines
@@ -857,7 +802,7 @@ func PrintTrace(types []string, clocks bool) {
 	for _, tra := range traces {
 		for _, elem := range tra {
 			elemStr := elem.ToString()
-			if len(types) == 0 || utils.Contains(types, elemStr[0:1]) {
+			if len(types) == 0 || utils.ContainsString(types, elemStr[0:1]) {
 				elements = append(elements, struct {
 					string
 					int

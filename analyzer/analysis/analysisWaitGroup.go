@@ -94,7 +94,7 @@ func checkForDoneBeforeAdd() {
 			// i-th done in the result message
 
 			for _, add := range wgAdd[id] {
-				if !utils.Contains(graph["t"], add.GetTID()) {
+				if !utils.ContainsString(graph["t"], add.GetTID()) {
 					addsNegWg = append(addsNegWg, add)
 				}
 			}

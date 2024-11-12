@@ -12,6 +12,7 @@ package complete
 
 import (
 	"analyzer/explanation"
+	"analyzer/utils"
 	"fmt"
 	"os"
 	"strings"
@@ -61,7 +62,7 @@ func areAllProgElemInTrace(progElems map[string][]int, traceElems map[string][]i
 		}
 
 		for _, line := range lines {
-			if !contains(traceElems[file], line) {
+			if !utils.ContainsInt(traceElems[file], line) {
 				if _, ok := res[file]; !ok {
 					res[file] = make([]int, 0)
 				}
@@ -198,14 +199,4 @@ func printResultsToFiles(elements map[string][]int, selects map[string]map[int][
 	}
 
 	return nil
-}
-
-func contains(arr []int, elem int) bool {
-	for _, e := range arr {
-		if e == elem {
-			return true
-		}
-	}
-
-	return false
 }

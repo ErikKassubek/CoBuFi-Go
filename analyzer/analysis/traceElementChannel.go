@@ -85,12 +85,12 @@ func AddTraceElementChannel(routine int, tPre string,
 
 	tPreInt, err := strconv.Atoi(tPre)
 	if err != nil {
-		return errors.New("tpre is not an integer")
+		return errors.New("tPre is not an integer")
 	}
 
 	tPostInt, err := strconv.Atoi(tPost)
 	if err != nil {
-		return errors.New("tpost is not an integer")
+		return errors.New("tPost is not an integer")
 	}
 
 	idInt := -1
@@ -110,12 +110,12 @@ func AddTraceElementChannel(routine int, tPre string,
 	case "C":
 		opCInt = CloseOp
 	default:
-		return errors.New("opC is not a valid value")
+		return errors.New("opC is not a valid operation")
 	}
 
 	clBool, err := strconv.ParseBool(cl)
 	if err != nil {
-		return errors.New("suc is not a boolean")
+		return errors.New("cl is not a boolean")
 	}
 
 	oIDInt, err := strconv.Atoi(oID)

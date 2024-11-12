@@ -11,6 +11,7 @@
 package complete
 
 import (
+	"analyzer/utils"
 	"errors"
 	"os"
 	"path/filepath"
@@ -125,7 +126,7 @@ func getTraceElements(resultFolderPath string) (map[string][]int, error) {
 			}
 
 			for _, line := range lines {
-				if !contains(res[file], line) {
+				if !utils.ContainsInt(res[file], line) {
 					res[file] = append(res[file], line)
 				}
 			}
