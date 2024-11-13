@@ -48,6 +48,8 @@ func FinishTracing() {
 
 	runtime.AdvocatRoutineExit()
 
+	time.Sleep(100 * time.Millisecond)
+
 	runtime.DisableTrace()
 
 	writeToTraceFiles(tracePathRecorded)
