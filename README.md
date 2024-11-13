@@ -2,6 +2,9 @@
 > [!NOTE]
 > This program is a work in progress and may result in incorrect or incomplete results.
 
+> [!WARNING]
+> This program currently only runs / is tested under Linux
+
 ## What is AdvocateGo
 AdvocateGo is an analysis tool for Go programs.
 It detects concurrency bugs and gives  diagnostic insight.
