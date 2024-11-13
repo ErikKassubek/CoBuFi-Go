@@ -481,7 +481,7 @@ func TestChannelUpdateVectorClockBufferedRecv(t *testing.T) {
 		routine: 1,
 		tPre:    4,
 		tPost:   6,
-		id:      1,
+		id:      111,
 		opC:     SendOp,
 		cl:      false,
 		oID:     1,
@@ -494,12 +494,12 @@ func TestChannelUpdateVectorClockBufferedRecv(t *testing.T) {
 		routine: 2,
 		tPre:    5,
 		tPost:   7,
-		id:      1,
+		id:      111,
 		opC:     RecvOp,
 		cl:      false,
 		oID:     1,
 		qSize:   1,
-		pos:     "exampleFile.go:111",
+		pos:     "exampleFile.go:222",
 		vc:      clock.NewVectorClock(2),
 	}
 
@@ -514,16 +514,16 @@ func TestChannelUpdateVectorClockBufferedRecv(t *testing.T) {
 	recv := (*recvT).(*TraceElementChannel)
 
 	currentVCHb = map[int]clock.VectorClock{
-		1: clock.NewVectorClockSet(2, map[int]int{1: 2, 2: 5}),
-		2: clock.NewVectorClockSet(2, map[int]int{1: 7, 2: 3}),
+		1: clock.NewVectorClockSet(2, map[int]int{1: 9, 2: 2}),
+		2: clock.NewVectorClockSet(2, map[int]int{1: 8, 2: 6}),
 	}
 
 	expChVcSend := currentVCHb[sendElem.routine].Copy()
 	expChVcRecv := currentVCHb[recvElem.routine].Copy()
 
 	expVc := map[int]clock.VectorClock{
-		1: clock.NewVectorClockSet(2, map[int]int{1: 3, 2: 5}),
-		2: clock.NewVectorClockSet(2, map[int]int{1: 7, 2: 6}),
+		1: clock.NewVectorClockSet(2, map[int]int{1: 10, 2: 2}),
+		2: clock.NewVectorClockSet(2, map[int]int{1: 10, 2: 7}),
 	}
 
 	(*send).updateVectorClock()
@@ -614,8 +614,6 @@ func TestChannelFindPartner(t *testing.T) {
 
 	send := (*sendT).(*TraceElementChannel)
 	recv := (*recvT).(*TraceElementChannel)
-	t.Log(send.ToString())
-	t.Log(recv.ToString())
 
 	res := send.findPartner()
 

@@ -470,7 +470,9 @@ func (ch *TraceElementChannel) toStringSep(sep string, pos bool) string {
 func (ch *TraceElementChannel) updateVectorClock() {
 	ch.vc = currentVCHb[ch.routine].Copy()
 
-	partner := ch.findPartner()
+	if ch.partner == nil {
+		ch.findPartner()
+	}
 
 	// hold back receive operations, until the send operation is processed
 	for _, elem := range waitingReceive {
@@ -481,11 +483,11 @@ func (ch *TraceElementChannel) updateVectorClock() {
 			elem.updateVectorClock()
 		}
 	}
+
 	if ch.IsBuffered() && ch.tPost != 0 {
 		if ch.opC == SendOp {
 			maxOpID[ch.id] = ch.oID
 		} else if ch.opC == RecvOp {
-			logging.Debug("Holding back", logging.INFO)
 			if ch.oID > maxOpID[ch.id] && !ch.cl {
 				waitingReceive = append(waitingReceive, ch)
 				return
@@ -496,11 +498,11 @@ func (ch *TraceElementChannel) updateVectorClock() {
 	if !ch.IsBuffered() { // unbuffered channel
 		switch ch.opC {
 		case SendOp:
-			if partner != -1 {
+			if ch.partner != nil {
 				ch.partner.vc = currentVCHb[ch.partner.routine].Copy()
-				Unbuffered(ch, traces[partner][currentIndex[partner]], currentVCHb)
+				Unbuffered(ch, traces[ch.partner.routine][currentIndex[ch.partner.routine]], currentVCHb)
 				// advance index of receive routine, send routine is already advanced
-				increaseIndex(partner)
+				increaseIndex(ch.partner.routine)
 			} else {
 				if ch.cl { // recv on closed channel
 					SendC(ch)
@@ -510,11 +512,11 @@ func (ch *TraceElementChannel) updateVectorClock() {
 			}
 
 		case RecvOp: // should not occur, but better save than sorry
-			if partner != -1 {
+			if ch.partner != nil {
 				ch.partner.vc = currentVCHb[ch.partner.routine].Copy()
-				Unbuffered(traces[partner][currentIndex[partner]], ch, currentVCHb)
+				Unbuffered(traces[ch.partner.routine][currentIndex[ch.partner.routine]], ch, currentVCHb)
 				// advance index of receive routine, send routine is already advanced
-				increaseIndex(partner)
+				increaseIndex(ch.partner.routine)
 			} else {
 				if ch.cl { // recv on closed channel
 					RecvC(ch, currentVCHb, false)
