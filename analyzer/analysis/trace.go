@@ -54,14 +54,19 @@ func AddElementToTrace(element TraceElement) error {
 	return nil
 }
 
+func ClearTrace() {
+	traces = make(map[int][]TraceElement)
+	currentIndex = make(map[int]int)
+}
+
 /*
 * Add an empty routine to the trace
 * Args:
 *   routine (int): The routine id
  */
-func AddEmptyRoutine(routine int) {
-	traces[routine] = make([]TraceElement, 0)
-}
+// func AddEmptyRoutine(routine int) {
+// 	traces[routine] = make([]TraceElement, 0)
+// }
 
 /*
  * Sort the trace by tSort
@@ -807,7 +812,7 @@ func PrintTrace(types []string, clocks bool) {
 					string
 					int
 					clock.VectorClock
-				}{elemStr, elem.GetTSort(), elem.GetVC()})
+				}{elemStr, elem.getTpost(), elem.GetVC()})
 			}
 		}
 	}

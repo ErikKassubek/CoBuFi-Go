@@ -67,9 +67,6 @@ func Unbuffered(sender TraceElement, recv TraceElement, vc map[int]clock.VectorC
 		hasReceived[sender.GetID()] = true
 		mostRecentReceive[recv.GetRoutine()][sender.GetID()] = VectorClockTID3{recv, mostRecentReceive[recv.GetRoutine()][sender.GetID()].Vc.Sync(vc[recv.GetRoutine()]).Copy(), sender.GetID()}
 
-		logging.Debug("Set most recent send of "+strconv.Itoa(sender.GetID())+" to "+mostRecentSend[sender.GetRoutine()][sender.GetID()].Vc.ToString(), logging.DEBUG)
-		logging.Debug("Set most recent recv of "+strconv.Itoa(sender.GetID())+" to "+mostRecentReceive[recv.GetRoutine()][sender.GetID()].Vc.ToString(), logging.DEBUG)
-
 	} else {
 		vc[sender.GetRoutine()] = vc[sender.GetRoutine()].Inc(sender.GetRoutine())
 	}

@@ -2,10 +2,12 @@ TestName,NumberOfLeaks,NumberOfLeaksWithRewrite,NumberOfLeaksResolvedViaReplay,N
 GoBench,187,131,1,2,2,0,0,0,0
 argo-cd,4398,535,0,0,0,0,0,0,0
 beego,106,2,0,0,0,0,0,0,0
+bleve,582,38,0,60,0,0,0,0,0
 connect,211,66,0,2,0,0,0,0,0
 go-ethereum,432,186,0,60,0,0,0,46,0
 grpc-go,74,9,0,2,0,0,0,0,0
 hugo,1186,401,0,79,0,0,0,1,0
 moby,712,113,0,0,0,0,0,0,0
+nsq,164,7,0,71,0,0,0,0,0
 prometheus,1048,212,0,15,0,0,0,0,0
 syncthing,410,93,1,9,0,0,0,3,0

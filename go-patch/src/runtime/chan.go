@@ -287,9 +287,9 @@ func chansend(c *hchan, ep unsafe.Pointer, block bool, callerpc uintptr, ignored
 	if c.closed != 0 {
 		unlock(&c.lock)
 		// ADVOCATE-CHANGE-START
-		if IsReplayEnabled() {
-			IsNextElementReplayEnd(ExitCodeSendClose, true, false)
-		}
+		// if IsReplayEnabled() {
+		// 	IsNextElementReplayEnd(ExitCodeSendClose, true, false)
+		// }
 
 		if !ignored && !c.advocateIgnore {
 			CheckLastTPreReplay(replayElem.TimePre)
@@ -416,9 +416,9 @@ func chansend(c *hchan, ep unsafe.Pointer, block bool, callerpc uintptr, ignored
 			throw("chansend: spurious wakeup")
 		}
 		// ADVOCATE-CHANGE-START
-		if IsReplayEnabled() {
-			IsNextElementReplayEnd(ExitCodeSendClose, true, false)
-		}
+		// if IsReplayEnabled() {
+		// 	IsNextElementReplayEnd(ExitCodeSendClose, true, false)
+		// }
 
 		if !ignored && !c.advocateIgnore {
 			CheckLastTPreReplay(replayElem.TimePre)

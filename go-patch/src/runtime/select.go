@@ -631,9 +631,9 @@ sclose:
 	selunlock(scases, lockorder)
 
 	// ADVOCATE-CHANGE-START
-	if IsReplayEnabled() {
-		IsNextElementReplayEnd(ExitCodeSendClose, true, false)
-	}
+	// if IsReplayEnabled() {
+	// 	IsNextElementReplayEnd(ExitCodeSendClose, true, false)
+	// }
 
 	CheckLastTPreReplay(replayElem.TimePre)
 	AdvocateSelectPost(advocateIndex, c, casi, lockorder, advocateRClose)

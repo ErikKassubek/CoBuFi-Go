@@ -470,9 +470,7 @@ func (ch *TraceElementChannel) toStringSep(sep string, pos bool) string {
 func (ch *TraceElementChannel) updateVectorClock() {
 	ch.vc = currentVCHb[ch.routine].Copy()
 
-	if ch.partner != nil {
-		ch.partner.vc = currentVCHb[ch.partner.routine].Copy()
-	}
+	partner := ch.findPartner()
 
 	// hold back receive operations, until the send operation is processed
 	for _, elem := range waitingReceive {
@@ -498,40 +496,29 @@ func (ch *TraceElementChannel) updateVectorClock() {
 	if !ch.IsBuffered() { // unbuffered channel
 		switch ch.opC {
 		case SendOp:
-			partner := ch.findPartner()
 			if partner != -1 {
-				logging.Debug("Update vector clock of channel operation: "+
-					traces[partner][currentIndex[partner]].ToString(),
-					logging.DEBUG)
+				ch.partner.vc = currentVCHb[ch.partner.routine].Copy()
 				Unbuffered(ch, traces[partner][currentIndex[partner]], currentVCHb)
 				// advance index of receive routine, send routine is already advanced
 				increaseIndex(partner)
 			} else {
 				if ch.cl { // recv on closed channel
-					logging.Debug("Update vector clock of channel operation: "+
-						ch.ToString(), logging.DEBUG)
 					SendC(ch)
 				} else {
-					logging.Debug("Could not find partner for "+ch.GetTID(), logging.INFO)
 					StuckChan(ch.routine, currentVCHb)
 				}
 			}
 
 		case RecvOp: // should not occur, but better save than sorry
-			partner := ch.findPartner()
 			if partner != -1 {
-				logging.Debug("Update vector clock of channel operation: "+
-					traces[partner][currentIndex[partner]].ToString(), logging.DEBUG)
+				ch.partner.vc = currentVCHb[ch.partner.routine].Copy()
 				Unbuffered(traces[partner][currentIndex[partner]], ch, currentVCHb)
 				// advance index of receive routine, send routine is already advanced
 				increaseIndex(partner)
 			} else {
 				if ch.cl { // recv on closed channel
-					logging.Debug("Update vector clock of channel operation: "+
-						ch.ToString(), logging.DEBUG)
 					RecvC(ch, currentVCHb, false)
 				} else {
-					logging.Debug("Could not find partner for "+ch.GetTID(), logging.INFO)
 					StuckChan(ch.routine, currentVCHb)
 				}
 			}
@@ -589,15 +576,24 @@ func (ch *TraceElementChannel) findPartner() int {
 		// 	continue
 		// }
 		elem := trace[currentIndex[routine]]
+
+		if elem.ToString() == ch.ToString() {
+			continue
+		}
+
 		switch e := elem.(type) {
 		case *TraceElementChannel:
 			if e.id == ch.id && e.oID == ch.oID {
+				ch.partner = e
+				e.partner = ch
 				return routine
 			}
 		case *TraceElementSelect:
 			if e.chosenCase.tPost != 0 &&
 				e.chosenCase.oID == ch.id &&
 				e.chosenCase.oID == ch.oID {
+				ch.partner = &e.chosenCase
+				e.chosenCase.partner = ch
 				return routine
 			}
 		default:
