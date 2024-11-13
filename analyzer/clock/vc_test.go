@@ -224,3 +224,67 @@ func TestIsEqual(t *testing.T) {
 		})
 	}
 }
+
+func TestIsMapVcEqual(t *testing.T) {
+	tests := []struct {
+		name     string
+		v1       map[int]VectorClock
+		v2       map[int]VectorClock
+		expected bool
+	}{
+		{
+			name: "Equal maps",
+			v1: map[int]VectorClock{
+				1: {size: 3, clock: map[int]int{1: 1, 2: 2, 3: 3}},
+				2: {size: 3, clock: map[int]int{1: 4, 2: 5, 3: 6}},
+			},
+			v2: map[int]VectorClock{
+				1: {size: 3, clock: map[int]int{1: 1, 2: 2, 3: 3}},
+				2: {size: 3, clock: map[int]int{1: 4, 2: 5, 3: 6}},
+			},
+			expected: true,
+		},
+		{
+			name: "Different sizes",
+			v1: map[int]VectorClock{
+				1: {size: 3, clock: map[int]int{1: 1, 2: 2, 3: 3}},
+			},
+			v2: map[int]VectorClock{
+				1: {size: 3, clock: map[int]int{1: 1, 2: 2, 3: 3}},
+				2: {size: 3, clock: map[int]int{1: 4, 2: 5, 3: 6}},
+			},
+			expected: false,
+		},
+		{
+			name: "Different values",
+			v1: map[int]VectorClock{
+				1: {size: 3, clock: map[int]int{1: 1, 2: 2, 3: 3}},
+				2: {size: 3, clock: map[int]int{1: 4, 2: 5, 3: 6}},
+			},
+			v2: map[int]VectorClock{
+				1: {size: 3, clock: map[int]int{1: 1, 2: 2, 3: 3}},
+				2: {size: 3, clock: map[int]int{1: 4, 2: 5, 3: 7}},
+			},
+			expected: false,
+		},
+		{
+			name: "Different keys",
+			v1: map[int]VectorClock{
+				1: {size: 3, clock: map[int]int{1: 1, 2: 2, 3: 3}},
+			},
+			v2: map[int]VectorClock{
+				2: {size: 3, clock: map[int]int{1: 1, 2: 2, 3: 3}},
+			},
+			expected: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := IsMapVcEqual(tt.v1, tt.v2)
+			if result != tt.expected {
+				t.Errorf("expected %v, got %v", tt.expected, result)
+			}
+		})
+	}
+}

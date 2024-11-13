@@ -11,6 +11,7 @@
 package analysis
 
 import (
+	"analyzer/clock"
 	"errors"
 	"testing"
 )
@@ -279,184 +280,354 @@ func TestTraceElementChannelNew(t *testing.T) {
 	}
 }
 
-// func TestTraceElementAtomicGet(t *testing.T) {
-// 	var tests = []struct {
-// 		name          string
-// 		routine       int
-// 		tPost         string
-// 		id            string
-// 		operation     string
-// 		position      string
-// 		expRoutine    int
-// 		expTPre       int
-// 		expTSort      int
-// 		expTPost      int
-// 		expID         int
-// 		expPos        string
-// 		expTID        string
-// 		expObjectType string
-// 		expVC         clock.VectorClock
-// 		expString     string
-// 	}{
-// 		{"Valid Load", 1, "213", "123", "L", "testfile.go:99", 1, 213, 213, 213, 123, "testfile.go:99", "testfile.go:99@213", "AL", clock.NewVectorClock(0), "A,213,123,L,testfile.go:99"},
-// 		{"Valid Store", 1, "213", "123", "S", "testfile.go:99", 1, 213, 213, 213, 123, "testfile.go:99", "testfile.go:99@213", "AS", clock.NewVectorClock(0), "A,213,123,S,testfile.go:99"},
-// 		{"Valid Add", 1, "213", "123", "A", "testfile.go:99", 1, 213, 213, 213, 123, "testfile.go:99", "testfile.go:99@213", "AA", clock.NewVectorClock(0), "A,213,123,A,testfile.go:99"},
-// 		{"Valid Swap", 1, "213", "123", "W", "testfile.go:99", 1, 213, 213, 213, 123, "testfile.go:99", "testfile.go:99@213", "AW", clock.NewVectorClock(0), "A,213,123,W,testfile.go:99"},
-// 		{"Valid CompSwap", 1, "213", "123", "C", "testfile.go:99", 1, 213, 213, 213, 123, "testfile.go:99", "testfile.go:99@213", "AC", clock.NewVectorClock(0), "A,213,123,C,testfile.go:99"},
-// 	}
-
-// 	for _, test := range tests {
-// 		AddTraceElementAtomic(test.routine, test.tPost, test.id, test.operation, test.position)
-
-// 		trace := GetTraceFromId(test.routine)
-
-// 		elem := trace[len(trace)-1].(*TraceElementAtomic)
-
-// 		if elem.GetRoutine() != test.expRoutine {
-// 			t.Errorf("Incorrect routine. Expected %d. Got %d.", test.expRoutine, elem.routine)
-// 		}
-
-// 		if elem.GetTPre() != test.expTPre {
-// 			t.Errorf("Incorrect tPre. Expected %d. Got %d.", test.expTPre, elem.GetTPre())
-// 		}
-
-// 		if elem.GetTSort() != test.expTSort {
-// 			t.Errorf("Incorrect tSort. Expected %d. Got %d.", test.expTSort, elem.GetTSort())
-// 		}
-
-// 		if elem.getTpost() != test.expTPost {
-// 			t.Errorf("Incorrect tPost. Expected %d. Got %d.", test.expTPost, elem.tPost)
-// 		}
-
-// 		if elem.GetID() != test.expID {
-// 			t.Errorf("Incorrect ID. Expected %d. Got %d.", test.expID, elem.GetID())
-// 		}
-
-// 		if elem.GetPos() != test.expPos {
-// 			t.Errorf("Incorrect position. Expected %s. Got %s.", test.expPos, elem.GetPos())
-// 		}
-
-// 		if elem.GetTID() != test.expTID {
-// 			t.Errorf("Incorrect tID. Expected %s. Got %s.", test.expTID, elem.GetTID())
-// 		}
-
-// 		if elem.GetObjType() != test.expObjectType {
-// 			t.Errorf("Incorrect object type. Expected %s. Got %s.", test.expObjectType, elem.GetObjType())
-// 		}
-
-// 		if !elem.GetVC().IsEqual(test.expVC) {
-// 			t.Errorf("Incorrect VC. Expected %v. Got %v.", test.expVC, elem.GetVC())
-// 		}
-
-// 		if elem.ToString() != test.expString {
-// 			t.Errorf("Incorrect string. Expected %s. Got %s.", test.expString, elem.ToString())
-// 		}
-// 	}
+// func TestTraceElementChannelGet(t *testing.T) {
 // }
 
-// func TestUpdateVectorClock(t *testing.T) {
-// 	t.Run("LoadOp", func(t *testing.T) {
-// 		at := TraceElementAtomic{id: 1, routine: 2, opA: LoadOp}
-// 		currentVCHb = map[int]clock.VectorClock{2: clock.NewVectorClockSet(3, map[int]int{1: 2, 2: 4, 3: 1})}
-// 		lw = map[int]clock.VectorClock{1: clock.NewVectorClockSet(3, map[int]int{1: 2, 2: 3, 3: 0})}
-
-// 		expectedVC := map[int]clock.VectorClock{2: clock.NewVectorClockSet(3, map[int]int{1: 2, 2: 5, 3: 1})}
-// 		expectedAtVC := currentVCHb[at.routine].Copy()
-
-// 		at.updateVectorClock()
-
-// 		if !reflect.DeepEqual(currentVCHb, expectedVC) {
-// 			t.Errorf("Incorrect vc. Expected %v. Got %v.", expectedVC, currentVCHb)
-// 		}
-
-// 		if !reflect.DeepEqual(at.vc, expectedAtVC) {
-// 			t.Errorf("Incorrect at vc. Expected %v. Got %v.", expectedAtVC, at.vc)
-// 		}
-// 	})
-
-// 	t.Run("Store", func(t *testing.T) {
-// 		at := TraceElementAtomic{id: 1, routine: 2, opA: StoreOp}
-// 		currentVCHb = map[int]clock.VectorClock{2: clock.NewVectorClockSet(3, map[int]int{1: 2, 2: 4, 3: 1})}
-// 		lw = map[int]clock.VectorClock{1: clock.NewVectorClockSet(3, map[int]int{1: 2, 2: 3, 3: 0})}
-
-// 		expectedLW := map[int]clock.VectorClock{1: currentVCHb[2].Copy()}
-// 		expectedVC := map[int]clock.VectorClock{2: clock.NewVectorClockSet(3, map[int]int{1: 2, 2: 5, 3: 1})}
-// 		expectedAtVC := currentVCHb[at.routine].Copy()
-
-// 		at.updateVectorClock()
-
-// 		if !reflect.DeepEqual(lw, expectedLW) {
-// 			t.Errorf("Incorrect lw. Expected %v. Got %v.", expectedLW, lw)
-// 		}
-
-// 		if !reflect.DeepEqual(currentVCHb, expectedVC) {
-// 			t.Errorf("Incorrect vc. Expected %v. Got %v.", expectedVC, currentVCHb)
-// 		}
-
-// 		if !reflect.DeepEqual(at.vc, expectedAtVC) {
-// 			t.Errorf("Incorrect at vc. Expected %v. Got %v.", expectedAtVC, at.vc)
-// 		}
-// 	})
-
-// 	t.Run("Add", func(t *testing.T) {
-// 		at := TraceElementAtomic{id: 1, routine: 2, opA: AddOp}
-// 		currentVCHb = map[int]clock.VectorClock{2: clock.NewVectorClockSet(3, map[int]int{1: 2, 2: 4, 3: 1})}
-// 		lw = map[int]clock.VectorClock{1: clock.NewVectorClockSet(3, map[int]int{1: 2, 2: 3, 3: 0})}
-
-// 		expectedLW := map[int]clock.VectorClock{1: currentVCHb[2].Copy()}
-// 		expectedVC := map[int]clock.VectorClock{2: clock.NewVectorClockSet(3, map[int]int{1: 2, 2: 5, 3: 1})}
-// 		expectedAtVC := currentVCHb[at.routine].Copy()
-
-// 		at.updateVectorClock()
-
-// 		if !reflect.DeepEqual(lw, expectedLW) {
-// 			t.Errorf("Incorrect lw. Expected %v. Got %v.", expectedLW, lw)
-// 		}
-
-// 		if !reflect.DeepEqual(currentVCHb, expectedVC) {
-// 			t.Errorf("Incorrect vc. Expected %v. Got %v.", expectedVC, currentVCHb)
-// 		}
-
-// 		if !reflect.DeepEqual(at.vc, expectedAtVC) {
-// 			t.Errorf("Incorrect at vc. Expected %v. Got %v.", expectedAtVC, at.vc)
-// 		}
-// 	})
-
-// 	t.Run("Swap", func(t *testing.T) {
-// 		at := TraceElementAtomic{id: 1, routine: 2, opA: SwapOp}
-// 		currentVCHb = map[int]clock.VectorClock{2: clock.NewVectorClockSet(3, map[int]int{1: 2, 2: 4, 3: 1})}
-// 		lw = map[int]clock.VectorClock{1: clock.NewVectorClockSet(3, map[int]int{1: 2, 2: 3, 3: 0})}
-
-// 		expectedVC := map[int]clock.VectorClock{2: clock.NewVectorClockSet(3, map[int]int{1: 2, 2: 6, 3: 1})}
-// 		expectedAtVC := currentVCHb[at.routine].Copy()
-
-// 		at.updateVectorClock()
-
-// 		if !reflect.DeepEqual(currentVCHb, expectedVC) {
-// 			t.Errorf("Incorrect vc. Expected %v. Got %v.", expectedVC, currentVCHb)
-// 		}
-
-// 		if !reflect.DeepEqual(at.vc, expectedAtVC) {
-// 			t.Errorf("Incorrect at vc. Expected %v. Got %v.", expectedAtVC, at.vc)
-// 		}
-// 	})
-
-// 	t.Run("CompSwap", func(t *testing.T) {
-// 		at := TraceElementAtomic{id: 1, routine: 2, opA: CompSwapOp}
-// 		currentVCHb = map[int]clock.VectorClock{2: clock.NewVectorClockSet(3, map[int]int{1: 2, 2: 4, 3: 1})}
-// 		lw = map[int]clock.VectorClock{1: clock.NewVectorClockSet(3, map[int]int{1: 2, 2: 3, 3: 0})}
-
-// 		expectedVC := map[int]clock.VectorClock{2: clock.NewVectorClockSet(3, map[int]int{1: 2, 2: 6, 3: 1})}
-// 		expectedAtVC := currentVCHb[at.routine].Copy()
-
-// 		at.updateVectorClock()
-
-// 		if !reflect.DeepEqual(currentVCHb, expectedVC) {
-// 			t.Errorf("Incorrect vc. Expected %v. Got %v.", expectedVC, currentVCHb)
-// 		}
-
-// 		if !reflect.DeepEqual(at.vc, expectedAtVC) {
-// 			t.Errorf("Incorrect at vc. Expected %v. Got %v.", expectedAtVC, at.vc)
-// 		}
-// 	})
+// func TestTraceElementChannelSet(t *testing.T) {
 // }
+
+func TestChannelUpdateVectorClockUnbufferedSend(t *testing.T) {
+	t.Run("Unbuffered Send", func(t *testing.T) {
+		sendUnbuffered := TraceElementChannel{
+			routine: 1,
+			tPre:    4,
+			tPost:   6,
+			id:      1,
+			opC:     SendOp,
+			cl:      false,
+			oID:     1,
+			qSize:   0,
+			pos:     "exampleFile.go:111",
+			vc:      clock.NewVectorClock(2),
+		}
+
+		recvUnbuffered := TraceElementChannel{
+			routine: 2,
+			tPre:    5,
+			tPost:   7,
+			id:      1,
+			opC:     RecvOp,
+			cl:      false,
+			oID:     1,
+			qSize:   0,
+			pos:     "exampleFile.go:111",
+			vc:      clock.NewVectorClock(2),
+		}
+
+		ClearTrace()
+		AddElementToTrace(&sendUnbuffered)
+		AddElementToTrace(&recvUnbuffered)
+
+		sendT, _ := GetTraceElementFromTID(sendUnbuffered.GetTID())
+		recvT, _ := GetTraceElementFromTID(recvUnbuffered.GetTID())
+
+		send := (*sendT).(*TraceElementChannel)
+		recv := (*recvT).(*TraceElementChannel)
+
+		currentVCHb = map[int]clock.VectorClock{
+			1: clock.NewVectorClockSet(2, map[int]int{1: 2, 2: 5}),
+			2: clock.NewVectorClockSet(2, map[int]int{1: 7, 2: 3}),
+		}
+
+		expChVcSend := currentVCHb[sendUnbuffered.routine].Copy()
+		expChVcRecv := currentVCHb[recvUnbuffered.routine].Copy()
+
+		expVc := map[int]clock.VectorClock{
+			1: clock.NewVectorClockSet(2, map[int]int{1: 8, 2: 5}),
+			2: clock.NewVectorClockSet(2, map[int]int{1: 7, 2: 6}),
+		}
+
+		(*send).updateVectorClock()
+
+		if !(*send).vc.IsEqual(expChVcSend) {
+			t.Errorf("Incorrect ch vc send. Expected %v. Got %v", expChVcSend, (*send).vc)
+		}
+
+		if !(*recv).vc.IsEqual(expChVcRecv) {
+			t.Errorf("Incorrect ch vc recv. Expected %v. Got %v", expChVcRecv, (*recv).vc)
+		}
+
+		if !clock.IsMapVcEqual(currentVCHb, expVc) {
+			t.Errorf("Incorrect currentVCHb send. Expected %v. Got %v", expVc, currentVCHb)
+		}
+	})
+}
+
+func TestChannelUpdateVectorClockUnbufferedRecv(t *testing.T) {
+	sendElem := TraceElementChannel{
+		routine: 1,
+		tPre:    4,
+		tPost:   6,
+		id:      1,
+		opC:     SendOp,
+		cl:      false,
+		oID:     1,
+		qSize:   0,
+		pos:     "exampleFile.go:111",
+		vc:      clock.NewVectorClock(2),
+	}
+
+	recvElem := TraceElementChannel{
+		routine: 2,
+		tPre:    5,
+		tPost:   7,
+		id:      1,
+		opC:     RecvOp,
+		cl:      false,
+		oID:     1,
+		qSize:   0,
+		pos:     "exampleFile.go:111",
+		vc:      clock.NewVectorClock(2),
+	}
+
+	ClearTrace()
+	AddElementToTrace(&sendElem)
+	AddElementToTrace(&recvElem)
+
+	sendT, _ := GetTraceElementFromTID(sendElem.GetTID())
+	recvT, _ := GetTraceElementFromTID(recvElem.GetTID())
+
+	send := (*sendT).(*TraceElementChannel)
+	recv := (*recvT).(*TraceElementChannel)
+
+	currentVCHb = map[int]clock.VectorClock{
+		1: clock.NewVectorClockSet(2, map[int]int{1: 2, 2: 5}),
+		2: clock.NewVectorClockSet(2, map[int]int{1: 7, 2: 3}),
+	}
+
+	expChVcSend := currentVCHb[sendElem.routine].Copy()
+	expChVcRecv := currentVCHb[recvElem.routine].Copy()
+
+	expVc := map[int]clock.VectorClock{
+		1: clock.NewVectorClockSet(2, map[int]int{1: 8, 2: 5}),
+		2: clock.NewVectorClockSet(2, map[int]int{1: 7, 2: 6}),
+	}
+
+	(*recv).updateVectorClock()
+
+	if !(*send).vc.IsEqual(expChVcSend) {
+		t.Errorf("Incorrect ch vc send. Expected %v. Got %v", expChVcSend, (*send).vc)
+	}
+
+	if !(*recv).vc.IsEqual(expChVcRecv) {
+		t.Errorf("Incorrect ch vc recv. Expected %v. Got %v", expChVcRecv, (*recv).vc)
+	}
+
+	if !clock.IsMapVcEqual(currentVCHb, expVc) {
+		t.Errorf("Incorrect currentVCHb recv. Expected %v. Got %v", expVc, currentVCHb)
+	}
+}
+
+func TestChannelUpdateVectorClockBufferedSend(t *testing.T) {
+	sendElem := TraceElementChannel{
+		routine: 1,
+		tPre:    4,
+		tPost:   6,
+		id:      1,
+		opC:     SendOp,
+		cl:      false,
+		oID:     1,
+		qSize:   1,
+		pos:     "exampleFile.go:111",
+		vc:      clock.NewVectorClock(2),
+	}
+
+	traceElem := TraceElementChannel{
+		routine: 2,
+		tPre:    5,
+		tPost:   7,
+		id:      1,
+		opC:     RecvOp,
+		cl:      false,
+		oID:     1,
+		qSize:   1,
+		pos:     "exampleFile.go:111",
+		vc:      clock.NewVectorClock(2),
+	}
+
+	ClearTrace()
+	AddElementToTrace(&sendElem)
+	AddElementToTrace(&traceElem)
+
+	sendT, _ := GetTraceElementFromTID(sendElem.GetTID())
+
+	send := (*sendT).(*TraceElementChannel)
+
+	currentVCHb = map[int]clock.VectorClock{
+		1: clock.NewVectorClockSet(2, map[int]int{1: 2, 2: 5}),
+		2: clock.NewVectorClockSet(2, map[int]int{1: 7, 2: 3}),
+	}
+
+	expChVcSend := currentVCHb[sendElem.routine].Copy()
+
+	expVc := map[int]clock.VectorClock{
+		1: clock.NewVectorClockSet(2, map[int]int{1: 3, 2: 5}),
+		2: clock.NewVectorClockSet(2, map[int]int{1: 7, 2: 3}),
+	}
+
+	(*send).updateVectorClock()
+
+	if !(*send).vc.IsEqual(expChVcSend) {
+		t.Errorf("Incorrect ch vc send. Expected %v. Got %v", expChVcSend, (*send).vc)
+	}
+
+	if !clock.IsMapVcEqual(currentVCHb, expVc) {
+		t.Errorf("Incorrect currentVCHb send. Expected %v. Got %v", expVc, currentVCHb)
+	}
+}
+
+func TestChannelUpdateVectorClockBufferedRecv(t *testing.T) {
+	sendElem := TraceElementChannel{
+		routine: 1,
+		tPre:    4,
+		tPost:   6,
+		id:      1,
+		opC:     SendOp,
+		cl:      false,
+		oID:     1,
+		qSize:   1,
+		pos:     "exampleFile.go:111",
+		vc:      clock.NewVectorClock(2),
+	}
+
+	recvElem := TraceElementChannel{
+		routine: 2,
+		tPre:    5,
+		tPost:   7,
+		id:      1,
+		opC:     RecvOp,
+		cl:      false,
+		oID:     1,
+		qSize:   1,
+		pos:     "exampleFile.go:111",
+		vc:      clock.NewVectorClock(2),
+	}
+
+	ClearTrace()
+	AddElementToTrace(&sendElem)
+	AddElementToTrace(&recvElem)
+
+	sendT, _ := GetTraceElementFromTID(sendElem.GetTID())
+	recvT, _ := GetTraceElementFromTID(recvElem.GetTID())
+
+	send := (*sendT).(*TraceElementChannel)
+	recv := (*recvT).(*TraceElementChannel)
+
+	currentVCHb = map[int]clock.VectorClock{
+		1: clock.NewVectorClockSet(2, map[int]int{1: 2, 2: 5}),
+		2: clock.NewVectorClockSet(2, map[int]int{1: 7, 2: 3}),
+	}
+
+	expChVcSend := currentVCHb[sendElem.routine].Copy()
+	expChVcRecv := currentVCHb[recvElem.routine].Copy()
+
+	expVc := map[int]clock.VectorClock{
+		1: clock.NewVectorClockSet(2, map[int]int{1: 3, 2: 5}),
+		2: clock.NewVectorClockSet(2, map[int]int{1: 7, 2: 6}),
+	}
+
+	(*send).updateVectorClock()
+	(*recv).updateVectorClock()
+
+	if !(*send).vc.IsEqual(expChVcSend) {
+		t.Errorf("Incorrect ch vc send. Expected %v. Got %v", expChVcSend, (*send).vc)
+	}
+
+	if !(*recv).vc.IsEqual(expChVcRecv) {
+		t.Errorf("Incorrect ch vc recv. Expected %v. Got %v", expChVcRecv, (*recv).vc)
+	}
+
+	if !clock.IsMapVcEqual(currentVCHb, expVc) {
+		t.Errorf("Incorrect currentVCHb send. Expected %v. Got %v", expVc, currentVCHb)
+	}
+}
+
+func TestChannelUpdateVectorClockClose(t *testing.T) {
+	closeElem := TraceElementChannel{
+		routine: 2,
+		tPre:    5,
+		tPost:   7,
+		id:      1,
+		opC:     CloseOp,
+		cl:      false,
+		oID:     1,
+		qSize:   1,
+		pos:     "exampleFile.go:111",
+		vc:      clock.NewVectorClock(2),
+	}
+
+	currentVCHb = map[int]clock.VectorClock{
+		1: clock.NewVectorClockSet(2, map[int]int{1: 2, 2: 5}),
+		2: clock.NewVectorClockSet(2, map[int]int{1: 7, 2: 3}),
+	}
+	expClAt := currentVCHb[closeElem.routine].Copy()
+	expCurrentVCHb := map[int]clock.VectorClock{
+		1: clock.NewVectorClockSet(2, map[int]int{1: 2, 2: 5}),
+		2: clock.NewVectorClockSet(2, map[int]int{1: 7, 2: 4}),
+	}
+
+	closeElem.updateVectorClock()
+
+	if !closeElem.vc.IsEqual(expClAt) {
+		t.Errorf("Incorrect ch vc. Expected %v. Got %v", expClAt, closeElem.vc)
+	}
+
+	if !clock.IsMapVcEqual(currentVCHb, expCurrentVCHb) {
+		t.Errorf("Incorrect currentVCHb. Expected %v. Got %v", expCurrentVCHb, currentVCHb)
+	}
+
+}
+
+func TestChannelFindPartner(t *testing.T) {
+	sendElem := TraceElementChannel{
+		routine: 1,
+		tPre:    4,
+		tPost:   6,
+		id:      1,
+		opC:     SendOp,
+		cl:      false,
+		oID:     1,
+		qSize:   0,
+		pos:     "exampleFile.go:111",
+		vc:      clock.NewVectorClock(2),
+	}
+
+	recvElem := TraceElementChannel{
+		routine: 2,
+		tPre:    5,
+		tPost:   7,
+		id:      1,
+		opC:     RecvOp,
+		cl:      false,
+		oID:     1,
+		qSize:   0,
+		pos:     "exampleFile.go:111",
+		vc:      clock.NewVectorClock(2),
+	}
+
+	ClearTrace()
+	AddElementToTrace(&sendElem)
+	AddElementToTrace(&recvElem)
+
+	sendT, _ := GetTraceElementFromTID(sendElem.GetTID())
+	recvT, _ := GetTraceElementFromTID(recvElem.GetTID())
+
+	send := (*sendT).(*TraceElementChannel)
+	recv := (*recvT).(*TraceElementChannel)
+	t.Log(send.ToString())
+	t.Log(recv.ToString())
+
+	res := send.findPartner()
+
+	if res != recv.routine {
+		t.Errorf("Incorrect result for send.findPartner. Expected %d. Got %d.", recv.GetRoutine(), res)
+	}
+
+	if send.partner.ToString() != recv.ToString() {
+		t.Errorf("Incorrect value for partner send. Expected %s. Got %s.", recv.ToString(), send.partner.ToString())
+	}
+
+	if recv.partner.ToString() != send.ToString() {
+		t.Errorf("Incorrect value for partner recv. Expected %s. Got %s.", send.ToString(), recv.partner.ToString())
+	}
+}

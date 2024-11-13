@@ -54,6 +54,8 @@ func init() {
 
 }
 
+// TODO: -1 on windows not working
+
 func main() {
 	flag.Parse()
 

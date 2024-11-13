@@ -193,3 +193,18 @@ func (vc VectorClock) IsEqual(vc2 VectorClock) bool {
 
 	return true
 }
+
+func IsMapVcEqual(v1 map[int]VectorClock, v2 map[int]VectorClock) bool {
+	if len(v1) != len(v2) {
+		return false
+	}
+
+	for k, vc1 := range v1 {
+		vc2, ok := v2[k]
+		if !ok || !vc1.IsEqual(vc2) {
+			return false
+		}
+	}
+
+	return true
+}

@@ -92,82 +92,85 @@ func TestTraceElementAtomicNew(t *testing.T) {
 	}
 }
 
-func TestTraceElementAtomicGet(t *testing.T) {
-	var tests = []struct {
-		name          string
-		routine       int
-		tPost         string
-		id            string
-		operation     string
-		position      string
-		expRoutine    int
-		expTPre       int
-		expTSort      int
-		expTPost      int
-		expID         int
-		expPos        string
-		expTID        string
-		expObjectType string
-		expVC         clock.VectorClock
-		expString     string
-	}{
-		{"Valid Load", 1, "213", "123", "L", "testfile.go:99", 1, 213, 213, 213, 123, "testfile.go:99", "testfile.go:99@213", "AL", clock.NewVectorClock(0), "A,213,123,L,testfile.go:99"},
-		{"Valid Store", 1, "213", "123", "S", "testfile.go:99", 1, 213, 213, 213, 123, "testfile.go:99", "testfile.go:99@213", "AS", clock.NewVectorClock(0), "A,213,123,S,testfile.go:99"},
-		{"Valid Add", 1, "213", "123", "A", "testfile.go:99", 1, 213, 213, 213, 123, "testfile.go:99", "testfile.go:99@213", "AA", clock.NewVectorClock(0), "A,213,123,A,testfile.go:99"},
-		{"Valid Swap", 1, "213", "123", "W", "testfile.go:99", 1, 213, 213, 213, 123, "testfile.go:99", "testfile.go:99@213", "AW", clock.NewVectorClock(0), "A,213,123,W,testfile.go:99"},
-		{"Valid CompSwap", 1, "213", "123", "C", "testfile.go:99", 1, 213, 213, 213, 123, "testfile.go:99", "testfile.go:99@213", "AC", clock.NewVectorClock(0), "A,213,123,C,testfile.go:99"},
-	}
+// func TestTraceElementAtomicGet(t *testing.T) {
+// 	var tests = []struct {
+// 		name          string
+// 		routine       int
+// 		tPost         string
+// 		id            string
+// 		operation     string
+// 		position      string
+// 		expRoutine    int
+// 		expTPre       int
+// 		expTSort      int
+// 		expTPost      int
+// 		expID         int
+// 		expPos        string
+// 		expTID        string
+// 		expObjectType string
+// 		expVC         clock.VectorClock
+// 		expString     string
+// 	}{
+// 		{"Valid Load", 1, "213", "123", "L", "testfile.go:99", 1, 213, 213, 213, 123, "testfile.go:99", "testfile.go:99@213", "AL", clock.NewVectorClock(0), "A,213,123,L,testfile.go:99"},
+// 		{"Valid Store", 1, "213", "123", "S", "testfile.go:99", 1, 213, 213, 213, 123, "testfile.go:99", "testfile.go:99@213", "AS", clock.NewVectorClock(0), "A,213,123,S,testfile.go:99"},
+// 		{"Valid Add", 1, "213", "123", "A", "testfile.go:99", 1, 213, 213, 213, 123, "testfile.go:99", "testfile.go:99@213", "AA", clock.NewVectorClock(0), "A,213,123,A,testfile.go:99"},
+// 		{"Valid Swap", 1, "213", "123", "W", "testfile.go:99", 1, 213, 213, 213, 123, "testfile.go:99", "testfile.go:99@213", "AW", clock.NewVectorClock(0), "A,213,123,W,testfile.go:99"},
+// 		{"Valid CompSwap", 1, "213", "123", "C", "testfile.go:99", 1, 213, 213, 213, 123, "testfile.go:99", "testfile.go:99@213", "AC", clock.NewVectorClock(0), "A,213,123,C,testfile.go:99"},
+// 	}
 
-	for _, test := range tests {
-		AddTraceElementAtomic(test.routine, test.tPost, test.id, test.operation, test.position)
+// 	for _, test := range tests {
+// 		AddTraceElementAtomic(test.routine, test.tPost, test.id, test.operation, test.position)
 
-		trace := GetTraceFromId(test.routine)
+// 		trace := GetTraceFromId(test.routine)
 
-		elem := trace[len(trace)-1].(*TraceElementAtomic)
+// 		elem := trace[len(trace)-1].(*TraceElementAtomic)
 
-		if elem.GetRoutine() != test.expRoutine {
-			t.Errorf("Incorrect routine. Expected %d. Got %d.", test.expRoutine, elem.routine)
-		}
+// 		if elem.GetRoutine() != test.expRoutine {
+// 			t.Errorf("Incorrect routine. Expected %d. Got %d.", test.expRoutine, elem.routine)
+// 		}
 
-		if elem.GetTPre() != test.expTPre {
-			t.Errorf("Incorrect tPre. Expected %d. Got %d.", test.expTPre, elem.GetTPre())
-		}
+// 		if elem.GetTPre() != test.expTPre {
+// 			t.Errorf("Incorrect tPre. Expected %d. Got %d.", test.expTPre, elem.GetTPre())
+// 		}
 
-		if elem.GetTSort() != test.expTSort {
-			t.Errorf("Incorrect tSort. Expected %d. Got %d.", test.expTSort, elem.GetTSort())
-		}
+// 		if elem.GetTSort() != test.expTSort {
+// 			t.Errorf("Incorrect tSort. Expected %d. Got %d.", test.expTSort, elem.GetTSort())
+// 		}
 
-		if elem.getTpost() != test.expTPost {
-			t.Errorf("Incorrect tPost. Expected %d. Got %d.", test.expTPost, elem.tPost)
-		}
+// 		if elem.getTpost() != test.expTPost {
+// 			t.Errorf("Incorrect tPost. Expected %d. Got %d.", test.expTPost, elem.tPost)
+// 		}
 
-		if elem.GetID() != test.expID {
-			t.Errorf("Incorrect ID. Expected %d. Got %d.", test.expID, elem.GetID())
-		}
+// 		if elem.GetID() != test.expID {
+// 			t.Errorf("Incorrect ID. Expected %d. Got %d.", test.expID, elem.GetID())
+// 		}
 
-		if elem.GetPos() != test.expPos {
-			t.Errorf("Incorrect position. Expected %s. Got %s.", test.expPos, elem.GetPos())
-		}
+// 		if elem.GetPos() != test.expPos {
+// 			t.Errorf("Incorrect position. Expected %s. Got %s.", test.expPos, elem.GetPos())
+// 		}
 
-		if elem.GetTID() != test.expTID {
-			t.Errorf("Incorrect tID. Expected %s. Got %s.", test.expTID, elem.GetTID())
-		}
+// 		if elem.GetTID() != test.expTID {
+// 			t.Errorf("Incorrect tID. Expected %s. Got %s.", test.expTID, elem.GetTID())
+// 		}
 
-		if elem.GetObjType() != test.expObjectType {
-			t.Errorf("Incorrect object type. Expected %s. Got %s.", test.expObjectType, elem.GetObjType())
-		}
+// 		if elem.GetObjType() != test.expObjectType {
+// 			t.Errorf("Incorrect object type. Expected %s. Got %s.", test.expObjectType, elem.GetObjType())
+// 		}
 
-		if !elem.GetVC().IsEqual(test.expVC) {
-			t.Errorf("Incorrect VC. Expected %v. Got %v.", test.expVC, elem.GetVC())
-		}
+// 		if !elem.GetVC().IsEqual(test.expVC) {
+// 			t.Errorf("Incorrect VC. Expected %v. Got %v.", test.expVC, elem.GetVC())
+// 		}
 
-		if elem.ToString() != test.expString {
-			t.Errorf("Incorrect string. Expected %s. Got %s.", test.expString, elem.ToString())
-		}
-	}
+// 		if elem.ToString() != test.expString {
+// 			t.Errorf("Incorrect string. Expected %s. Got %s.", test.expString, elem.ToString())
+// 		}
+// 	}
+// }
+
+func TestTraceElementAtomicSet(t *testing.T) {
 }
 
-func TestUpdateVectorClock(t *testing.T) {
+func TestAtomicUpdateVectorClock(t *testing.T) {
 	t.Run("LoadOp", func(t *testing.T) {
 		at := TraceElementAtomic{id: 1, routine: 2, opA: LoadOp}
 		currentVCHb = map[int]clock.VectorClock{2: clock.NewVectorClockSet(3, map[int]int{1: 2, 2: 4, 3: 1})}

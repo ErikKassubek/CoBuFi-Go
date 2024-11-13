@@ -34,6 +34,8 @@ var ExitCodeNames = map[int]string{
 var hasReturnedExitCode = false
 var ignoreAtomicsReplay = true
 
+var printDebug = false
+
 func SetReplayAtomic(repl bool) {
 	ignoreAtomicsReplay = !repl
 }
@@ -269,8 +271,6 @@ func WaitForReplayFinish(exit bool) {
 	println("StuckReplayExecutedSuc: ", stuckReplayExecutedSuc)
 	if stuckReplayExecutedSuc {
 		ExitReplayWithCode(expectedExitCode)
-	} else {
-		ExitReplayWithCode(ExitCodeDefault)
 	}
 }
 
@@ -327,6 +327,9 @@ func ReleaseWaits() {
 				unlock(&waitingOpsMutex)
 				if oldestKey != "" {
 					oldest.ch <- replayElem
+					if printDebug {
+						println("RelO: ", replayElem.Op.ToString(), replayElem.File, replayElem.Line)
+					}
 					lastCounter = 0
 
 					foundReplayElement(replayElem.Routine)
@@ -336,11 +339,14 @@ func ReleaseWaits() {
 					unlock(&replayDoneLock)
 
 					lock(&waitingOpsMutex)
+					if printDebug {
+						println("Deli: ", oldestKey)
+					}
 					delete(waitingOps, oldestKey)
 					unlock(&waitingOpsMutex)
 				}
 			}
-			if lastCounter%25000000 == 0 && len(waitingOps) == 0 {
+			if lastCounter%50000000 == 0 && len(waitingOps) == 0 {
 				DisableReplay()
 			}
 		}
@@ -356,12 +362,23 @@ func ReleaseWaits() {
 
 		if key != lastKey {
 			lastKey = key
+			if printDebug {
+				println("\n\n===================\nNext: ", replayElem.Op.ToString(), replayElem.File, replayElem.Line)
+				println("Currently Waiting: ", len(waitingOps))
+				for key := range waitingOps {
+					println(key)
+				}
+				println("===================\n\n")
+			}
 		}
 
 		lock(&waitingOpsMutex)
 		if replCh, ok := waitingOps[key]; ok {
 			unlock(&waitingOpsMutex)
 			replCh.ch <- replayElem
+			if printDebug {
+				println("RelR: ", replayElem.Op.ToString(), replayElem.File, replayElem.Line)
+			}
 			lastCounter = 0
 
 			foundReplayElement(routine)
@@ -371,6 +388,9 @@ func ReleaseWaits() {
 			unlock(&replayDoneLock)
 
 			lock(&waitingOpsMutex)
+			if printDebug {
+				println("Deli: ", key)
+			}
 			delete(waitingOps, key)
 		}
 		unlock(&waitingOpsMutex)
@@ -429,9 +449,16 @@ func WaitForReplayPath(op Operation, file string, line int) (bool, chan ReplayEl
 	// key := uint64ToString(routine) + ":" + file + ":" + intToString(line)
 	key := file + ":" + intToString(line)
 
+	if printDebug {
+		println("Wait: ", op.ToString(), file, line)
+	}
+
 	ch := make(chan ReplayElement, 1<<62) // 1<<62 + 0 makes sure, that the channel is ignored for replay. The actual size is 0
 
 	lock(&waitingOpsMutex)
+	if _, ok := waitingOps[key]; ok {
+		println("Override key: ", key)
+	}
 	waitingOps[key] = replayChan{ch, counter}
 	unlock(&waitingOpsMutex)
 
@@ -637,6 +664,8 @@ func AdvocateIgnoreReplay(operation Operation, file string, line int) bool {
 	}
 
 	if contains(file, "go-patch/src/") {
+		return true
+	} else if contains(file, "go/pkg/mod/") {
 		return true
 	} else if hasSuffix(file, "time/sleep.go") {
 		return true

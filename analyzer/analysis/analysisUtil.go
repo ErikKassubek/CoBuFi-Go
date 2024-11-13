@@ -35,7 +35,14 @@ func infoFromTID(tID string) (string, int, int, error) {
 		return "", 0, 0, errors.New(fmt.Sprint("TID not correct: no @: ", tID))
 	}
 
-	split2 := strings.Split(spilt1[0], ":")
+	// for windows test
+	sp := spilt1[0]
+	split3 := strings.Split(sp, ":/")
+	if len(split3) == 2 {
+		sp = split3[1]
+	}
+
+	split2 := strings.Split(sp, ":")
 	if len(split2) != 2 {
 		return "", 0, 0, errors.New(fmt.Sprint("TID not correct: no ':': ", tID))
 	}
