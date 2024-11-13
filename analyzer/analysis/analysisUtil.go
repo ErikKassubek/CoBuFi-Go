@@ -43,7 +43,7 @@ func infoFromTID(tID string) (string, int, int, error) {
 	}
 
 	split2 := strings.Split(sp, ":")
-	if len(split2) != 2 {
+	if len(split2) < 2 {
 		return "", 0, 0, errors.New(fmt.Sprint("TID not correct: no ':': ", tID))
 	}
 
@@ -52,7 +52,7 @@ func infoFromTID(tID string) (string, int, int, error) {
 		return "", 0, 0, err
 	}
 
-	line, err := strconv.Atoi(split2[1])
+	line, err := strconv.Atoi(split2[len(split2)-1])
 	if err != nil {
 		return "", 0, 0, err
 	}

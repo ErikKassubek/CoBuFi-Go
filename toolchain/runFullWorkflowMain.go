@@ -18,6 +18,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"runtime"
 	"strconv"
 	"time"
 )
@@ -39,6 +40,11 @@ func runWorkflowMain(pathToAdvocate string, pathToFile string, executableName st
 	}
 
 	pathToPatchedGoRuntime := filepath.Join(pathToAdvocate, "go-patch/bin/go")
+
+	if runtime.GOOS == "windows" {
+		pathToPatchedGoRuntime += ".exe"
+	}
+
 	pathToGoRoot := filepath.Join(pathToAdvocate, "go-patch")
 	pathToAnalyzer := filepath.Join(pathToAdvocate, "analyzer/analyzer")
 

@@ -19,6 +19,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strconv"
 	"strings"
 	"time"
@@ -322,6 +323,10 @@ func unitTestFullWorkflow(pathToAdvocate string, dir string,
 	pathToPatchedGoRuntime := filepath.Join(pathToAdvocate, "go-patch/bin/go")
 	pathToGoRoot := filepath.Join(pathToAdvocate, "go-patch")
 	pathToAnalyzer := filepath.Join(pathToAdvocate, "analyzer/analyzer")
+
+	if runtime.GOOS == "windows" {
+		pathToPatchedGoRuntime += ".exe"
+	}
 
 	// Change to the directory
 	if err := os.Chdir(dir); err != nil {
