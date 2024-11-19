@@ -12,7 +12,8 @@ package analysis
 
 import (
 	"analyzer/clock"
-	"analyzer/logging"
+	"analyzer/results"
+	"log"
 	"strconv"
 	"strings"
 )
@@ -62,7 +63,7 @@ func CheckForSelectCaseWithoutPartner() {
 
 	// collect all cases with no partner and all not triggered cases with partner
 
-	casesWithoutPartner := make(map[string][]logging.ResultElem) // tID -> cases
+	casesWithoutPartner := make(map[string][]results.ResultElem) // tID -> cases
 	casesWithoutPartnerInfo := make(map[string][]int)            // tID -> [routine, selectID]
 
 	for cIndex, c := range selectCases {
@@ -73,7 +74,7 @@ func CheckForSelectCaseWithoutPartner() {
 			opjType += "R"
 		}
 
-		partnerResult := make([]logging.ResultElem, 0)
+		partnerResult := make([]results.ResultElem, 0)
 
 		if c.partnerFound {
 			if c.exec {
@@ -85,7 +86,7 @@ func CheckForSelectCaseWithoutPartner() {
 				continue
 			}
 
-			sel := logging.TraceElementResult{
+			sel := results.TraceElementResult{
 				RoutineID: c.vcTID.Routine,
 				ObjID:     c.sel.GetID(),
 				TPre:      tPre,
@@ -94,7 +95,7 @@ func CheckForSelectCaseWithoutPartner() {
 				Line:      line,
 			}
 
-			ca := logging.SelectCaseResult{
+			ca := results.SelectCaseResult{
 				SelID:   c.sel.GetID(),
 				ObjID:   c.chanID,
 				ObjType: opjType,
@@ -113,7 +114,7 @@ func CheckForSelectCaseWithoutPartner() {
 					continue
 				}
 
-				partner := logging.TraceElementResult{
+				partner := results.TraceElementResult{
 					RoutineID: p.Elem.GetRoutine(),
 					ObjID:     p.Elem.GetID(),
 					TPre:      p.Elem.GetTPre(),
@@ -129,12 +130,12 @@ func CheckForSelectCaseWithoutPartner() {
 				continue
 			}
 
-			logging.Result(logging.INFORMATION, logging.SNotExecutedWithPartner,
-				"select", []logging.ResultElem{sel, ca}, "partner", partnerResult)
+			results.Result(results.INFORMATION, results.SNotExecutedWithPartner,
+				"select", []results.ResultElem{sel, ca}, "partner", partnerResult)
 			continue
 		}
 
-		arg2 := logging.SelectCaseResult{
+		arg2 := results.SelectCaseResult{
 			SelID:   c.sel.GetID(),
 			ObjID:   c.chanID,
 			ObjType: opjType,
@@ -143,7 +144,7 @@ func CheckForSelectCaseWithoutPartner() {
 		}
 
 		if _, ok := casesWithoutPartner[c.vcTID.TID]; !ok {
-			casesWithoutPartner[c.vcTID.TID] = make([]logging.ResultElem, 0)
+			casesWithoutPartner[c.vcTID.TID] = make([]results.ResultElem, 0)
 			casesWithoutPartnerInfo[c.vcTID.TID] = []int{c.vcTID.Routine, c.sel.GetID()}
 		}
 
@@ -157,17 +158,17 @@ func CheckForSelectCaseWithoutPartner() {
 
 		info := casesWithoutPartnerInfo[tID]
 		if len(info) != 2 {
-			logging.Debug("info should have 2 elements", logging.ERROR)
+			log.Print("info should have 2 elements: ", info)
 			continue
 		}
 
 		file, line, tPre, err := infoFromTID(tID)
 		if err != nil {
-			logging.Debug(err.Error(), logging.ERROR)
+			log.Print(err.Error())
 			continue
 		}
 
-		arg1 := logging.TraceElementResult{
+		arg1 := results.TraceElementResult{
 			RoutineID: info[0],
 			ObjID:     info[1],
 			TPre:      tPre,
@@ -176,8 +177,8 @@ func CheckForSelectCaseWithoutPartner() {
 			Line:      line,
 		}
 
-		logging.Result(logging.WARNING, logging.ASelCaseWithoutPartner,
-			"select", []logging.ResultElem{arg1}, "case", cases)
+		results.Result(results.WARNING, results.ASelCaseWithoutPartner,
+			"select", []results.ResultElem{arg1}, "case", cases)
 	}
 }
 

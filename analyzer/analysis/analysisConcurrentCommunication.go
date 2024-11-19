@@ -12,8 +12,10 @@ package analysis
 
 import (
 	"analyzer/clock"
-	"analyzer/logging"
+	"analyzer/results"
 	timemeasurement "analyzer/timeMeasurement"
+
+	"log"
 )
 
 /*
@@ -45,13 +47,13 @@ func checkForConcurrentRecv(ch *TraceElementChannel, vc map[int]clock.VectorCloc
 
 			file1, line1, tPre1, err := infoFromTID(ch.GetTID())
 			if err != nil {
-				logging.Debug(err.Error(), logging.ERROR)
+				log.Print(err.Error())
 				return
 			}
 
 			file2, line2, tPre2, err := infoFromTID(lastRecvRoutine[r][ch.id].TID)
 
-			arg1 := logging.TraceElementResult{
+			arg1 := results.TraceElementResult{
 				RoutineID: ch.routine,
 				ObjID:     ch.id,
 				TPre:      tPre1,
@@ -60,7 +62,7 @@ func checkForConcurrentRecv(ch *TraceElementChannel, vc map[int]clock.VectorCloc
 				Line:      line1,
 			}
 
-			arg2 := logging.TraceElementResult{
+			arg2 := results.TraceElementResult{
 				RoutineID: r,
 				ObjID:     ch.id,
 				TPre:      tPre2,
@@ -69,8 +71,8 @@ func checkForConcurrentRecv(ch *TraceElementChannel, vc map[int]clock.VectorCloc
 				Line:      line2,
 			}
 
-			logging.Result(logging.WARNING, logging.AConcurrentRecv,
-				"recv", []logging.ResultElem{arg1}, "recv", []logging.ResultElem{arg2})
+			results.Result(results.WARNING, results.AConcurrentRecv,
+				"recv", []results.ResultElem{arg1}, "recv", []results.ResultElem{arg2})
 		}
 	}
 

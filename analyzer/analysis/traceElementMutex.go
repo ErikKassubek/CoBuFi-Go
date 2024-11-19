@@ -16,8 +16,9 @@ import (
 	"strconv"
 
 	"analyzer/clock"
-	"analyzer/logging"
 	timemeasurement "analyzer/timeMeasurement"
+
+	"log"
 )
 
 // enum for opM
@@ -421,7 +422,7 @@ func (mu *TraceElementMutex) updateVectorClock() {
 		}
 	default:
 		err := "Unknown mutex operation: " + mu.ToString()
-		logging.Debug(err, logging.ERROR)
+		log.Print(err)
 	}
 }
 

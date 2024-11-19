@@ -12,8 +12,8 @@ package analysis
 
 import (
 	"analyzer/clock"
-	"analyzer/logging"
 	"errors"
+	"log"
 	"math"
 	"strconv"
 )
@@ -299,7 +299,7 @@ func (wa *TraceElementWait) updateVectorClock() {
 		Wait(wa, currentVCHb)
 	default:
 		err := "Unknown operation on wait group: " + wa.ToString()
-		logging.Debug(err, logging.ERROR)
+		log.Print(err)
 	}
 }
 

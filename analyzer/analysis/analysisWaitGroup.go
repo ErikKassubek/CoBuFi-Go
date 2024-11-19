@@ -12,10 +12,11 @@ package analysis
 
 import (
 	"analyzer/clock"
-	"analyzer/logging"
+	"analyzer/results"
 	"analyzer/utils"
 	"errors"
 	"fmt"
+	"log"
 )
 
 /*
@@ -102,7 +103,7 @@ func checkForDoneBeforeAdd() {
 			for _, dones := range graph["s"] {
 				doneVcTID, err := getDoneElemFromTID(id, dones)
 				if err != nil {
-					logging.Debug(err.Error(), logging.ERROR)
+					log.Print(err.Error())
 				} else {
 					donesNegWg = append(donesNegWg, doneVcTID)
 				}
@@ -126,8 +127,8 @@ func checkForDoneBeforeAdd() {
 				}
 			}
 
-			args1 := []logging.ResultElem{} // dones
-			args2 := []logging.ResultElem{} // adds
+			args1 := []results.ResultElem{} // dones
+			args2 := []results.ResultElem{} // adds
 
 			for _, done := range donesNEgWgSorted {
 				if done.GetTID() == "\n" {
@@ -135,11 +136,11 @@ func checkForDoneBeforeAdd() {
 				}
 				file, line, tPre, err := infoFromTID(done.GetTID())
 				if err != nil {
-					logging.Debug(err.Error(), logging.ERROR)
+					log.Print(err.Error())
 					return
 				}
 
-				args1 = append(args1, logging.TraceElementResult{
+				args1 = append(args1, results.TraceElementResult{
 					RoutineID: done.GetRoutine(),
 					ObjID:     id,
 					TPre:      tPre,
@@ -155,11 +156,11 @@ func checkForDoneBeforeAdd() {
 				}
 				file, line, tPre, err := infoFromTID(add.GetTID())
 				if err != nil {
-					logging.Debug(err.Error(), logging.ERROR)
+					log.Print(err.Error())
 					continue
 				}
 
-				args2 = append(args2, logging.TraceElementResult{
+				args2 = append(args2, results.TraceElementResult{
 					RoutineID: add.GetRoutine(),
 					ObjID:     id,
 					TPre:      tPre,
@@ -170,7 +171,7 @@ func checkForDoneBeforeAdd() {
 
 			}
 
-			logging.Result(logging.CRITICAL, logging.PNegWG,
+			results.Result(results.CRITICAL, results.PNegWG,
 				"done", args1, "add", args2)
 		}
 	}

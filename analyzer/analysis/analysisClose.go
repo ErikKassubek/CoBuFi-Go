@@ -12,9 +12,9 @@ package analysis
 
 import (
 	"analyzer/clock"
-	"analyzer/logging"
+	"analyzer/results"
 	timemeasurement "analyzer/timeMeasurement"
-	"strconv"
+	"log"
 )
 
 /*
@@ -31,27 +31,22 @@ func checkForCommunicationOnClosedChannel(ch *TraceElementChannel) {
 		defer timemeasurement.End("panic")
 
 		for routine, mrs := range mostRecentSend {
-			logging.Debug("Check for possible send on closed channel "+
-				strconv.Itoa(ch.id)+" with "+
-				mrs[ch.id].Vc.ToString()+" and "+closeData[ch.id].vc.ToString(),
-				logging.DEBUG)
-
 			happensBefore := clock.GetHappensBefore(closeData[ch.id].vc, mrs[ch.id].Vc)
 			if mrs[ch.id].Elem != nil && mrs[ch.id].Elem.GetTID() != "" && happensBefore == clock.Concurrent {
 
 				file1, line1, tPre1, err := infoFromTID(mrs[ch.id].Elem.GetTID()) // send
 				if err != nil {
-					logging.Debug(err.Error(), logging.ERROR)
+					log.Print(err.Error())
 					return
 				}
 
 				file2, line2, tPre2, err := infoFromTID(ch.GetTID()) // close
 				if err != nil {
-					logging.Debug(err.Error(), logging.ERROR)
+					log.Print(err.Error())
 					return
 				}
 
-				arg1 := logging.TraceElementResult{ // send
+				arg1 := results.TraceElementResult{ // send
 					RoutineID: routine,
 					ObjID:     ch.id,
 					TPre:      tPre1,
@@ -60,7 +55,7 @@ func checkForCommunicationOnClosedChannel(ch *TraceElementChannel) {
 					Line:      line1,
 				}
 
-				arg2 := logging.TraceElementResult{ // close
+				arg2 := results.TraceElementResult{ // close
 					RoutineID: closeData[ch.id].routine,
 					ObjID:     ch.id,
 					TPre:      tPre2,
@@ -69,8 +64,8 @@ func checkForCommunicationOnClosedChannel(ch *TraceElementChannel) {
 					Line:      line2,
 				}
 
-				logging.Result(logging.CRITICAL, logging.PSendOnClosed,
-					"send", []logging.ResultElem{arg1}, "close", []logging.ResultElem{arg2})
+				results.Result(results.CRITICAL, results.PSendOnClosed,
+					"send", []results.ResultElem{arg1}, "close", []results.ResultElem{arg2})
 			}
 		}
 	}
@@ -80,27 +75,22 @@ func checkForCommunicationOnClosedChannel(ch *TraceElementChannel) {
 		defer timemeasurement.End("other")
 
 		for routine, mrr := range mostRecentReceive {
-			logging.Debug("Check for possible receive on closed channel "+
-				strconv.Itoa(ch.id)+" with "+
-				mrr[ch.id].Vc.ToString()+" and "+closeData[ch.id].vc.ToString(),
-				logging.DEBUG)
-
 			happensBefore := clock.GetHappensBefore(closeData[ch.id].vc, mrr[ch.id].Vc)
 			if mrr[ch.id].Elem != nil && mrr[ch.id].Elem.GetTID() != "" && (happensBefore == clock.Concurrent || happensBefore == clock.Before) {
 
 				file1, line1, tPre1, err := infoFromTID(mrr[ch.id].Elem.GetTID()) // recv
 				if err != nil {
-					logging.Debug(err.Error(), logging.ERROR)
+					log.Print(err.Error())
 					return
 				}
 
 				file2, line2, tPre2, err := infoFromTID(ch.GetTID()) // close
 				if err != nil {
-					logging.Debug(err.Error(), logging.ERROR)
+					log.Print(err.Error())
 					return
 				}
 
-				arg1 := logging.TraceElementResult{ // recv
+				arg1 := results.TraceElementResult{ // recv
 					RoutineID: routine,
 					ObjID:     ch.id,
 					TPre:      tPre1,
@@ -109,7 +99,7 @@ func checkForCommunicationOnClosedChannel(ch *TraceElementChannel) {
 					Line:      line1,
 				}
 
-				arg2 := logging.TraceElementResult{ // close
+				arg2 := results.TraceElementResult{ // close
 					RoutineID: closeData[ch.id].routine,
 					ObjID:     ch.id,
 					TPre:      tPre2,
@@ -118,8 +108,8 @@ func checkForCommunicationOnClosedChannel(ch *TraceElementChannel) {
 					Line:      line2,
 				}
 
-				logging.Result(logging.WARNING, logging.PRecvOnClosed,
-					"recv", []logging.ResultElem{arg1}, "close", []logging.ResultElem{arg2})
+				results.Result(results.WARNING, results.PRecvOnClosed,
+					"recv", []results.ResultElem{arg1}, "close", []results.ResultElem{arg2})
 			}
 		}
 
@@ -149,17 +139,17 @@ func foundSendOnClosedChannel(routineID int, id int, posSend string) {
 
 	file1, line1, tPre1, err := infoFromTID(posSend)
 	if err != nil {
-		logging.Debug(err.Error(), logging.ERROR)
+		log.Print(err.Error())
 		return
 	}
 
 	file2, line2, tPre2, err := infoFromTID(posClose)
 	if err != nil {
-		logging.Debug(err.Error(), logging.ERROR)
+		log.Print(err.Error())
 		return
 	}
 
-	arg1 := logging.TraceElementResult{ // send
+	arg1 := results.TraceElementResult{ // send
 		RoutineID: routineID,
 		ObjID:     id,
 		TPre:      tPre1,
@@ -168,7 +158,7 @@ func foundSendOnClosedChannel(routineID int, id int, posSend string) {
 		Line:      line1,
 	}
 
-	arg2 := logging.TraceElementResult{ // close
+	arg2 := results.TraceElementResult{ // close
 		RoutineID: closeData[id].routine,
 		ObjID:     id,
 		TPre:      tPre2,
@@ -177,8 +167,8 @@ func foundSendOnClosedChannel(routineID int, id int, posSend string) {
 		Line:      line2,
 	}
 
-	logging.Result(logging.CRITICAL, logging.ASendOnClosed,
-		"send", []logging.ResultElem{arg1}, "close", []logging.ResultElem{arg2})
+	results.Result(results.CRITICAL, results.ASendOnClosed,
+		"send", []results.ResultElem{arg1}, "close", []results.ResultElem{arg2})
 
 }
 
@@ -202,17 +192,17 @@ func foundReceiveOnClosedChannel(ch *TraceElementChannel) {
 
 	file1, line1, tPre1, err := infoFromTID(ch.GetTID())
 	if err != nil {
-		logging.Debug(err.Error(), logging.ERROR)
+		log.Print(err.Error())
 		return
 	}
 
 	file2, line2, tPre2, err := infoFromTID(posClose)
 	if err != nil {
-		logging.Debug(err.Error(), logging.ERROR)
+		log.Print(err.Error())
 		return
 	}
 
-	arg1 := logging.TraceElementResult{ // recv
+	arg1 := results.TraceElementResult{ // recv
 		RoutineID: ch.routine,
 		ObjID:     ch.id,
 		TPre:      tPre1,
@@ -221,7 +211,7 @@ func foundReceiveOnClosedChannel(ch *TraceElementChannel) {
 		Line:      line1,
 	}
 
-	arg2 := logging.TraceElementResult{ // close
+	arg2 := results.TraceElementResult{ // close
 		RoutineID: closeData[ch.id].routine,
 		ObjID:     ch.id,
 		TPre:      tPre2,
@@ -230,8 +220,8 @@ func foundReceiveOnClosedChannel(ch *TraceElementChannel) {
 		Line:      line2,
 	}
 
-	logging.Result(logging.WARNING, logging.ARecvOnClosed,
-		"recv", []logging.ResultElem{arg1}, "close", []logging.ResultElem{arg2})
+	results.Result(results.WARNING, results.ARecvOnClosed,
+		"recv", []results.ResultElem{arg1}, "close", []results.ResultElem{arg2})
 }
 
 /*
@@ -251,17 +241,17 @@ func checkForClosedOnClosed(ch *TraceElementChannel) {
 
 		file1, line1, tPre1, err := infoFromTID(oldClose.GetTID())
 		if err != nil {
-			logging.Debug(err.Error(), logging.ERROR)
+			log.Print(err.Error())
 			return
 		}
 
 		file2, line2, tPre2, err := infoFromTID(oldClose.GetTID())
 		if err != nil {
-			logging.Debug(err.Error(), logging.ERROR)
+			log.Print(err.Error())
 			return
 		}
 
-		arg1 := logging.TraceElementResult{
+		arg1 := results.TraceElementResult{
 			RoutineID: ch.routine,
 			ObjID:     ch.id,
 			TPre:      tPre1,
@@ -270,7 +260,7 @@ func checkForClosedOnClosed(ch *TraceElementChannel) {
 			Line:      line1,
 		}
 
-		arg2 := logging.TraceElementResult{
+		arg2 := results.TraceElementResult{
 			RoutineID: oldClose.routine,
 			ObjID:     ch.id,
 			TPre:      tPre2,
@@ -279,7 +269,7 @@ func checkForClosedOnClosed(ch *TraceElementChannel) {
 			Line:      line2,
 		}
 
-		logging.Result(logging.CRITICAL, logging.ACloseOnClosed,
-			"close", []logging.ResultElem{arg1}, "close", []logging.ResultElem{arg2})
+		results.Result(results.CRITICAL, results.ACloseOnClosed,
+			"close", []results.ResultElem{arg1}, "close", []results.ResultElem{arg2})
 	}
 }

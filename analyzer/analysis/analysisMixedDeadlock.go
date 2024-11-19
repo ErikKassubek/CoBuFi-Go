@@ -12,7 +12,7 @@ package analysis
 
 import (
 	"analyzer/clock"
-	"analyzer/logging"
+	"log"
 	"strconv"
 )
 
@@ -36,13 +36,13 @@ func lockSetAddLock(routine int, lock int, tID string, vc clock.VectorClock) {
 		// TODO: TODO: add a result. Deadlock detection is currently disabled
 		// errorMsg := "Lock " + strconv.Itoa(lock) +
 		// 	" already in lockSet for routine " + strconv.Itoa(routine)
-		// logging.Debug(errorMsg, logging.ERROR)
+		// results.Debug(errorMsg, results.ERROR)
 
 		// // this is a double locking
 		// found := "Double locking:\n"
 		// found += "\tlock1: " + posOld + "\n"
 		// found += "\tlock2: " + tID
-		// logging.Result(found, logging.CRITICAL)
+		// results.Result(found, results.CRITICAL)
 	}
 
 	lockSet[routine][lock] = tID
@@ -59,7 +59,7 @@ func lockSetRemoveLock(routine int, lock int) {
 	if _, ok := lockSet[routine][lock]; !ok {
 		errorMsg := "Lock " + strconv.Itoa(lock) +
 			" not in lockSet for routine " + strconv.Itoa(routine)
-		logging.Debug(errorMsg, logging.ERROR)
+		log.Print(errorMsg)
 		return
 	}
 	delete(lockSet[routine], lock)
@@ -84,7 +84,7 @@ func checkForMixedDeadlock(routineSend int, routineRevc int, tIDSend string, tID
 			// found += "\tlocks: \t\t" + mostRecentAcquire[routineSend][m].TID + "\t\t" + mostRecentAcquire[routineRevc][m].TID + "\n"
 			// found += "\tsend/close-recv: \t\t" + tIDSend + "\t\t" + tIDRecv
 
-			// logging.Result(found, logging.CRITICAL)
+			// results.Result(found, results.CRITICAL)
 		}
 	}
 
@@ -98,7 +98,7 @@ func checkForMixedDeadlock(routineSend int, routineRevc int, tIDSend string, tID
 			// found += "\tlocks: \t\t" + mostRecentAcquire[routineSend][m].TID + "\t\t" + mostRecentAcquire[routineRevc][m].TID + "\n"
 			// found += "\tsend/close-recv: \t\t" + tIDSend + "\t\t" + tIDRecv
 
-			// logging.Result(found, logging.CRITICAL)
+			// results.Result(found, results.CRITICAL)
 		}
 	}
 }
@@ -128,7 +128,7 @@ func checkForMixedDeadlock2(routine int) {
 				found += "\tlock1: " + lockSet[routine][m] + "\n"
 				found += "\tlock2: " + lockSet[routine2][m]
 
-				logging.Result(found, logging.CRITICAL)
+				results.Result(found, results.CRITICAL)
 			}
 
 		}

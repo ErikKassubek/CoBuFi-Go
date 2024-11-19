@@ -12,7 +12,8 @@ package analysis
 
 import (
 	"analyzer/clock"
-	"analyzer/logging"
+	"analyzer/results"
+	"log"
 	"strconv"
 	"strings"
 )
@@ -29,8 +30,6 @@ import (
  */
 //  func CheckForLeakChannelStuck(routineID int, objID int, vc clock.VectorClock, tID string, opType int, buffered bool) {
 func CheckForLeakChannelStuck(ch *TraceElementChannel, vc clock.VectorClock) {
-	logging.Debug("Checking channel for for leak channel", logging.INFO)
-
 	buffered := (ch.qSize != 0)
 
 	if ch.id == -1 {
@@ -45,15 +44,15 @@ func CheckForLeakChannelStuck(ch *TraceElementChannel, vc clock.VectorClock) {
 
 		file, line, tPre, err := infoFromTID(ch.GetTID())
 		if err != nil {
-			logging.Debug("Error in infoFromTID", logging.ERROR)
+			log.Print("Error in infoFromTID")
 			return
 		}
 
-		arg1 := logging.TraceElementResult{
+		arg1 := results.TraceElementResult{
 			RoutineID: ch.routine, ObjID: ch.id, TPre: tPre, ObjType: objType, File: file, Line: line}
 
-		logging.Result(logging.CRITICAL, logging.LNilChan,
-			"Channel", []logging.ResultElem{arg1}, "", []logging.ResultElem{})
+		results.Result(results.CRITICAL, results.LNilChan,
+			"Channel", []results.ResultElem{arg1}, "", []results.ResultElem{})
 
 		return
 	}
@@ -66,29 +65,29 @@ func CheckForLeakChannelStuck(ch *TraceElementChannel, vc clock.VectorClock) {
 			if _, ok := mrr[ch.id]; ok {
 				if clock.GetHappensBefore(mrr[ch.id].Vc, vc) == clock.Concurrent {
 
-					var bugType logging.ResultType = logging.LUnbufferedWith
+					var bugType results.ResultType = results.LUnbufferedWith
 					if buffered {
-						bugType = logging.LBufferedWith
+						bugType = results.LBufferedWith
 					}
 
 					file1, line1, tPre1, err := infoFromTID(ch.GetTID())
 					if err != nil {
-						logging.Debug("Error in infoFromTID", logging.ERROR)
+						log.Printf("Error in infoFromTID(%s)", ch.GetTID)
 						return
 					}
 					file2, line2, tPre2, err := infoFromTID(mrr[ch.id].Elem.GetTID())
 					if err != nil {
-						logging.Debug("Error in infoFromTID", logging.ERROR)
+						log.Printf("Error in infoFromTID(%s)", mrr[ch.id].Elem.GetTID())
 						return
 					}
 
-					arg1 := logging.TraceElementResult{
+					arg1 := results.TraceElementResult{
 						RoutineID: ch.routine, ObjID: ch.id, TPre: tPre1, ObjType: "CS", File: file1, Line: line1}
-					arg2 := logging.TraceElementResult{
+					arg2 := results.TraceElementResult{
 						RoutineID: partnerRout, ObjID: ch.id, TPre: tPre2, ObjType: "CR", File: file2, Line: line2}
 
-					logging.Result(logging.CRITICAL, bugType,
-						"channel", []logging.ResultElem{arg1}, "partner", []logging.ResultElem{arg2})
+					results.Result(results.CRITICAL, bugType,
+						"channel", []results.ResultElem{arg1}, "partner", []results.ResultElem{arg2})
 
 					foundPartner = true
 				}
@@ -99,29 +98,29 @@ func CheckForLeakChannelStuck(ch *TraceElementChannel, vc clock.VectorClock) {
 			if _, ok := mrs[ch.id]; ok {
 				if clock.GetHappensBefore(mrs[ch.id].Vc, vc) == clock.Concurrent {
 
-					var bugType logging.ResultType = logging.LUnbufferedWith
+					var bugType results.ResultType = results.LUnbufferedWith
 					if buffered {
-						bugType = logging.LBufferedWith
+						bugType = results.LBufferedWith
 					}
 
 					file1, line1, tPre1, err1 := infoFromTID(ch.GetTID())
 					if err1 != nil {
-						logging.Debug("Error in infoFromTID", logging.ERROR)
+						log.Printf("Error in infoFromTID(%s)", ch.GetTID())
 						return
 					}
 					file2, line2, tPre2, err2 := infoFromTID(mrs[ch.id].Elem.GetTID())
 					if err2 != nil {
-						logging.Debug("Error in infoFromTID", logging.ERROR)
+						log.Printf("Error in infoFromTID(%s)", mrs[ch.id].Elem.GetTID())
 						return
 					}
 
-					arg1 := logging.TraceElementResult{
+					arg1 := results.TraceElementResult{
 						RoutineID: ch.routine, ObjID: ch.id, TPre: tPre1, ObjType: "CR", File: file1, Line: line1}
-					arg2 := logging.TraceElementResult{
+					arg2 := results.TraceElementResult{
 						RoutineID: partnerRout, ObjID: ch.id, TPre: tPre2, ObjType: "CS", File: file2, Line: line2}
 
-					logging.Result(logging.CRITICAL, bugType,
-						"channel", []logging.ResultElem{arg1}, "partner", []logging.ResultElem{arg2})
+					results.Result(results.CRITICAL, bugType,
+						"channel", []results.ResultElem{arg1}, "partner", []results.ResultElem{arg2})
 
 					foundPartner = true
 				}
@@ -149,7 +148,6 @@ func CheckForLeakChannelStuck(ch *TraceElementChannel, vc clock.VectorClock) {
  *   buffered (bool): If the channel is buffered
  */
 func CheckForLeakChannelRun(routineID int, objID int, vcTID VectorClockTID, opType int, buffered bool) bool {
-	logging.Debug("Checking channel for for leak channels", logging.INFO)
 	res := false
 	if opType == 0 || opType == 2 { // send or close
 		for i, vcTID2 := range leakingChannels[objID] {
@@ -158,19 +156,19 @@ func CheckForLeakChannelRun(routineID int, objID int, vcTID VectorClockTID, opTy
 			}
 
 			if clock.GetHappensBefore(vcTID2.vc, vcTID.Vc) == clock.Concurrent {
-				var bugType logging.ResultType = logging.LUnbufferedWith
+				var bugType results.ResultType = results.LUnbufferedWith
 				if buffered {
-					bugType = logging.LBufferedWith
+					bugType = results.LBufferedWith
 				}
 
 				file1, line1, tPre1, err1 := infoFromTID(vcTID2.tID) // leaking
 				if err1 != nil {
-					logging.Debug("Error in infoFromTID", logging.ERROR)
+					log.Printf("Error in infoFromTID(%s)", vcTID2.tID)
 					return res
 				}
 				file2, line2, tPre2, err2 := infoFromTID(vcTID.TID) // partner
 				if err2 != nil {
-					logging.Debug("Error in infoFromTID", logging.ERROR)
+					log.Printf("Error in infoFromTID(%s)", vcTID.TID)
 					return res
 				}
 
@@ -181,13 +179,13 @@ func CheckForLeakChannelRun(routineID int, objID int, vcTID VectorClockTID, opTy
 					objType += "C"
 				}
 
-				arg1 := logging.TraceElementResult{
+				arg1 := results.TraceElementResult{
 					RoutineID: routineID, ObjID: objID, TPre: tPre1, ObjType: "CR", File: file1, Line: line1}
-				arg2 := logging.TraceElementResult{
+				arg2 := results.TraceElementResult{
 					RoutineID: vcTID2.routine, ObjID: objID, TPre: tPre2, ObjType: objType, File: file2, Line: line2}
 
-				logging.Result(logging.CRITICAL, bugType,
-					"channel", []logging.ResultElem{arg1}, "partner", []logging.ResultElem{arg2})
+				results.Result(results.CRITICAL, bugType,
+					"channel", []results.ResultElem{arg1}, "partner", []results.ResultElem{arg2})
 
 				res = true
 
@@ -216,29 +214,29 @@ func CheckForLeakChannelRun(routineID int, objID int, vcTID VectorClockTID, opTy
 
 			if clock.GetHappensBefore(vcTID2.vc, vcTID.Vc) == clock.Concurrent {
 
-				var bugType logging.ResultType = logging.LUnbufferedWith
+				var bugType results.ResultType = results.LUnbufferedWith
 				if buffered {
-					bugType = logging.LBufferedWith
+					bugType = results.LBufferedWith
 				}
 
 				file1, line1, tPre1, err1 := infoFromTID(vcTID2.tID) // leaking
 				if err1 != nil {
-					logging.Debug("Error in infoFromTID", logging.ERROR)
+					log.Printf("Error in infoFromTID(%s)", vcTID2.tID)
 					return res
 				}
 				file2, line2, tPre2, err2 := infoFromTID(vcTID.TID) // partner
 				if err2 != nil {
-					logging.Debug("Error in infoFromTID", logging.ERROR)
+					log.Printf("Error in infoFromTID(%s)", vcTID.TID)
 					return res
 				}
 
-				arg1 := logging.TraceElementResult{
+				arg1 := results.TraceElementResult{
 					RoutineID: routineID, ObjID: objID, TPre: tPre1, ObjType: objType, File: file1, Line: line1}
-				arg2 := logging.TraceElementResult{
+				arg2 := results.TraceElementResult{
 					RoutineID: vcTID2.routine, ObjID: objID, TPre: tPre2, ObjType: "CR", File: file2, Line: line2}
 
-				logging.Result(logging.CRITICAL, bugType,
-					"channel", []logging.ResultElem{arg1}, "partner", []logging.ResultElem{arg2})
+				results.Result(results.CRITICAL, bugType,
+					"channel", []results.ResultElem{arg1}, "partner", []results.ResultElem{arg2})
 
 				res = true
 
@@ -305,26 +303,26 @@ func checkForLeak() {
 			if found {
 				file1, line1, tPre1, err := infoFromTID(vcTID.tID)
 				if err != nil {
-					logging.Debug("Error in infoFromTID", logging.ERROR)
+					log.Printf("Error in infoFromTID(%s)", vcTID.tID)
 					continue
 				}
 
 				file2, line2, tPre2, err := infoFromTID(partner.vcTID.TID)
 				if err != nil {
-					logging.Debug("Error in infoFromTID", logging.ERROR)
+					log.Printf("Error in infoFromTID(%s)", partner.vcTID.TID)
 					continue
 				}
 
 				if vcTID.sel {
 
-					arg1 := logging.TraceElementResult{ // select
+					arg1 := results.TraceElementResult{ // select
 						RoutineID: vcTID.routine, ObjID: vcTID.id, TPre: tPre1, ObjType: "SS", File: file1, Line: line1}
 
-					arg2 := logging.TraceElementResult{ // select
+					arg2 := results.TraceElementResult{ // select
 						RoutineID: partner.vcTID.Routine, ObjID: partner.sel.GetID(), TPre: tPre2, ObjType: "SS", File: file2, Line: line2}
 
-					logging.Result(logging.CRITICAL, logging.LSelectWith,
-						"select", []logging.ResultElem{arg1}, "partner", []logging.ResultElem{arg2})
+					results.Result(results.CRITICAL, results.LSelectWith,
+						"select", []results.ResultElem{arg1}, "partner", []results.ResultElem{arg2})
 				} else {
 					obType := "C"
 					if vcTID.typeVal == 0 {
@@ -333,34 +331,34 @@ func checkForLeak() {
 						obType += "R"
 					}
 
-					var bugType logging.ResultType = logging.LUnbufferedWith
+					var bugType results.ResultType = results.LUnbufferedWith
 					if buffered {
-						bugType = logging.LBufferedWith
+						bugType = results.LBufferedWith
 					}
 
-					arg1 := logging.TraceElementResult{ // channel
+					arg1 := results.TraceElementResult{ // channel
 						RoutineID: vcTID.routine, ObjID: vcTID.id, TPre: tPre1, ObjType: obType, File: file1, Line: line1}
 
-					arg2 := logging.TraceElementResult{ // select
+					arg2 := results.TraceElementResult{ // select
 						RoutineID: partner.vcTID.Routine, ObjID: partner.sel.GetID(), TPre: tPre2, ObjType: "SS", File: file2, Line: line2}
 
-					logging.Result(logging.CRITICAL, bugType,
-						"channel", []logging.ResultElem{arg1}, "partner", []logging.ResultElem{arg2})
+					results.Result(results.CRITICAL, bugType,
+						"channel", []results.ResultElem{arg1}, "partner", []results.ResultElem{arg2})
 				}
 
 			} else {
 				if vcTID.sel {
 					file, line, tPre, err := infoFromTID(vcTID.tID)
 					if err != nil {
-						logging.Debug("Error in infoFromTID", logging.ERROR)
+						log.Printf("Error in infoFromTID(%s)", vcTID.tID)
 						continue
 					}
 
-					arg1 := logging.TraceElementResult{
+					arg1 := results.TraceElementResult{
 						RoutineID: vcTID.routine, ObjID: vcTID.selID, TPre: tPre, ObjType: "SS", File: file, Line: line}
 
-					logging.Result(logging.CRITICAL, logging.LSelectWithout,
-						"select", []logging.ResultElem{arg1}, "", []logging.ResultElem{})
+					results.Result(results.CRITICAL, results.LSelectWithout,
+						"select", []results.ResultElem{arg1}, "", []results.ResultElem{})
 
 				} else {
 					objType := "C"
@@ -372,20 +370,20 @@ func checkForLeak() {
 
 					file, line, tPre, err := infoFromTID(vcTID.tID)
 					if err != nil {
-						logging.Debug("Error in infoFromTID", logging.ERROR)
+						log.Printf("Error in infoFromTID(%s)", vcTID.tID)
 						continue
 					}
 
-					arg1 := logging.TraceElementResult{
+					arg1 := results.TraceElementResult{
 						RoutineID: vcTID.routine, ObjID: vcTID.id, TPre: tPre, ObjType: objType, File: file, Line: line}
 
-					var bugType logging.ResultType = logging.LUnbufferedWithout
+					var bugType results.ResultType = results.LUnbufferedWithout
 					if buffered {
-						bugType = logging.LBufferedWithout
+						bugType = results.LBufferedWithout
 					}
 
-					logging.Result(logging.CRITICAL, bugType,
-						"channel", []logging.ResultElem{arg1}, "", []logging.ResultElem{})
+					results.Result(results.CRITICAL, bugType,
+						"channel", []results.ResultElem{arg1}, "", []results.ResultElem{})
 				}
 			}
 		}
@@ -416,15 +414,15 @@ func CheckForLeakSelectStuck(se *TraceElementSelect, ids []int, buffered []bool,
 	if len(ids) == 0 {
 		file, line, _, err := infoFromTID(se.GetTID())
 		if err != nil {
-			logging.Debug("Error in infoFromTID", logging.ERROR)
+			log.Printf("Error in infoFromTID(%s)", se.GetTID())
 			return
 		}
 
-		arg1 := logging.TraceElementResult{
+		arg1 := results.TraceElementResult{
 			RoutineID: se.routine, ObjID: se.id, TPre: se.tPre, ObjType: "SS", File: file, Line: line}
 
-		logging.Result(logging.CRITICAL, logging.LSelectWithout,
-			"select", []logging.ResultElem{arg1}, "", []logging.ResultElem{})
+		results.Result(results.CRITICAL, results.LSelectWithout,
+			"select", []results.ResultElem{arg1}, "", []results.ResultElem{})
 
 		return
 	}
@@ -436,22 +434,22 @@ func CheckForLeakSelectStuck(se *TraceElementSelect, ids []int, buffered []bool,
 					if clock.GetHappensBefore(vc, mrr[id].Vc) == clock.Concurrent {
 						file1, line1, _, err1 := infoFromTID(se.GetTID()) // select
 						if err1 != nil {
-							logging.Debug("Error in infoFromTID", logging.ERROR)
+							log.Printf("Error in infoFromTID(%s)", se.GetTID())
 							return
 						}
 						file2, line2, tPre2, err2 := infoFromTID(recv.Elem.GetTID()) // partner
 						if err2 != nil {
-							logging.Debug("Error in infoFromTID", logging.ERROR)
+							log.Printf("Error in infoFromTID(%s)", recv.Elem.GetTID())
 							return
 						}
 
-						arg1 := logging.TraceElementResult{
+						arg1 := results.TraceElementResult{
 							RoutineID: se.routine, ObjID: se.id, TPre: se.tPre, ObjType: "SS", File: file1, Line: line1}
-						arg2 := logging.TraceElementResult{
+						arg2 := results.TraceElementResult{
 							RoutineID: routinePartner, ObjID: id, TPre: tPre2, ObjType: "CR", File: file2, Line: line2}
 
-						logging.Result(logging.CRITICAL, logging.LSelectWith,
-							"select", []logging.ResultElem{arg1}, "partner", []logging.ResultElem{arg2})
+						results.Result(results.CRITICAL, results.LSelectWith,
+							"select", []results.ResultElem{arg1}, "partner", []results.ResultElem{arg2})
 						foundPartner = true
 					}
 				}
@@ -462,22 +460,22 @@ func CheckForLeakSelectStuck(se *TraceElementSelect, ids []int, buffered []bool,
 					if clock.GetHappensBefore(vc, mrs[id].Vc) == clock.Concurrent {
 						file1, line1, _, err1 := infoFromTID(se.GetTID()) // select
 						if err1 != nil {
-							logging.Debug("Error in infoFromTID", logging.ERROR)
+							log.Printf("Error in infoFromTID(%s)", se.GetTID())
 							return
 						}
 						file2, line2, tPre2, err2 := infoFromTID(send.Elem.GetTID()) // partner
 						if err2 != nil {
-							logging.Debug("Error in infoFromTID", logging.ERROR)
+							log.Printf("Error in infoFromTID(%s)", send.Elem.GetTID())
 							return
 						}
 
-						arg1 := logging.TraceElementResult{
+						arg1 := results.TraceElementResult{
 							RoutineID: se.routine, ObjID: se.id, TPre: se.tPre, ObjType: "SS", File: file1, Line: line1}
-						arg2 := logging.TraceElementResult{
+						arg2 := results.TraceElementResult{
 							RoutineID: routinePartner, ObjID: id, TPre: tPre2, ObjType: "CS", File: file2, Line: line2}
 
-						logging.Result(logging.CRITICAL, logging.LSelectWith,
-							"select", []logging.ResultElem{arg1}, "partner", []logging.ResultElem{arg2})
+						results.Result(results.CRITICAL, results.LSelectWith,
+							"select", []results.ResultElem{arg1}, "partner", []results.ResultElem{arg2})
 
 						foundPartner = true
 					}
@@ -486,22 +484,22 @@ func CheckForLeakSelectStuck(se *TraceElementSelect, ids []int, buffered []bool,
 			if cl, ok := closeData[id]; ok {
 				file1, line1, _, err1 := infoFromTID(se.GetTID()) // select
 				if err1 != nil {
-					logging.Debug("Error in infoFromTID", logging.ERROR)
+					log.Printf("Error in infoFromTID(%s)", se.GetTID())
 					return
 				}
 				file2, line2, tPre2, err2 := infoFromTID(cl.GetTID()) // partner
 				if err2 != nil {
-					logging.Debug("Error in infoFromTID", logging.ERROR)
+					log.Printf("Error in infoFromTID(%s)", cl.GetTID())
 					return
 				}
 
-				arg1 := logging.TraceElementResult{
+				arg1 := results.TraceElementResult{
 					RoutineID: se.routine, ObjID: se.id, TPre: se.tPre, ObjType: "SS", File: file1, Line: line1}
-				arg2 := logging.TraceElementResult{
+				arg2 := results.TraceElementResult{
 					RoutineID: cl.routine, ObjID: id, TPre: tPre2, ObjType: "CS", File: file2, Line: line2}
 
-				logging.Result(logging.CRITICAL, logging.LSelectWith,
-					"select", []logging.ResultElem{arg1}, "partner", []logging.ResultElem{arg2})
+				results.Result(results.CRITICAL, results.LSelectWith,
+					"select", []results.ResultElem{arg1}, "partner", []results.ResultElem{arg2})
 
 				foundPartner = true
 			}
@@ -525,13 +523,13 @@ func CheckForLeakSelectStuck(se *TraceElementSelect, ids []int, buffered []bool,
 func CheckForLeakMutex(mu *TraceElementMutex) {
 	file1, line1, tPre1, err := infoFromTID(mu.GetTID())
 	if err != nil {
-		logging.Debug("Error in infoFromTID", logging.ERROR)
+		log.Printf("Error in infoFromTID(%s)", mu.GetTID())
 		return
 	}
 
 	file2, line2, tPre2, err := infoFromTID(mostRecentAcquireTotal[mu.id].Elem.GetTID())
 	if err != nil {
-		logging.Debug("Error in infoFromTID", logging.ERROR)
+		log.Printf("Error in infoFromTID(%s)", mostRecentAcquireTotal[mu.id].Elem.GetTID())
 		return
 	}
 
@@ -557,14 +555,14 @@ func CheckForLeakMutex(mu *TraceElementMutex) {
 		return
 	}
 
-	arg1 := logging.TraceElementResult{
+	arg1 := results.TraceElementResult{
 		RoutineID: mu.routine, ObjID: mu.id, TPre: tPre1, ObjType: objType1, File: file1, Line: line1}
 
-	arg2 := logging.TraceElementResult{
+	arg2 := results.TraceElementResult{
 		RoutineID: mostRecentAcquireTotal[mu.id].Elem.GetRoutine(), ObjID: mu.id, TPre: tPre2, ObjType: objType2, File: file2, Line: line2}
 
-	logging.Result(logging.CRITICAL, logging.LMutex,
-		"mutex", []logging.ResultElem{arg1}, "last", []logging.ResultElem{arg2})
+	results.Result(results.CRITICAL, results.LMutex,
+		"mutex", []results.ResultElem{arg1}, "last", []results.ResultElem{arg2})
 }
 
 /*
@@ -587,15 +585,15 @@ func addMostRecentAcquireTotal(mu *TraceElementMutex, vc clock.VectorClock, op i
 func CheckForLeakWait(wa *TraceElementWait) {
 	file, line, tPre, err := infoFromTID(wa.GetTID())
 	if err != nil {
-		logging.Debug("Error in infoFromTID", logging.ERROR)
+		log.Printf("Error in infoFromTID(%s)", wa.GetTID())
 		return
 	}
 
-	arg := logging.TraceElementResult{
+	arg := results.TraceElementResult{
 		RoutineID: wa.routine, ObjID: wa.id, TPre: tPre, ObjType: "WW", File: file, Line: line}
 
-	logging.Result(logging.CRITICAL, logging.LWaitGroup,
-		"wait", []logging.ResultElem{arg}, "", []logging.ResultElem{})
+	results.Result(results.CRITICAL, results.LWaitGroup,
+		"wait", []results.ResultElem{arg}, "", []results.ResultElem{})
 }
 
 /*
@@ -607,15 +605,15 @@ func CheckForLeakWait(wa *TraceElementWait) {
 func CheckForLeakCond(co *TraceElementCond) {
 	file, line, tPre, err := infoFromTID(co.GetTID())
 	if err != nil {
-		logging.Debug("Error in infoFromTID", logging.ERROR)
+		log.Printf("Error in infoFromTID(%s)", co.GetTID())
 		return
 	}
 
-	arg := logging.TraceElementResult{
+	arg := results.TraceElementResult{
 		RoutineID: co.routine, ObjID: co.id, TPre: tPre, ObjType: "NW", File: file, Line: line}
 
-	logging.Result(logging.CRITICAL, logging.LCond,
-		"cond", []logging.ResultElem{arg}, "", []logging.ResultElem{})
+	results.Result(results.CRITICAL, results.LCond,
+		"cond", []results.ResultElem{arg}, "", []results.ResultElem{})
 }
 
 func checkForStuckRoutine() {
@@ -646,12 +644,12 @@ func checkForStuckRoutine() {
 			}
 		}
 
-		arg := logging.TraceElementResult{
+		arg := results.TraceElementResult{
 			RoutineID: routine, ObjID: -1, TPre: lastElem.GetTPre(),
 			ObjType: "GE", File: file, Line: line,
 		}
 
-		logging.Result(logging.CRITICAL, logging.LWithoutBlock,
-			"fork", []logging.ResultElem{arg}, "", []logging.ResultElem{})
+		results.Result(results.CRITICAL, results.LWithoutBlock,
+			"fork", []results.ResultElem{arg}, "", []results.ResultElem{})
 	}
 }

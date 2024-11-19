@@ -12,10 +12,11 @@ package analysis
 
 import (
 	"analyzer/clock"
-	"analyzer/logging"
+	"analyzer/results"
 	"analyzer/utils"
 	"errors"
 	"fmt"
+	"log"
 )
 
 /*
@@ -82,7 +83,7 @@ func checkForUnlockBeforeLock() {
 			for _, u := range graph["s"] {
 				unlockTId, err := getUnlockElemFromTID(id, u)
 				if err != nil {
-					logging.Debug(err.Error(), logging.ERROR)
+					log.Print(err.Error())
 				} else {
 					unlocks = append(unlocks, unlockTId)
 				}
@@ -104,8 +105,8 @@ func checkForUnlockBeforeLock() {
 				}
 			}
 
-			args1 := []logging.ResultElem{} // unlocks
-			args2 := []logging.ResultElem{} // locks
+			args1 := []results.ResultElem{} // unlocks
+			args2 := []results.ResultElem{} // locks
 
 			for _, u := range unlockSorted {
 				if u.GetTID() == "\n" {
@@ -113,11 +114,11 @@ func checkForUnlockBeforeLock() {
 				}
 				file, line, tPre, err := infoFromTID(u.GetTID())
 				if err != nil {
-					logging.Debug(err.Error(), logging.ERROR)
+					log.Print(err.Error())
 					continue
 				}
 
-				args1 = append(args1, logging.TraceElementResult{
+				args1 = append(args1, results.TraceElementResult{
 					RoutineID: u.GetRoutine(),
 					ObjID:     id,
 					TPre:      tPre,
@@ -133,11 +134,11 @@ func checkForUnlockBeforeLock() {
 				}
 				file, line, tPre, err := infoFromTID(l.GetTID())
 				if err != nil {
-					logging.Debug(err.Error(), logging.ERROR)
+					log.Print(err.Error())
 					continue
 				}
 
-				args2 = append(args2, logging.TraceElementResult{
+				args2 = append(args2, results.TraceElementResult{
 					RoutineID: l.GetRoutine(),
 					ObjID:     id,
 					TPre:      tPre,
@@ -147,7 +148,7 @@ func checkForUnlockBeforeLock() {
 				})
 			}
 
-			logging.Result(logging.CRITICAL, logging.PUnlockBeforeLock, "unlock",
+			results.Result(results.CRITICAL, results.PUnlockBeforeLock, "unlock",
 				args1, "lock", args2)
 		}
 	}

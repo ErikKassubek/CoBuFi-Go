@@ -16,12 +16,12 @@ package io
 import (
 	"bufio"
 	"errors"
+	"log"
 	"os"
 	"strconv"
 	"strings"
 
 	"analyzer/analysis"
-	"analyzer/logging"
 )
 
 /*
@@ -86,11 +86,11 @@ func CreateTraceFromFiles(filePath string, ignoreAtomics bool) (int, bool, error
  *	 error: An error if the trace could not be created
  */
 func CreateTraceFromFile(filePath string, routine int, ignoreAtomics bool) (bool, error) {
-	logging.Debug("Create trace from file "+filePath+"...", logging.INFO)
+	log.Print("Create trace from file " + filePath)
 
 	file, err := os.Open(filePath)
 	if err != nil {
-		logging.Debug("Error opening file: "+filePath, logging.ERROR)
+		log.Print("Error opening file: " + filePath)
 		return false, err
 	}
 
@@ -123,7 +123,6 @@ func CreateTraceFromFile(filePath string, routine int, ignoreAtomics bool) (bool
  */
 func processElement(element string, routine int, ignoreAtomics bool) error {
 	if element == "" {
-		logging.Debug("Routine "+strconv.Itoa(routine)+" is empty", logging.DEBUG)
 		return errors.New("Element is empty")
 	}
 	fields := strings.Split(element, ",")

@@ -12,11 +12,11 @@ package analysis
 
 import (
 	"errors"
+	"log"
 	"math"
 	"strconv"
 
 	"analyzer/clock"
-	"analyzer/logging"
 )
 
 // enum for opC
@@ -528,31 +528,23 @@ func (ch *TraceElementChannel) updateVectorClock() {
 			Close(ch, currentVCHb)
 		default:
 			err := "Unknown operation: " + ch.ToString()
-			logging.Debug(err, logging.ERROR)
+			log.Print(err)
 		}
 	} else { // buffered channel
 		switch ch.opC {
 		case SendOp:
-			logging.Debug("Update vector clock of channel operation: "+
-				ch.ToString(), logging.DEBUG)
 			Send(ch, currentVCHb, fifo)
 		case RecvOp:
 			if ch.cl { // recv on closed channel
-				logging.Debug("Update vector clock of channel operation: "+
-					ch.ToString(), logging.DEBUG)
 				RecvC(ch, currentVCHb, true)
 			} else {
-				logging.Debug("Update vector clock of channel operation: "+
-					ch.ToString(), logging.DEBUG)
 				Recv(ch, currentVCHb, fifo)
 			}
 		case CloseOp:
-			logging.Debug("Update vector clock of channel operation: "+
-				ch.ToString(), logging.DEBUG)
 			Close(ch, currentVCHb)
 		default:
 			err := "Unknown operation: " + ch.ToString()
-			logging.Debug(err, logging.ERROR)
+			log.Print(err)
 		}
 	}
 

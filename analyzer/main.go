@@ -25,7 +25,7 @@ import (
 	"analyzer/complete"
 	"analyzer/explanation"
 	"analyzer/io"
-	"analyzer/logging"
+	"analyzer/results"
 	"analyzer/rewriter"
 	"analyzer/stats"
 	timemeasurement "analyzer/timeMeasurement"
@@ -37,7 +37,6 @@ import (
 func main() {
 	help := flag.Bool("h", false, "Print this help")
 	pathTrace := flag.String("t", "", "Path to the trace folder to analyze or rewrite")
-	level := flag.Int("d", 1, "Debug Level, 0 = silent, 1 = errors, 2 = info, 3 = debug (default 1)")
 	fifo := flag.Bool("f", false, "Assume a FIFO ordering for buffered channels (default false)")
 	ignoreCriticalSection := flag.Bool("c", false, "Ignore happens before relations of critical sections (default false)")
 	noRewrite := flag.Bool("x", false, "Do not rewrite the trace file (default false)")
@@ -121,7 +120,7 @@ func main() {
 	case "check":
 		modeCheck(resultFolderTool, programPath)
 	case "run":
-		modeRun(pathTrace, noPrint, noRewrite, scenarios, level, outReadable,
+		modeRun(pathTrace, noPrint, noRewrite, scenarios, outReadable,
 			outMachine, ignoreAtomics, fifo, ignoreCriticalSection,
 			noWarning, rewriteAll, folderTrace, newTrace, timeout, ignoreRewrite)
 	default:
@@ -158,7 +157,7 @@ func modeExplain(pathTrace *string, ignoreDouble bool) {
 
 	err := explanation.CreateOverview(*pathTrace, ignoreDouble)
 	if err != nil {
-		fmt.Println("Error creating explanation: ", err.Error())
+		log.Println("Error creating explanation: ", err.Error())
 	}
 }
 
@@ -181,7 +180,7 @@ func modeCheck(resultFolderTool, programPath *string) {
 }
 
 func modeRun(pathTrace *string, noPrint *bool, noRewrite *bool,
-	scenarios *string, level *int, outReadable string, outMachine string,
+	scenarios *string, outReadable string, outMachine string,
 	ignoreAtomics *bool, fifo *bool, ignoreCriticalSection *bool,
 	noWarning *bool, rewriteAll *bool, folderTrace string, newTrace string, timeout *int, ignoreRewrite *string) {
 	// printHeader()
@@ -211,7 +210,7 @@ func modeRun(pathTrace *string, noPrint *bool, noRewrite *bool,
 	// run the analysis and, if requested, create a reordered trace file
 	// based on the analysis results
 
-	logging.InitLogging(*level, outReadable, outMachine)
+	results.InitResults(outReadable, outMachine)
 
 	// done and separate routine to implement timeout
 	done := make(chan bool)
@@ -262,7 +261,7 @@ func modeRun(pathTrace *string, noPrint *bool, noRewrite *bool,
 		<-done
 	}
 
-	numberOfResults := logging.PrintSummary(*noWarning, *noPrint)
+	numberOfResults := results.PrintSummary(*noWarning, *noPrint)
 
 	if !*noRewrite {
 		numberRewrittenTrace := 0

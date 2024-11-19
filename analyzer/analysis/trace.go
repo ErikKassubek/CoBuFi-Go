@@ -12,11 +12,11 @@ package analysis
 
 import (
 	"analyzer/clock"
-	"analyzer/logging"
 	timemeasurement "analyzer/timeMeasurement"
 	"analyzer/utils"
 	"errors"
 	"fmt"
+	"log"
 	"sort"
 	"strconv"
 	"strings"
@@ -271,7 +271,7 @@ func SetNumberOfRoutines(n int) {
  */
 func RunAnalysis(assumeFifo bool, ignoreCriticalSections bool, analysisCasesMap map[string]bool) string {
 
-	logging.Debug("Analyze the trace...", logging.INFO)
+	log.Print("Analyze the trace")
 
 	fifo = assumeFifo
 
@@ -289,34 +289,22 @@ func RunAnalysis(assumeFifo bool, ignoreCriticalSections bool, analysisCasesMap 
 	for elem := getNextElement(); elem != nil; elem = getNextElement() {
 		switch e := elem.(type) {
 		case *TraceElementAtomic:
-			logging.Debug("Update vector clock for atomic operation "+e.ToString()+
-				" for routine "+strconv.Itoa(e.GetRoutine()), logging.DEBUG)
 			if ignoreCriticalSections {
 				e.updateVectorClockAlt()
 			} else {
 				e.updateVectorClock()
 			}
 		case *TraceElementChannel:
-			logging.Debug("Update vector clock for channel operation "+e.ToString()+
-				" for routine "+strconv.Itoa(e.GetRoutine()), logging.DEBUG)
 			e.updateVectorClock()
 		case *TraceElementMutex:
 			if ignoreCriticalSections {
-				logging.Debug("Ignore critical section "+e.ToString()+
-					" for routine "+strconv.Itoa(e.GetRoutine()), logging.DEBUG)
 				e.updateVectorClockAlt()
 			} else {
-				logging.Debug("Update vector clock for mutex operation "+e.ToString()+
-					" for routine "+strconv.Itoa(e.GetRoutine()), logging.DEBUG)
 				e.updateVectorClock()
 			}
 		case *TraceElementFork:
-			logging.Debug("Update vector clock for routine operation "+e.ToString()+
-				" for routine "+strconv.Itoa(e.GetRoutine()), logging.DEBUG)
 			e.updateVectorClock()
 		case *TraceElementSelect:
-			logging.Debug("Update vector clock for select operation "+e.ToString()+
-				" for routine "+strconv.Itoa(e.GetRoutine()), logging.DEBUG)
 			cases := e.GetCases()
 			ids := make([]int, 0)
 			opTypes := make([]int, 0)
@@ -332,12 +320,8 @@ func RunAnalysis(assumeFifo bool, ignoreCriticalSections bool, analysisCasesMap 
 			}
 			e.updateVectorClock()
 		case *TraceElementWait:
-			logging.Debug("Update vector clock for go operation "+e.ToString()+
-				" for routine "+strconv.Itoa(e.GetRoutine()), logging.DEBUG)
 			e.updateVectorClock()
 		case *TraceElementCond:
-			logging.Debug("Update vector clock for cond operation "+e.ToString()+
-				" for routine "+strconv.Itoa(e.GetRoutine()), logging.DEBUG)
 			e.updateVectorClock()
 		}
 
@@ -411,7 +395,8 @@ func RunAnalysis(assumeFifo bool, ignoreCriticalSections bool, analysisCasesMap 
 		timemeasurement.End("panic")
 	}
 
-	logging.Debug("Analysis completed", logging.INFO)
+	log.Print("Finished analyzing trace")
+
 	return result
 }
 

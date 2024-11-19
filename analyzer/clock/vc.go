@@ -11,8 +11,8 @@
 package clock
 
 import (
-	"analyzer/logging"
 	"fmt"
+	"log"
 	"runtime"
 	"strconv"
 )
@@ -143,7 +143,7 @@ func (vc VectorClock) Inc(routine int) VectorClock {
 func (vc VectorClock) Sync(rec VectorClock) VectorClock {
 	if vc.size == 0 && rec.size == 0 {
 		_, file, line, _ := runtime.Caller(1)
-		logging.Debug("Sync of empty vector clocks: "+file+":"+strconv.Itoa(line), logging.ERROR)
+		log.Print("Sync of empty vector clocks: " + file + ":" + strconv.Itoa(line))
 	}
 
 	if vc.size == 0 {

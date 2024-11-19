@@ -206,7 +206,7 @@ func checkForCyclicDeadlock() {
 			// for i := 0; i < len(cycle); i++ {
 			// 	found += cycle[i].tID + ";"
 			// }
-			// logging.Result(found, logging.CRITICAL)
+			// results.Result(found, results.CRITICAL)
 		}
 	}
 }

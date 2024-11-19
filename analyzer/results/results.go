@@ -1,37 +1,20 @@
 // Copyrigth (c) 2024 Erik Kassubek
 //
-// File: logging.go
-// Brief: Function for debug logging and for logging found bugs
+// File: results.go
+// Brief: Function for debug results and for results found bugs
 //
 // Author: Erik Kassubek
 // Created: 2023-08-30
 //
 // License: BSD-3-Clause
 
-package logging
+package results
 
 import (
 	"fmt"
 	"os"
 	"strconv"
 	"strings"
-)
-
-var levelDebug int = 0
-
-var Reset = "\033[0m"
-var Red = "\033[31m"
-var Orange = "\033[33m"
-var Green = "\033[32m"
-var Blue = "\033[34m"
-
-type debugLevel int
-
-const (
-	SILENT debugLevel = iota
-	ERROR
-	INFO
-	DEBUG
 )
 
 type resultLevel int
@@ -115,25 +98,6 @@ var resultCriticalMachine []string
 var resultInformationMachine []string
 
 var resultWithoutTime []string
-
-/*
-* Print a debug log message if the log level is sufficiant
-* Args:
-*   message: message to print
-*   level: level of the message
- */
-func Debug(message string, level debugLevel) {
-	// print message to terminal
-	if int(level) <= levelDebug {
-		if level == ERROR {
-			println(Blue + message + Reset)
-		} else if level == INFO {
-			println(Green + message + Reset)
-		} else {
-			println(message)
-		}
-	}
-}
 
 type ResultElem interface {
 	isInvalid() bool
@@ -279,18 +243,10 @@ func Result(level resultLevel, resType ResultType, argType1 string, arg1 []Resul
 /*
 * Initialize the debug
 * Args:
-*   level: level of the debug
 *   outReadable: path to the output file, no output file if empty
 *   outMachine: path to the output file for the reordered trace, no output file if empty
  */
-func InitLogging(level int, outReadable string, outMachine string) {
-	if level < 0 {
-		level = 0
-	}
-	levelDebug = level
-
-	fmt.Println("Logging: ", outReadable, outMachine)
-
+func InitResults(outReadable string, outMachine string) {
 	outputReadableFile = outReadable
 	outputMachineFile = outMachine
 }

@@ -13,8 +13,8 @@ package analysis
 
 import (
 	"analyzer/clock"
-	"analyzer/logging"
 	timemeasurement "analyzer/timeMeasurement"
+	"log"
 	"strconv"
 )
 
@@ -148,7 +148,7 @@ func Send(ch *TraceElementChannel, vc map[int]clock.VectorClock, fifo bool) {
 	}
 
 	if count > ch.qSize || bufferedVCs[ch.id][count].occupied {
-		logging.Debug("Write to occupied buffer position or to big count", logging.ERROR)
+		log.Print("Write to occupied buffer position or to big count")
 	}
 
 	v := bufferedVCs[ch.id][count].vc
@@ -227,7 +227,7 @@ func Recv(ch *TraceElementChannel, vc map[int]clock.VectorClock, fifo bool) {
 	if bufferedVCsCount[ch.id] == 0 {
 		holdSend = append(holdSend, holdObj{ch, vc, fifo})
 		return
-		// logging.Debug("Read operation on empty buffer position", logging.ERROR)
+		// results.Debug("Read operation on empty buffer position", results.ERROR)
 	}
 	bufferedVCsCount[ch.id]--
 
@@ -243,7 +243,7 @@ func Recv(ch *TraceElementChannel, vc map[int]clock.VectorClock, fifo bool) {
 		}
 		if !found {
 			err := "Read operation on wrong buffer position - ID: " + strconv.Itoa(ch.id) + ", OID: " + strconv.Itoa(ch.oID) + ", SIZE: " + strconv.Itoa(ch.qSize)
-			logging.Debug(err, logging.INFO)
+			log.Print(err)
 		}
 	}
 	v := bufferedVCs[ch.id][0].vc
