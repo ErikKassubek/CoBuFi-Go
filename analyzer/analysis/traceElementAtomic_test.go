@@ -12,6 +12,7 @@ package analysis
 
 import (
 	"analyzer/clock"
+	"analyzer/utils"
 	"errors"
 	"reflect"
 	"testing"
@@ -46,19 +47,8 @@ func TestTraceElementAtomicNew(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			err := AddTraceElementAtomic(test.routine, test.tPost, test.id, test.operation, test.position)
 
-			if test.expError == nil && err != nil {
-				t.Errorf("Received unexpected error %s", err.Error())
-				return
-			}
-
-			if test.expError != nil && err == nil {
-				t.Errorf("Expected error, but no error was triggered")
-				return
-			}
-
-			if err != nil && err.Error() != test.expError.Error() {
-				t.Errorf("Incorrect Error. Expected %s. Got %s.", test.expError, err)
-				return
+			if res := utils.GetErrorDiff(test.expError, err); res != nil {
+				t.Errorf(res.Error())
 			}
 
 			if err != nil {
@@ -167,8 +157,8 @@ func TestTraceElementAtomicNew(t *testing.T) {
 // 	}
 // }
 
-func TestTraceElementAtomicSet(t *testing.T) {
-}
+// func TestTraceElementAtomicSet(t *testing.T) {
+// }
 
 func TestAtomicUpdateVectorClock(t *testing.T) {
 	t.Run("LoadOp", func(t *testing.T) {

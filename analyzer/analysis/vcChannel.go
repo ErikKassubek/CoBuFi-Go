@@ -41,7 +41,12 @@ type bufferedVC struct {
 func Unbuffered(sender TraceElement, recv TraceElement, vc map[int]clock.VectorClock) {
 	if analysisCases["concurrentRecv"] {
 		timemeasurement.Start("other")
-		checkForConcurrentRecv(recv.(*TraceElementChannel), vc)
+		switch r := recv.(type) {
+		case *TraceElementChannel:
+			checkForConcurrentRecv(r, vc)
+		case *TraceElementSelect:
+			checkForConcurrentRecv(&r.chosenCase, vc)
+		}
 		timemeasurement.Start("End")
 	}
 

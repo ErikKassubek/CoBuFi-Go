@@ -10,7 +10,11 @@
 
 package utils
 
-import "strings"
+import (
+	"fmt"
+	"reflect"
+	"strings"
+)
 
 /*
 * Check if a slice ContainsString an element
@@ -57,4 +61,25 @@ func SplitAtLast(str string, sep string) []string {
 		return []string{str}
 	}
 	return []string{str[:i], str[i+1:]}
+}
+
+func GetErrorDiff(expected error, given error) error {
+	if expected == nil && given == nil {
+		return nil
+	} else if expected == nil && given != nil {
+		return fmt.Errorf("Given error is not nil. Expected nil")
+	} else if expected != nil && given == nil {
+		return fmt.Errorf("Given error is nil. Expected %s.", expected.Error())
+	}
+
+	// both are not nil
+	if reflect.TypeOf(expected) != reflect.TypeOf(given) {
+		return fmt.Errorf("Types of the errors are different.%T != %T", reflect.TypeOf(expected), reflect.TypeOf(given))
+	}
+
+	if expected.Error() != given.Error() {
+		return fmt.Errorf("Errors contain different messages. %s != %s.", expected.Error(), given.Error())
+	}
+
+	return nil
 }

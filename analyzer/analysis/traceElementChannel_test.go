@@ -12,6 +12,7 @@ package analysis
 
 import (
 	"analyzer/clock"
+	"analyzer/utils"
 	"errors"
 	"testing"
 )
@@ -226,19 +227,8 @@ func TestTraceElementChannelNew(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			err := AddTraceElementChannel(test.routine, test.tPre, test.tPost, test.id, test.op, test.cl, test.oID, test.qSize, test.pos)
 
-			if test.expError == nil && err != nil {
-				t.Errorf("Received unexpected error %s", err.Error())
-				return
-			}
-
-			if test.expError != nil && err == nil {
-				t.Errorf("Expected error, but no error was triggered")
-				return
-			}
-
-			if err != nil && err.Error() != test.expError.Error() {
-				t.Errorf("Incorrect Error. Expected %s. Got %s.", test.expError, err)
-				return
+			if res := utils.GetErrorDiff(test.expError, err); res != nil {
+				t.Errorf(res.Error())
 			}
 
 			if err != nil {
@@ -246,7 +236,6 @@ func TestTraceElementChannelNew(t *testing.T) {
 			}
 
 			trace := GetTraceFromId(test.routine)
-
 			elem := trace[len(trace)-1].(*TraceElementChannel)
 
 			if elem.routine != test.expRoutine {
