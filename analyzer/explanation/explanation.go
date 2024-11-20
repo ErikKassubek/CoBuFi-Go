@@ -71,7 +71,7 @@ func CreateOverview(path string, ignoreDouble bool) error {
 		for index := 1; index < numberResults; index++ {
 			id := ""
 			if strings.HasSuffix(result, "results_machine.log") {
-				id += "0_" + strconv.Itoa(index)
+				id += strconv.Itoa(index)
 			} else {
 				elem := strings.Split(strings.Split(result, ".log")[0], "_")
 				id += elem[len(elem)-1] + "_" + strconv.Itoa(index)
