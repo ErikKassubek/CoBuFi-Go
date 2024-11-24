@@ -533,34 +533,6 @@ func getNextReplayElement() (int, ReplayElement) {
 	return routine, replayData[uint64(routine)][0]
 }
 
-/*
- * Check if the next element in the trace is a replay end element with the given code.
- * Args:
- * 	code: the code of the replay end element
- * 	runExit: true if the program should exit with the given code, false otherwise
- *  overwrite: if true, also exit if the next element is not a replay end element but the code is the expected exit code
- * Return:
- * 	bool: true if the next element is a replay end element with the given code or id overwrite is set and the code is the expected code, false otherwise
- */
-func IsNextElementReplayEnd(code int, runExit bool, overwrite bool) bool {
-	_, next := getNextReplayElement()
-
-	if overwrite && code == expectedExitCode {
-		ExitReplayWithCode(code)
-		return true
-	}
-
-	if next.Op != OperationReplayEnd || next.Line != code {
-		return false
-	}
-
-	if runExit {
-		ExitReplayWithCode(code)
-	}
-
-	return true
-}
-
 func foundReplayElement(routine int) {
 	lock(&replayLock)
 	defer unlock(&replayLock)
