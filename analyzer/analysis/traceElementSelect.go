@@ -556,6 +556,22 @@ func (se *TraceElementSelect) updateVectorClock() {
 		}
 	}
 
+	if analysisCases["sendOnClosed"] {
+		for i, c := range se.cases {
+			if i == se.chosenIndex {
+				continue
+			}
+
+			if _, ok := closeData[c.id]; ok {
+				if c.opC == SendOp {
+					foundSendOnClosedChannel(se.routine, c.id, se.pos, false)
+				} else if c.opC == RecvOp {
+					foundReceiveOnClosedChannel(&c, false)
+				}
+			}
+		}
+	}
+
 	if analysisCases["leak"] {
 		timemeasurement.Start("leak")
 		for _, c := range se.cases {

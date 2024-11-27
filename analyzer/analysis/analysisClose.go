@@ -32,7 +32,7 @@ func checkForCommunicationOnClosedChannel(ch *TraceElementChannel) {
 
 		for routine, mrs := range mostRecentSend {
 			happensBefore := clock.GetHappensBefore(closeData[ch.id].vc, mrs[ch.id].Vc)
-			if mrs[ch.id].Elem != nil && mrs[ch.id].Elem.GetTID() != "" && happensBefore == clock.Concurrent {
+			if mrs[ch.id].Elem != nil && mrs[ch.id].Elem.GetTID() != "" && happensBefore != clock.Before {
 
 				file1, line1, tPre1, err := infoFromTID(mrs[ch.id].Elem.GetTID()) // send
 				if err != nil {
@@ -123,8 +123,9 @@ func checkForCommunicationOnClosedChannel(ch *TraceElementChannel) {
  *  routineID (int): id of the routine where the send happened
  *  id (int): id of the channel
  *  posSend (string): code location of the send
+ *  actual (bool): set actual to true it the panic occurred, set to false if it is in an not triggered select case
  */
-func foundSendOnClosedChannel(routineID int, id int, posSend string) {
+func foundSendOnClosedChannel(routineID int, id int, posSend string, actual bool) {
 	timemeasurement.Start("panic")
 	defer timemeasurement.End("panic")
 
@@ -167,8 +168,13 @@ func foundSendOnClosedChannel(routineID int, id int, posSend string) {
 		Line:      line2,
 	}
 
-	results.Result(results.CRITICAL, results.ASendOnClosed,
-		"send", []results.ResultElem{arg1}, "close", []results.ResultElem{arg2})
+	if actual {
+		results.Result(results.CRITICAL, results.ASendOnClosed,
+			"send", []results.ResultElem{arg1}, "close", []results.ResultElem{arg2})
+	} else {
+		results.Result(results.CRITICAL, results.PSendOnClosed,
+			"send", []results.ResultElem{arg1}, "close", []results.ResultElem{arg2})
+	}
 
 }
 
@@ -177,7 +183,7 @@ func foundSendOnClosedChannel(routineID int, id int, posSend string) {
  * Args:
  *  ch (*TraceElementChannel): The trace element
  */
-func foundReceiveOnClosedChannel(ch *TraceElementChannel) {
+func foundReceiveOnClosedChannel(ch *TraceElementChannel, actual bool) {
 	timemeasurement.Start("panic")
 	defer timemeasurement.End("panic")
 
@@ -220,8 +226,13 @@ func foundReceiveOnClosedChannel(ch *TraceElementChannel) {
 		Line:      line2,
 	}
 
-	results.Result(results.WARNING, results.ARecvOnClosed,
-		"recv", []results.ResultElem{arg1}, "close", []results.ResultElem{arg2})
+	if actual {
+		results.Result(results.WARNING, results.ARecvOnClosed,
+			"recv", []results.ResultElem{arg1}, "close", []results.ResultElem{arg2})
+	} else {
+		results.Result(results.WARNING, results.PRecvOnClosed,
+			"recv", []results.ResultElem{arg1}, "close", []results.ResultElem{arg2})
+	}
 }
 
 /*

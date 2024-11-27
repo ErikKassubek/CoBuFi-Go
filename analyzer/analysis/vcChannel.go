@@ -79,7 +79,7 @@ func Unbuffered(sender TraceElement, recv TraceElement, vc map[int]clock.VectorC
 	if analysisCases["sendOnClosed"] {
 		timemeasurement.Start("panic")
 		if _, ok := closeData[sender.GetID()]; ok {
-			foundSendOnClosedChannel(sender.GetRoutine(), sender.GetID(), sender.GetTID())
+			foundSendOnClosedChannel(sender.GetRoutine(), sender.GetID(), sender.GetTID(), true)
 		}
 		timemeasurement.End("panic")
 	}
@@ -171,7 +171,7 @@ func Send(ch *TraceElementChannel, vc map[int]clock.VectorClock, fifo bool) {
 	if analysisCases["sendOnClosed"] {
 		timemeasurement.Start("panic")
 		if _, ok := closeData[ch.id]; ok {
-			foundSendOnClosedChannel(ch.routine, ch.id, ch.GetTID())
+			foundSendOnClosedChannel(ch.routine, ch.id, ch.GetTID(), true)
 		}
 		timemeasurement.End("panic")
 	}
@@ -343,7 +343,7 @@ func Close(ch *TraceElementChannel, vc map[int]clock.VectorClock) {
 func SendC(ch *TraceElementChannel) {
 	timemeasurement.Start("other")
 	if analysisCases["sendOnClosed"] {
-		foundSendOnClosedChannel(ch.routine, ch.id, ch.GetTID())
+		foundSendOnClosedChannel(ch.routine, ch.id, ch.GetTID(), true)
 	}
 	timemeasurement.End("other")
 }
@@ -361,7 +361,7 @@ func RecvC(ch *TraceElementChannel, vc map[int]clock.VectorClock, buffered bool)
 	}
 
 	if analysisCases["receiveOnClosed"] {
-		foundReceiveOnClosedChannel(ch)
+		foundReceiveOnClosedChannel(ch, true)
 	}
 
 	if _, ok := closeData[ch.id]; ok {
