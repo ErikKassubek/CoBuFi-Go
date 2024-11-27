@@ -20,6 +20,10 @@ func AdvocateAtomic[T any](addr *T, op AtomicOp, skip int) {
 
 	_, file, line, _ := Caller(skip)
 
+	if AdvocateIgnore(file) {
+		return
+	}
+
 	index := pointerAddressAsString(addr, true)
 
 	elem := "A," + uint64ToString(timer) + "," + index + "," + string(op) + "," + file + ":" + intToString(line)

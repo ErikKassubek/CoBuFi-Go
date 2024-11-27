@@ -150,6 +150,7 @@ func getTpre(elem string) int {
  * 	index of the element in the trace
  */
 func insertIntoTrace(elem string) int {
+
 	return currentGoRoutine().addToTrace(elem)
 }
 
@@ -337,47 +338,8 @@ func DeleteTrace() {
  * Return:
  * 	bool: true if the operation should be ignored, false otherwise
  */
-func AdvocateIgnore(operation Operation, file string, line int) bool {
-	if hasSuffix(file, "advocate/advocate.go") ||
-		hasSuffix(file, "runtime/advocate_replay.go") ||
-		hasSuffix(file, "runtime/advocate_routine.go") ||
-		hasSuffix(file, "runtime/advocate_trace.go") ||
-		hasSuffix(file, "runtime/advocate_utile.go") ||
-		hasSuffix(file, "runtime/advocate_atomic.go") { // internal
-		return true
-	} else if hasSuffix(file, "syscall/env_unix.go") {
-		return true
-	} else if hasSuffix(file, "runtime/signal_unix.go") {
-		return true
-	} else if hasSuffix(file, "runtime/mgc.go") { // garbage collector
-		return true
-	} else if hasSuffix(file, "runtime/panic.go") {
-		return true
-	}
-
-	switch operation {
-	case OperationMutexLock, OperationMutexUnlock:
-		// mutex operations in the once can cause the replay to get stuck,
-		// if the once was called by the poll/fd_poll_runtime.go init.
-		if hasSuffix(file, "sync/once.go") && (line == 113 || line == 114 ||
-			line == 119 || line == 123) {
-			return true
-		}
-		// pools
-		if hasSuffix(file, "sync/pool.go") && (line == 226 || line == 243) {
-			return true
-		}
-		// mutex in rwmutex
-		// if hasSuffix(file, "sync/rwmutex.go") && (line == 270 || line == 396) {
-		// 	return true
-		// }
-	case OperationOnce:
-		// once operations in the poll/fd_poll_runtime.go init can cause the replay to get stuck.
-		if hasSuffix(file, "internal/poll/fd_poll_runtime.go") && line == 40 {
-			return true
-		}
-	}
-	return false
+func AdvocateIgnore(file string) bool {
+	return contains(file, "go-patch/src/")
 }
 
 // ADVOCATE-FILE-END

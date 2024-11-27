@@ -12,6 +12,10 @@ func AdvocateOncePre(id uint64) int {
 
 	_, file, line, _ := Caller(2)
 
+	if AdvocateIgnore(file) {
+		return -1
+	}
+
 	elem := "O," + uint64ToString(timer) + ",0," + uint64ToString(id) + ",f," +
 		file + ":" + intToString(line)
 

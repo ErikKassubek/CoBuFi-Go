@@ -351,7 +351,7 @@ func ReleaseWaits() {
 			}
 		}
 
-		if AdvocateIgnoreReplay(replayElem.Op, replayElem.File, replayElem.Line) {
+		if AdvocateIgnoreReplay(replayElem.Op, replayElem.File) {
 			foundReplayElement(routine)
 
 			lock(&replayDoneLock)
@@ -441,7 +441,7 @@ func WaitForReplayPath(op Operation, file string, line int) (bool, chan ReplayEl
 		return false, nil
 	}
 
-	if AdvocateIgnoreReplay(op, file, line) {
+	if AdvocateIgnoreReplay(op, file) {
 		return false, nil
 	}
 
@@ -630,20 +630,14 @@ func ExitReplayPanic(msg any) {
 	ExitReplayWithCode(ExitCodePanic)
 }
 
-func AdvocateIgnoreReplay(operation Operation, file string, line int) bool {
+func AdvocateIgnoreReplay(operation Operation, file string) bool {
 	if ignoreAtomicsReplay && getOperationObjectString(operation) == "Atomic" {
 		return true
 	}
 
-	if contains(file, "go-patch/src/") {
-		return true
-	} else if contains(file, "go/pkg/mod/") {
-		return true
-	} else if hasSuffix(file, "time/sleep.go") {
-		return true
-	} else if hasSuffix(file, "signal/signal.go") { // ctrl+c
+	if contains(file, "go/pkg/mod/") {
 		return true
 	}
 
-	return AdvocateIgnore(operation, file, line)
+	return AdvocateIgnore(file)
 }

@@ -561,7 +561,7 @@ func readTraceFile(fileName string, chanWithoutPartner *map[string]int) (int, ru
 		if blocked || time == 0 {
 			time = math.MaxInt
 		}
-		if op != runtime.OperationNone && !runtime.AdvocateIgnoreReplay(op, file, line) {
+		if op != runtime.OperationNone && !runtime.AdvocateIgnoreReplay(op, file) {
 			replayData = append(replayData, runtime.ReplayElement{
 				Op: op, Routine: routineID, Time: time, TimePre: tPre, File: file, Line: line,
 				Blocked: blocked, Suc: suc, PFile: pFile, PLine: pLine,

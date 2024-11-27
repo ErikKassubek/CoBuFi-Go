@@ -25,7 +25,11 @@ func AdvocateSelectPre(cases *[]scase, nsends int, ncases int, block bool, locko
 
 	id := GetAdvocateObjectID()
 	caseElements := ""
+
 	_, file, line, _ := Caller(2)
+	if AdvocateIgnore(file) {
+		return -1
+	}
 
 	i := 0
 
@@ -186,6 +190,9 @@ func AdvocateSelectPreOneNonDef(c *hchan, send bool) int {
 	}
 
 	_, file, line, _ := Caller(2)
+	if AdvocateIgnore(file) {
+		return -1
+	}
 
 	elem := "S," + uint64ToString(timer) + ",0," + uint64ToString(id) + "," +
 		caseElements + "~d,0," + file + ":" + intToString(line)
