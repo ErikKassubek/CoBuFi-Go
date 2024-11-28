@@ -26,6 +26,10 @@ func AdvocateChanSendPre(id uint64, opID uint64, qSize uint, isNil bool) int {
 
 	_, file, line, _ := Caller(3)
 
+	if AdvocateIgnore(file) {
+		return -1
+	}
+
 	elem := "C," + uint64ToString(timer) + ",0,"
 	if isNil {
 		elem += "*,S,f,0,0," + file + ":" + intToString(line)
@@ -67,8 +71,7 @@ func AdvocateChanRecvPre(id uint64, opID uint64, qSize uint, isNil bool) int {
 	timer := GetNextTimeStep()
 
 	_, file, line, _ := Caller(3)
-	// do not record channel operation of internal channel to record atomic operations
-	if isSuffix(file, "advocate_trace.go") {
+	if AdvocateIgnore(file) {
 		return -1
 	}
 
@@ -96,6 +99,10 @@ func AdvocateChanClose(id uint64, qSize uint) int {
 	timer := uint64ToString(GetNextTimeStep())
 
 	_, file, line, _ := Caller(2)
+	if AdvocateIgnore(file) {
+		return -1
+	}
+
 	elem := "C," + timer + "," + timer + "," + uint64ToString(id) + ",C,f,0," +
 		uint32ToString(uint32(qSize)) + "," + file + ":" + intToString(line)
 

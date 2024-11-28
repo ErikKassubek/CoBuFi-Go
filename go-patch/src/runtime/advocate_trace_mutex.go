@@ -37,6 +37,10 @@ func AdvocateMutexLockPre(id uint64, rw bool, r bool) int {
 
 	_, file, line, _ := Caller(2)
 
+	if AdvocateIgnore(file) {
+		return -1
+	}
+
 	elem := "M," + uint64ToString(timer) + ",0," + uint64ToString(id) + "," +
 		rwStr + "," + op + ",t," + file + ":" + uint64ToString(uint64(line))
 
@@ -75,6 +79,10 @@ func AdvocateMutexLockTry(id uint64, rw bool, r bool) int {
 
 	_, file, line, _ := Caller(2)
 
+	if AdvocateIgnore(file) {
+		return -1
+	}
+
 	elem := "M," + uint64ToString(timer) + ",0," + uint64ToString(id) + "," +
 		rwStr + "," + op + ",f," + file + ":" + uint64ToString(uint64(line))
 
@@ -110,7 +118,12 @@ func AdvocateUnlockPre(id uint64, rw bool, r bool) int {
 			op = "N"
 		}
 	}
+
 	_, file, line, _ := Caller(2)
+
+	if AdvocateIgnore(file) {
+		return -1
+	}
 
 	elem := "M," + uint64ToString(timer) + ",0," + uint64ToString(id) + "," +
 		rwStr + "," + op + ",t," + file + ":" + uint64ToString(uint64(line))

@@ -21,6 +21,10 @@ func AdvocateWaitGroupAdd(id uint64, delta int, val int32) int {
 		_, file, line, _ = Caller(3)
 	}
 
+	if AdvocateIgnore(file) {
+		return -1
+	}
+
 	elem := "W," + uint64ToString(timer) + "," + uint64ToString(timer) + "," +
 		uint64ToString(id) + ",A," +
 		intToString(delta) + "," + int32ToString(val) + "," + file + ":" +
@@ -42,6 +46,10 @@ func AdvocateWaitGroupWaitPre(id uint64) int {
 	timer := GetNextTimeStep()
 
 	_, file, line, _ := Caller(2)
+
+	if AdvocateIgnore(file) {
+		return -1
+	}
 
 	elem := "W," + uint64ToString(timer) + ",0," + uint64ToString(id) +
 		",W,0,0," + file + ":" + intToString(line)

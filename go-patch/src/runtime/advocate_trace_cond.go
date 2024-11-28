@@ -12,6 +12,11 @@ package runtime
 func AdvocateCondPre(id uint64, op int) int {
 	timer := GetNextTimeStep()
 	_, file, line, _ := Caller(2)
+
+	if AdvocateIgnore(file) {
+		return -1
+	}
+
 	var opC string
 	switch op {
 	case 0:
