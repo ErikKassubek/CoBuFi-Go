@@ -500,7 +500,10 @@ func (ch *TraceElementChannel) updateVectorClock() {
 		case SendOp:
 			if ch.partner != nil {
 				ch.partner.vc = currentVCHb[ch.partner.routine].Copy()
-				Unbuffered(ch, traces[ch.partner.routine][currentIndex[ch.partner.routine]], currentVCHb)
+				if ch.partner.sel != nil {
+					ch.partner.sel.vc = currentVCHb[ch.partner.routine].Copy()
+				}
+				Unbuffered(ch, ch.partner, currentVCHb)
 				// advance index of receive routine, send routine is already advanced
 				increaseIndex(ch.partner.routine)
 			} else {
