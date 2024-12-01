@@ -31,7 +31,8 @@ func checkForCommunicationOnClosedChannel(ch *TraceElementChannel) {
 		defer timemeasurement.End("panic")
 
 		for routine, mrs := range mostRecentSend {
-			happensBefore := clock.GetHappensBefore(closeData[ch.id].vc, mrs[ch.id].Vc)
+			happensBefore := clock.GetHappensBefore(mrs[ch.id].Vc, closeData[ch.id].vc)
+
 			if mrs[ch.id].Elem != nil && mrs[ch.id].Elem.GetTID() != "" && happensBefore != clock.Before {
 
 				file1, line1, tPre1, err := infoFromTID(mrs[ch.id].Elem.GetTID()) // send

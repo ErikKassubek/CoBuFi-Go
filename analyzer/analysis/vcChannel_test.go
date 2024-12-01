@@ -55,7 +55,8 @@ func TestUnbuffered(t *testing.T) {
 		3: clock.NewVectorClockSet(3, map[int]int{1: 5, 2: 6, 3: 9}),
 	}
 
-	Unbuffered(&sender, &recv, vc)
+	expectedVcSend := vc[1].Copy()
+	expectedVcRecv := vc[2].Copy()
 
 	expectedVcs := map[int]clock.VectorClock{
 		1: clock.NewVectorClockSet(3, map[int]int{1: 6, 2: 9, 3: 7}),
@@ -63,7 +64,17 @@ func TestUnbuffered(t *testing.T) {
 		3: clock.NewVectorClockSet(3, map[int]int{1: 5, 2: 6, 3: 9}),
 	}
 
+	Unbuffered(&sender, &recv, vc)
+
 	if !reflect.DeepEqual(vc, expectedVcs) {
+		t.Errorf("Incorrect vc. Expected %v. Got %v.", expectedVcs, vc)
+	}
+
+	if !reflect.DeepEqual(sender.vc, expectedVcSend) {
+		t.Errorf("Incorrect vc. Expected %v. Got %v.", expectedVcs, vc)
+	}
+
+	if !reflect.DeepEqual(recv.vc, expectedVcRecv) {
 		t.Errorf("Incorrect vc. Expected %v. Got %v.", expectedVcs, vc)
 	}
 }

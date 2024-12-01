@@ -59,11 +59,6 @@ func Unbuffered(sender TraceElement, recv TraceElement, vc map[int]clock.VectorC
 			mostRecentSend[sender.GetRoutine()] = make(map[int]VectorClockTID3)
 		}
 
-		vc[recv.GetRoutine()] = vc[recv.GetRoutine()].Sync(vc[sender.GetRoutine()])
-		vc[sender.GetRoutine()] = vc[recv.GetRoutine()].Copy()
-		vc[sender.GetRoutine()] = vc[sender.GetRoutine()].Inc(sender.GetRoutine())
-		vc[recv.GetRoutine()] = vc[recv.GetRoutine()].Inc(recv.GetRoutine())
-
 		// for detection of send on closed
 		hasSend[sender.GetID()] = true
 		mostRecentSend[sender.GetRoutine()][sender.GetID()] = VectorClockTID3{sender, mostRecentSend[sender.GetRoutine()][sender.GetID()].Vc.Sync(vc[sender.GetRoutine()]).Copy(), sender.GetID()}
@@ -71,6 +66,11 @@ func Unbuffered(sender TraceElement, recv TraceElement, vc map[int]clock.VectorC
 		// for detection of receive on closed
 		hasReceived[sender.GetID()] = true
 		mostRecentReceive[recv.GetRoutine()][sender.GetID()] = VectorClockTID3{recv, mostRecentReceive[recv.GetRoutine()][sender.GetID()].Vc.Sync(vc[recv.GetRoutine()]).Copy(), sender.GetID()}
+
+		vc[recv.GetRoutine()] = vc[recv.GetRoutine()].Sync(vc[sender.GetRoutine()])
+		vc[sender.GetRoutine()] = vc[recv.GetRoutine()].Copy()
+		vc[sender.GetRoutine()] = vc[sender.GetRoutine()].Inc(sender.GetRoutine())
+		vc[recv.GetRoutine()] = vc[recv.GetRoutine()].Inc(recv.GetRoutine())
 
 	} else {
 		vc[sender.GetRoutine()] = vc[sender.GetRoutine()].Inc(sender.GetRoutine())
