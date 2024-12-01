@@ -584,7 +584,7 @@ func (ch *TraceElementChannel) findPartner() int {
 			}
 		case *TraceElementSelect:
 			if e.chosenCase.tPost != 0 &&
-				e.chosenCase.oID == ch.id &&
+				e.chosenCase.id == ch.id &&
 				e.chosenCase.oID == ch.oID {
 				ch.partner = &e.chosenCase
 				e.chosenCase.partner = ch

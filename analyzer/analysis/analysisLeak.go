@@ -72,7 +72,7 @@ func CheckForLeakChannelStuck(ch *TraceElementChannel, vc clock.VectorClock) {
 
 					file1, line1, tPre1, err := infoFromTID(ch.GetTID())
 					if err != nil {
-						log.Printf("Error in infoFromTID(%s)", ch.GetTID)
+						log.Printf("Error in infoFromTID(%s)", ch.GetTID())
 						return
 					}
 					file2, line2, tPre2, err := infoFromTID(mrr[ch.id].Elem.GetTID())
