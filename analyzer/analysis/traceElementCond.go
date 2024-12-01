@@ -129,7 +129,7 @@ func (co *TraceElementCond) GetTPre() int {
  * Returns:
  *   int: The tpost of the element
  */
-func (co *TraceElementCond) getTpost() int {
+func (co *TraceElementCond) getTPost() int {
 	return co.tPost
 }
 
@@ -239,13 +239,13 @@ func GetConcurrentWaitgroups(element TraceElement) map[string][]TraceElement {
 func (co *TraceElementCond) GetObjType() string {
 	switch co.opC {
 	case WaitCondOp:
-		return "NW"
+		return "DW"
 	case BroadcastOp:
-		return "NB"
+		return "DB"
 	case SignalOp:
-		return "NS"
+		return "DS"
 	}
-	return "N"
+	return "D"
 }
 
 // MARK: Setter
@@ -312,7 +312,7 @@ func (co *TraceElementCond) SetTWithoutNotExecuted(tSort int) {
  *   (string): The string representation of the element
  */
 func (co *TraceElementCond) ToString() string {
-	res := "N,"
+	res := "D,"
 	res += strconv.Itoa(co.tPre) + "," + strconv.Itoa(co.tPost) + ","
 	res += strconv.Itoa(co.id) + ","
 	switch co.opC {

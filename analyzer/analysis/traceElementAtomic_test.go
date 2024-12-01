@@ -127,7 +127,7 @@ func TestTraceElementAtomicNew(t *testing.T) {
 // 			t.Errorf("Incorrect tSort. Expected %d. Got %d.", test.expTSort, elem.GetTSort())
 // 		}
 
-// 		if elem.getTpost() != test.expTPost {
+// 		if elem.getTPost() != test.expTPost {
 // 			t.Errorf("Incorrect tPost. Expected %d. Got %d.", test.expTPost, elem.tPost)
 // 		}
 

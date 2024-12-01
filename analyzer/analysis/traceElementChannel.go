@@ -266,7 +266,7 @@ func (ch *TraceElementChannel) GetVC() clock.VectorClock {
  * Returns:
  *   int: The tpost of the element
  */
-func (ch *TraceElementChannel) getTpost() int {
+func (ch *TraceElementChannel) getTPost() int {
 	return ch.tPost
 }
 
@@ -557,6 +557,7 @@ func (ch *TraceElementChannel) updateVectorClock() {
  *   int: The routine id of the partner, -1 if no partner was found
  */
 func (ch *TraceElementChannel) findPartner() int {
+
 	// return -1 if closed by channel
 	if ch.cl {
 		return -1
@@ -584,7 +585,7 @@ func (ch *TraceElementChannel) findPartner() int {
 			}
 		case *TraceElementSelect:
 			if e.chosenCase.tPost != 0 &&
-				e.chosenCase.oID == ch.id &&
+				e.chosenCase.id == ch.id &&
 				e.chosenCase.oID == ch.oID {
 				ch.partner = &e.chosenCase
 				e.chosenCase.partner = ch

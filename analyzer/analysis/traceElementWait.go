@@ -147,7 +147,7 @@ func (wa *TraceElementWait) GetTPre() int {
  * Returns:
  *   int: The timestamp at the end of the event
  */
-func (wa *TraceElementWait) getTpost() int {
+func (wa *TraceElementWait) getTPost() int {
 	return wa.tPost
 }
 

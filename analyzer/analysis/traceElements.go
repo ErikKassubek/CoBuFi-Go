@@ -16,16 +16,16 @@ import "analyzer/clock"
 type TraceElement interface {
 	GetID() int
 	GetTPre() int
-	SetTPre(tPre int)
-	getTpost() int
 	GetTSort() int
-	SetTSort(tSort int)
-	SetT(time int)
-	SetTWithoutNotExecuted(tSort int)
-	GetRoutine() int
+	getTPost() int
 	GetPos() string
-	GetTID() string
 	GetObjType() string
+	GetTID() string
+	GetRoutine() int
+	SetTPre(tPre int)
+	SetTSort(tSort int)
+	SetTWithoutNotExecuted(tSort int)
+	SetT(time int)
 	ToString() string
 	updateVectorClock()
 	GetVC() clock.VectorClock

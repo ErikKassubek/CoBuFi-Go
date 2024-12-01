@@ -22,8 +22,12 @@ const (
 
 var (
 	numberOfPreviousRuns = 0
-	channelInfo          = make([]fuzzingChannel, 0)
-	pairInfo             = make([]fuzzingPairInfo, 0)
+	// Info for the current trace
+	channelInfoTrace = make([]fuzzingChannel, 0)
+	pairInfoTrace    = make([]fuzzingPair, 0)
+	// Info from the file/the previous runs
+	channelInfoFile = make([]fuzzingChannel, 0)
+	pairInfoFile    = make([]fuzzingPair, 0)
 )
 
 /*
@@ -49,16 +53,26 @@ type fuzzingChannel struct {
  *      caseRecv: If the recv is in a select, the case ID, otherwise 0
  *    com: avg number of communication from all the run
  */
-type fuzzingPairInfo struct {
+type fuzzingPair struct {
 	idSend string
 	idRecv string
-	com    float32
+	com    float64
 }
 
 func (f fuzzingChannel) toString() string {
 	return fmt.Sprintf("%s;%s;%d;%d", f.id, f.closeInfo, f.qSize, f.maxQsize)
 }
 
-func (f fuzzingPairInfo) toString() string {
+func (f fuzzingPair) toString() string {
 	return fmt.Sprintf("%s;%s;%f", f.idSend, f.idRecv, f.com)
+}
+
+func addFuzzingChannel(id string, closeInfo closeInfo, qSize int, maxQSize int) {
+	fc := fuzzingChannel{id: id, closeInfo: closeInfo, qSize: qSize, maxQsize: maxQSize}
+	channelInfoFile = append(channelInfoFile, fc)
+}
+
+func addFuzzingPair(idSend string, idRecv string, com float64) {
+	fp := fuzzingPair{idSend: idSend, idRecv: idRecv, com: com}
+	pairInfoFile = append(pairInfoFile, fp)
 }

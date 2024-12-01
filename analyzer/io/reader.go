@@ -150,9 +150,12 @@ func processElement(element string, routine int, ignoreAtomics bool) error {
 	case "O":
 		err = analysis.AddTraceElementOnce(routine, fields[1], fields[2], fields[3],
 			fields[4], fields[5])
-	case "N":
+	case "D":
 		err = analysis.AddTraceElementCond(routine, fields[1], fields[2], fields[3],
 			fields[4], fields[5])
+	case "N":
+		err = analysis.AddTraceElementNew(routine, fields[1], fields[2], fields[3],
+			fields[4])
 	case "E":
 		err = analysis.AddTraceElementRoutineEnd(routine, fields[1])
 	default:

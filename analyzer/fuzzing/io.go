@@ -15,6 +15,7 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"strings"
 )
 
 const fileBlockSep = "###########"
@@ -67,14 +68,42 @@ func readFile(filePath string) error {
  * Read the info for a channel. The line should have the following format:
  * fileCreate:lineCreate;closeInfo;qSize;maxQSize
  * closeInfo can be
+ *   a: always been closed
  *   n: never been closed
- *   c: always been closed
- *   b: in some runs it was closed, but not in all
+ *   s: in some runs it was closed, but not in all
  * qSize is the buffer size
  * maxQSize is the maximum fullness of the buffer over all operations
  */
 func readChannelInfo(line string) error {
-	// TODO: implement
+	lineSplit := strings.Split(line, ";")
+	if len(lineSplit) != 4 {
+		return fmt.Errorf("Fuzzing File invalid format: %s. Invalid number of elements: %d", line, len(lineSplit))
+	}
+
+	var ci closeInfo
+	switch lineSplit[1] {
+	case "a":
+		ci = always
+	case "n":
+		ci = never
+	case "s":
+		ci = sometimes
+	default:
+		return fmt.Errorf("Fuzzing File invalid format: %s: Invalid close Info %s", line, lineSplit[1])
+	}
+
+	qSize, err := strconv.Atoi(lineSplit[2])
+	if err != nil {
+		return fmt.Errorf("Fuzzing File invalid format: %s: Invalid qSize %s", line, lineSplit[2])
+	}
+
+	maxQSize, err := strconv.Atoi(lineSplit[3])
+	if err != nil {
+		return fmt.Errorf("Fuzzing File invalid format: %s: Invalid maxQSize %s", line, lineSplit[2])
+	}
+
+	addFuzzingChannel(lineSplit[0], ci, qSize, maxQSize)
+
 	return nil
 }
 
@@ -85,7 +114,18 @@ func readChannelInfo(line string) error {
  * selCaseSend and selCaseRecv identify the cases in a select. If the send/recv is in a select, the value is set to the number of the case. If it is not part of a select, it is set to 0.
  */
 func readPairInfo(line string) error {
-	// TODO implement
+	lineSplit := strings.Split(line, ";")
+	if len(lineSplit) != 3 {
+		return fmt.Errorf("Fuzzing File invalid format: %s. Invalid number of elements: %d", line, len(lineSplit))
+	}
+
+	com, err := strconv.ParseFloat(lineSplit[2], 64)
+	if err != nil {
+		return fmt.Errorf("Fuzzing File invalid format: %s: Invalid com %s", line, lineSplit[2])
+	}
+
+	addFuzzingPair(lineSplit[0], lineSplit[1], com)
+
 	return nil
 }
 
@@ -105,14 +145,14 @@ func writeFile(filePath string) error {
 	file.WriteString(fileBlockSep)
 
 	// write the channel block
-	for _, line := range channelInfo {
+	for _, line := range channelInfoFile {
 		file.WriteString(line.toString())
 	}
 
 	file.WriteString(fileBlockSep)
 
 	// write the operation pair block
-	for _, line := range pairInfo {
+	for _, line := range pairInfoFile {
 		file.WriteString(line.toString())
 	}
 

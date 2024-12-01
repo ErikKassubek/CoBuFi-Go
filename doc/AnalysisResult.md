@@ -81,15 +81,22 @@ Each arg contains the following elements separated by a colon (:)
   - Select:
     - SS: Select
   - Cond:
-    - NW: Wait
-    - NB: Broadcast
-    - NS: Signal
+    - DW: Wait
+    - DB: Broadcast
+    - DS: Signal
   - Once:
     - OE: Done Executed
     - ON: Done Not Executed (because the once was already executed)
   - Routine:
     - GF: Fork
 		- GE: End
+	- New:
+		- NA: new atomic variable (not used)
+		- NC: new channel
+		- ND: new cond (not used)
+		- NM: new mutex (not used)
+		- NO: new once (not used)
+		- NW: new waitGroup (not used)
 - `[file]` is the file of the operation in the program code
 - `[line]` is the line of the operation in the program code
 

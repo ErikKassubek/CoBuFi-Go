@@ -238,7 +238,7 @@ func (se *TraceElementSelect) GetTPre() int {
  * Returns:
  *   int: The timestamp at the end of the event
  */
-func (se *TraceElementSelect) getTpost() int {
+func (se *TraceElementSelect) getTPost() int {
 	return se.tPost
 }
 
@@ -457,7 +457,7 @@ func (se *TraceElementSelect) SetCase(chanID int, op OpChannel) error {
 	found := false
 	for i, c := range se.cases {
 		if c.id == chanID && c.opC == op {
-			tPost := se.getTpost()
+			tPost := se.getTPost()
 			if !se.chosenDefault {
 				se.cases[se.chosenIndex].SetTPost(0)
 			} else {
@@ -524,11 +524,14 @@ func (se *TraceElementSelect) updateVectorClock() {
 	se.vc = currentVCHb[se.routine].Copy()
 
 	currentVCHb[se.routine] = currentVCHb[se.routine].Inc(se.routine)
+
+	println(currentVCHb[se.routine].ToString())
 	if !leak {
 		// update the vector clock
 		se.chosenCase.vc = se.vc.Copy()
 		se.chosenCase.updateVectorClock()
 	}
+	println(currentVCHb[se.routine].ToString())
 
 	if analysisCases["selectWithoutPartner"] {
 		timemeasurement.Start("other")

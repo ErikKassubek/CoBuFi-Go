@@ -85,7 +85,7 @@ func (fo *TraceElementRoutineEnd) GetTPre() int {
  * Returns:
  *   int: The tpost of the element
  */
-func (fo *TraceElementRoutineEnd) getTpost() int {
+func (fo *TraceElementRoutineEnd) getTPost() int {
 	return fo.tPost
 }
 

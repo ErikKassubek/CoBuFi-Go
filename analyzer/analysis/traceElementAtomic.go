@@ -129,7 +129,7 @@ func (at *TraceElementAtomic) GetTPre() int {
  * Returns:
  *   int: The tpost of the element
  */
-func (at *TraceElementAtomic) getTpost() int {
+func (at *TraceElementAtomic) getTPost() int {
 	return at.tPost
 }
 

@@ -175,7 +175,7 @@ func parseTraceFile(tracePath string, stats *map[string]int, known *map[string][
 				(*stats)["numberOnce"]++
 				(*known)["once"] = append((*known)["once"], fields[3])
 			}
-		case "N":
+		case "D":
 			(*stats)["numberCondVarOperations"]++
 			if !utils.ContainsString((*known)["condVar"], fields[3]) {
 				(*stats)["numberCondVars"]++
@@ -183,6 +183,8 @@ func parseTraceFile(tracePath string, stats *map[string]int, known *map[string][
 			}
 		case "E":
 			(*stats)["numberRoutineEnds"]++
+		case "N":
+			// do notring
 		default:
 			err = errors.New("Unknown trace element: " + fields[0])
 		}

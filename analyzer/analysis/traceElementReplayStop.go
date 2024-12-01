@@ -80,7 +80,7 @@ func (at *TraceElementReplay) GetTPre() int {
  * Returns:
  *   int: The tpost of the element
  */
-func (at *TraceElementReplay) getTpost() int {
+func (at *TraceElementReplay) getTPost() int {
 	return at.tPost
 }
 
