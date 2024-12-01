@@ -27,7 +27,8 @@ func AdvocateChanMake(id uint64) {
 		return
 	}
 
-	elem := "N," + uint64ToString(timer) + uint64ToString(id) + "C" + file + ":" + intToString(line)
+	elem := "N," + uint64ToString(timer) + "," + uint64ToString(id) + ",C," + file + ":" + intToString(line)
+	println("Insert ", elem)
 
 	insertIntoTrace(elem)
 }
