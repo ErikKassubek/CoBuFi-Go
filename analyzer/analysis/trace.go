@@ -323,6 +323,8 @@ func RunAnalysis(assumeFifo bool, ignoreCriticalSections bool, analysisCasesMap 
 			e.updateVectorClock()
 		case *TraceElementCond:
 			e.updateVectorClock()
+		case *TraceElementNew:
+			// do noting
 		}
 
 		// check for leak

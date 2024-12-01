@@ -136,6 +136,7 @@ func makechan(t *chantype, size int) *hchan {
 	c.advocateIgnore = advocateIgnored
 	if !c.advocateIgnore {
 		c.id = GetAdvocateObjectID()
+		AdvocateChanMake(c.id)
 	}
 	// ADVOCATE-CHANGE-END
 

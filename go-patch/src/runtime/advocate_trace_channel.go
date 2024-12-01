@@ -7,12 +7,35 @@ var unbufferedChannelComRecv = make(map[string]uint64) // id -> tpost
 var unbufferedChannelComSendMutex mutex
 var unbufferedChannelComRecvMutex mutex
 
+// MARK: Make
+/*
+ * AdvocateChanMake adds a channel make to the trace.
+ * Args:
+ * 	id: id of the channel
+ * 	opId: id of the operation
+ * 	qSize: size of the channel, 0 for unbuffered
+ * 	isNil: true if the channel is nil
+ * Return:
+ * 	index of the operation in the trace, return -1 if it is a atomic operation
+ */
+func AdvocateChanMake(id uint64) {
+	timer := GetNextTimeStep()
+
+	_, file, line, _ := Caller(3)
+
+	if AdvocateIgnore(file) {
+		return
+	}
+
+	elem := "N," + uint64ToString(timer) + uint64ToString(id) + "C" + file + ":" + intToString(line)
+
+	insertIntoTrace(elem)
+}
+
 // MARK: Pre
 
 /*
  * AdvocateChanSendPre adds a channel send to the trace.
- * If the channel send was created by an atomic
- * operation, add this to the trace as well
  * Args:
  * 	id: id of the channel
  * 	opId: id of the operation
