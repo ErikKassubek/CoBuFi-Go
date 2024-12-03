@@ -12,8 +12,8 @@ import (
 func main() {
 	names := []string{
 		// "canonicalTests",
-		// "prometheus",
-		// "moby",
+		"prometheus",
+		"moby",
 		"hugo",
 		"argo-cd",
 		"grpc-go",

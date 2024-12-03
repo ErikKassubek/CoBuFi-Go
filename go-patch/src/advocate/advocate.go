@@ -405,7 +405,7 @@ func readTraceFile(fileName string, chanWithoutPartner *map[string]int) (int, ru
 			if time == 0 {
 				blocked = true
 			}
-			pos := strings.Split(fields[8], ":")
+			pos := strings.Split(fields[9], ":")
 			file = pos[0]
 			line, _ = strconv.Atoi(pos[1])
 			if !blocked && (op == runtime.OperationChannelSend || op == runtime.OperationChannelRecv) {
@@ -507,7 +507,7 @@ func readTraceFile(fileName string, chanWithoutPartner *map[string]int) (int, ru
 			pos := strings.Split(fields[6], ":")
 			file = pos[0]
 			line, _ = strconv.Atoi(pos[1])
-		case "N":
+		case "D":
 			switch fields[4] {
 			case "W":
 				op = runtime.OperationCondWait
@@ -516,7 +516,7 @@ func readTraceFile(fileName string, chanWithoutPartner *map[string]int) (int, ru
 			case "B":
 				op = runtime.OperationCondBroadcast
 			default:
-				panic("Unknown cond operation")
+				panic("Unknown cond operation: " + fields[4])
 			}
 			pos := strings.Split(fields[5], ":")
 			file = pos[0]
@@ -552,7 +552,9 @@ func readTraceFile(fileName string, chanWithoutPartner *map[string]int) (int, ru
 				file = pos[0]
 				line, _ = strconv.Atoi(pos[1])
 			}
-		case "E":
+		case "N": // new object
+			continue
+		case "E": // end of routine
 			continue
 
 		default:

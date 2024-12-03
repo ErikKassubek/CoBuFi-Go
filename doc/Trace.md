@@ -6,7 +6,7 @@ explanation for all trace elements in the corresponding files in `traceElements`
 For the trace of each routine a separate trace file is created
 ```
 L := "" | {T"\n"}* T                                                     (routine local trace)
-T := G | M | W | C | S | O | N | E |  X                                  (trace element)
+T := G | M | W | C | S | O | D | N | E | X                               (trace element)
 G := "G,"tpre","id,","pos                                                (element for creation of new routine)
 A := "A,"tpre","addr","opA                                               (element for atomic operation)
 M := "M,"tpre","tpost","id","rw","opM","suc","pos                        (element for operation on sync (rw)mutex)
@@ -14,7 +14,8 @@ W := "W,"tpre","tpost","id","opW","delta","val","pos                     (elemen
 C := "C,"tpre","tpost","id_c","opC","cl",oId","qSize","pos               (element for operation on channel)
 S := "S,"tpre","tpost","id","cases","selIndex","pos                      (element for select)
 O := "O,"tpre",tpost","id","suco","pos                                   (element for once)
-N := "N,"tpre",tpost","id","opN","pos                                    (element for conditional)
+D := "D,"tpre",tpost","id","opN","pos                                    (element for conditional)
+N := "N,"tpost","id","elemType","num","pos"                              (element for the creation of an object, for now only make on chan)
 E := "E,"tpre"                                                           (termination of a routine)
 X := "X,"tpre","ec","tPreLast"                                           (start/stop signal, only in rewritten trace)
 tpre := ℕ                                                                (timer when the operation is started)

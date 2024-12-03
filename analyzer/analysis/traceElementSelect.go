@@ -541,7 +541,6 @@ func (se *TraceElementSelect) updateVectorClock() {
 		se.chosenCase.vc = se.vc.Copy()
 		se.chosenCase.updateVectorClock()
 	}
-	println(currentVCHb[se.routine].ToString())
 
 	if analysisCases["selectWithoutPartner"] {
 		timemeasurement.Start("other")

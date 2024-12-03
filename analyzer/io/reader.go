@@ -16,6 +16,7 @@ package io
 import (
 	"bufio"
 	"errors"
+	"fmt"
 	"log"
 	"os"
 	"strconv"
@@ -86,8 +87,6 @@ func CreateTraceFromFiles(filePath string, ignoreAtomics bool) (int, bool, error
  *	 error: An error if the trace could not be created
  */
 func CreateTraceFromFile(filePath string, routine int, ignoreAtomics bool) (bool, error) {
-	log.Print("Create trace from file " + filePath)
-
 	file, err := os.Open(filePath)
 	if err != nil {
 		log.Print("Error opening file: " + filePath)
@@ -134,6 +133,9 @@ func processElement(element string, routine int, ignoreAtomics bool) error {
 		}
 		err = analysis.AddTraceElementAtomic(routine, fields[1], fields[2], fields[3], fields[4])
 	case "C":
+		if len(fields) != 10 {
+			fmt.Println(fields)
+		}
 		err = analysis.AddTraceElementChannel(routine, fields[1], fields[2],
 			fields[3], fields[4], fields[5], fields[6], fields[7], fields[8], fields[9])
 	case "M":

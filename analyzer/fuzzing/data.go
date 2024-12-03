@@ -64,6 +64,7 @@ type fuzzingPair struct {
 	recvID string
 	chanID int
 	com    float64
+	qCount int
 }
 
 func (f fuzzingChannel) toString() string {

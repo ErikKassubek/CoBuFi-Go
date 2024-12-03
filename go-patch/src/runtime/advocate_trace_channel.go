@@ -26,7 +26,6 @@ func AdvocateChanMake(id uint64, qSize int) {
 	}
 
 	elem := "N," + uint64ToString(timer) + "," + uint64ToString(id) + ",C," + intToString(qSize) + "," + file + ":" + intToString(line)
-	println("Insert ", elem)
 
 	insertIntoTrace(elem)
 }
@@ -57,7 +56,7 @@ func AdvocateChanSendPre(id uint64, opID uint64, qSize uint, isNil bool) int {
 		elem += "*,S,f,0,0," + file + ":" + intToString(line)
 	} else {
 		elem += uint64ToString(id) + ",S,f," +
-			uint64ToString(opID) + "," + uint32ToString(uint32(qSize)) + "," +
+			uint64ToString(opID) + "," + uint32ToString(uint32(qSize)) + ",0," +
 			file + ":" + intToString(line)
 	}
 
@@ -85,6 +84,7 @@ func isSuffix(s, suffix string) bool {
  * 	id: id of the channel
  * 	opId: id of the operation
  * 	qSize: size of the channel
+ * 	qCount: number of elems in queue after q
  * 	isNil: true if the channel is nil
  * Return:
  * 	index of the operation in the trace
@@ -102,7 +102,7 @@ func AdvocateChanRecvPre(id uint64, opID uint64, qSize uint, isNil bool) int {
 		elem += "*,R,f,0,0," + file + ":" + intToString(line)
 	} else {
 		elem += uint64ToString(id) + ",R,f," +
-			uint64ToString(opID) + "," + uint32ToString(uint32(qSize)) + "," +
+			uint64ToString(opID) + "," + uint32ToString(uint32(qSize)) + ",0," +
 			file + ":" + intToString(line)
 	}
 	return insertIntoTrace(elem)
@@ -148,7 +148,7 @@ func AdvocateChanPost(index int, qCount uint) {
 
 	elem := currentGoRoutine().getElement(index)
 
-	split := splitStringAtCommas(elem, []int{2, 3, 4, 5, 7, 8})
+	split := splitStringAtCommas(elem, []int{2, 3, 4, 5, 7, 8, 9})
 
 	id := split[2]
 	op := split[3]
@@ -187,7 +187,6 @@ func AdvocateChanPost(index int, qCount uint) {
 		split[1] = uint64ToString(time)
 	}
 
-	split = append(split, split[6])
 	split[6] = uint64ToString(uint64(qCount))
 
 	elem = mergeString(split)
