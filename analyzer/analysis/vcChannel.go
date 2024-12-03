@@ -50,7 +50,7 @@ func Unbuffered(sender TraceElement, recv TraceElement, vc map[int]clock.VectorC
 		timemeasurement.Start("End")
 	}
 
-	if sender.getTPost() != 0 && recv.getTPost() != 0 {
+	if sender.GetTPost() != 0 && recv.GetTPost() != 0 {
 
 		if mostRecentReceive[recv.GetRoutine()] == nil {
 			mostRecentReceive[recv.GetRoutine()] = make(map[int]VectorClockTID3)

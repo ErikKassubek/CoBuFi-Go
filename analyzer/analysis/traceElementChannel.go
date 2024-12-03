@@ -59,6 +59,7 @@ type TraceElementChannel struct {
 	cl      bool
 	oID     int
 	qSize   int
+	qCount  int
 	pos     string
 	sel     *TraceElementSelect
 	partner *TraceElementChannel
@@ -77,11 +78,12 @@ type TraceElementChannel struct {
 *   cl (string): Whether the channel was finished because it was closed
 *   oId (string): The id of the other communication
 *   qSize (string): The size of the channel queue
+*   qCount (string): The number of elements in the queue
 *   pos (string): The position of the channel operation in the code
  */
 func AddTraceElementChannel(routine int, tPre string,
 	tPost string, id string, opC string, cl string, oID string, qSize string,
-	pos string) error {
+	qCount string, pos string) error {
 
 	tPreInt, err := strconv.Atoi(tPre)
 	if err != nil {
@@ -127,6 +129,12 @@ func AddTraceElementChannel(routine int, tPre string,
 	if err != nil {
 		return errors.New("qSize is not an integer")
 	}
+
+	qCountInt, err := strconv.Atoi(qCount)
+	if err != nil {
+		return errors.New("qSize is not an integer")
+	}
+
 	elem := TraceElementChannel{
 		routine: routine,
 		tPre:    tPreInt,
@@ -136,6 +144,7 @@ func AddTraceElementChannel(routine int, tPre string,
 		cl:      clBool,
 		oID:     oIDInt,
 		qSize:   qSizeInt,
+		qCount:  qCountInt,
 		pos:     pos,
 	}
 
@@ -266,7 +275,7 @@ func (ch *TraceElementChannel) GetVC() clock.VectorClock {
  * Returns:
  *   int: The tpost of the element
  */
-func (ch *TraceElementChannel) getTPost() int {
+func (ch *TraceElementChannel) GetTPost() int {
 	return ch.tPost
 }
 
@@ -283,6 +292,10 @@ func (ch *TraceElementChannel) GetObjType() string {
 		return "CC"
 	}
 	return "C"
+}
+
+func (ch *TraceElementChannel) GetQCount() int {
+	return ch.qCount
 }
 
 // MARK: Setter
@@ -457,6 +470,7 @@ func (ch *TraceElementChannel) toStringSep(sep string, pos bool) string {
 
 	res += sep + strconv.Itoa(ch.oID)
 	res += sep + strconv.Itoa(ch.qSize)
+	res += sep + strconv.Itoa(ch.qCount)
 	if pos {
 		res += sep + ch.pos
 	}

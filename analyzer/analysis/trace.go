@@ -328,7 +328,7 @@ func RunAnalysis(assumeFifo bool, ignoreCriticalSections bool, analysisCasesMap 
 		}
 
 		// check for leak
-		if analysisCases["leak"] && elem.getTPost() == 0 {
+		if analysisCases["leak"] && elem.GetTPost() == 0 {
 			timemeasurement.Start("leak")
 
 			switch e := elem.(type) {
@@ -586,7 +586,7 @@ func ShiftConcurrentOrAfterToAfterStartingFromElement(element TraceElement, star
 		}
 	}
 
-	if element.getTPost() == 0 {
+	if element.GetTPost() == 0 {
 		element.SetT(maxNotMoved + 1)
 	}
 
@@ -799,7 +799,7 @@ func PrintTrace(types []string, clocks bool) {
 					string
 					int
 					clock.VectorClock
-				}{elemStr, elem.getTPost(), elem.GetVC()})
+				}{elemStr, elem.GetTPost(), elem.GetVC()})
 			}
 		}
 	}

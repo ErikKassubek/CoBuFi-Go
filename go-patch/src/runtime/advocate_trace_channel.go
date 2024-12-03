@@ -12,13 +12,11 @@ var unbufferedChannelComRecvMutex mutex
  * AdvocateChanMake adds a channel make to the trace.
  * Args:
  * 	id: id of the channel
- * 	opId: id of the operation
- * 	qSize: size of the channel, 0 for unbuffered
- * 	isNil: true if the channel is nil
+ * 	qSize: size of the channel
  * Return:
  * 	index of the operation in the trace, return -1 if it is a atomic operation
  */
-func AdvocateChanMake(id uint64) {
+func AdvocateChanMake(id uint64, qSize int) {
 	timer := GetNextTimeStep()
 
 	_, file, line, _ := Caller(3)
@@ -27,7 +25,7 @@ func AdvocateChanMake(id uint64) {
 		return
 	}
 
-	elem := "N," + uint64ToString(timer) + "," + uint64ToString(id) + ",C," + file + ":" + intToString(line)
+	elem := "N," + uint64ToString(timer) + "," + uint64ToString(id) + ",C," + intToString(qSize) + "," + file + ":" + intToString(line)
 	println("Insert ", elem)
 
 	insertIntoTrace(elem)
@@ -119,7 +117,7 @@ func AdvocateChanRecvPre(id uint64, opID uint64, qSize uint, isNil bool) int {
  * Return:
  * 	index of the operation in the trace
  */
-func AdvocateChanClose(id uint64, qSize uint) int {
+func AdvocateChanClose(id uint64, qSize uint, qCount uint) int {
 	timer := uint64ToString(GetNextTimeStep())
 
 	_, file, line, _ := Caller(2)
@@ -128,7 +126,7 @@ func AdvocateChanClose(id uint64, qSize uint) int {
 	}
 
 	elem := "C," + timer + "," + timer + "," + uint64ToString(id) + ",C,f,0," +
-		uint32ToString(uint32(qSize)) + "," + file + ":" + intToString(line)
+		uint32ToString(uint32(qSize)) + "," + uint32ToString(uint32(qCount)) + "," + file + ":" + intToString(line)
 
 	return insertIntoTrace(elem)
 }
@@ -139,8 +137,9 @@ func AdvocateChanClose(id uint64, qSize uint) int {
  * AdvocateChanPost sets the operation as successfully finished
  * Args:
  * 	index: index of the operation in the trace
+ * 	qCount: number of elements in the queue after the operations has finished
  */
-func AdvocateChanPost(index int) {
+func AdvocateChanPost(index int, qCount uint) {
 	time := GetNextTimeStep()
 
 	if index == -1 {
@@ -187,6 +186,9 @@ func AdvocateChanPost(index int) {
 	if !set {
 		split[1] = uint64ToString(time)
 	}
+
+	split = append(split, split[6])
+	split[6] = uint64ToString(uint64(qCount))
 
 	elem = mergeString(split)
 

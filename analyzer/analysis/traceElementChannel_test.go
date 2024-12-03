@@ -225,7 +225,7 @@ func TestTraceElementChannelNew(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			err := AddTraceElementChannel(test.routine, test.tPre, test.tPost, test.id, test.op, test.cl, test.oID, test.qSize, test.pos)
+			err := AddTraceElementChannel(test.routine, test.tPre, test.tPost, test.id, test.op, test.cl, test.oID, test.qSize, "1", test.pos)
 
 			if res := utils.GetErrorDiff(test.expError, err); res != nil {
 				t.Errorf(res.Error())

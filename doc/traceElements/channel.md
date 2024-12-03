@@ -5,7 +5,7 @@ trace of the routine where they occur.
 ## Trace element
 The basic form of the trace element is
 ```
-C,[tpre],[tpost],[id],[opC],[cl],[oId],[qSize],[pos]
+C,[tpre],[tpost],[id],[opC],[cl],[oId],[qSize],[qCount],[pos]
 ```
 where `C` identifies the element as a channel element. The other fields are
 set as follows:
@@ -21,6 +21,7 @@ the execution of the operation
 This can only exist for send or receive. In other cases, this is `f`.
 - [oId] $\in \mathbb N$: This field shows the communication id. This can be used to connect corresponding communications. If a send and a receive on the same channel (same channel id) have the same [oId], a message was send from the send to the receive. For close this is always `0`
 - [qSize] $\in \mathbb N_0$: This is the size of the channel. For unbuffered channels this is `0`.
+- [qCount] $\in \mathbb N_0$: Number of elements in the queue after the operations was executed
 - [pos]: The last field show the position in the code, where the mutex operation
 was executed. It consists of the file and line number separated by a colon (:)
 ## Example

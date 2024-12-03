@@ -129,7 +129,7 @@ func (co *TraceElementCond) GetTPre() int {
  * Returns:
  *   int: The tpost of the element
  */
-func (co *TraceElementCond) getTPost() int {
+func (co *TraceElementCond) GetTPost() int {
 	return co.tPost
 }
 

@@ -26,6 +26,11 @@ const fileBlockSep = "###########"
  *   path: path to the fuzzing file
  */
 func readFile(filePath string) error {
+	// If this is the first run and no fuzzing file exists yet
+	if filePath == "" {
+		return nil
+	}
+
 	file, err := os.Open(filePath)
 	if err != nil {
 		println("Error opening file: " + filePath)
@@ -46,7 +51,15 @@ func readFile(filePath string) error {
 
 		switch state {
 		case 0:
-			numberOfPreviousRuns, err = strconv.Atoi(line)
+			lineSplit := strings.Split(line, ";")
+			if len(lineSplit) != 2 {
+				return fmt.Errorf("Fuzzing File invalid format: %s", err.Error())
+			}
+			numberOfPreviousRuns, err = strconv.Atoi(lineSplit[0])
+			if err != nil {
+				return fmt.Errorf("Fuzzing File invalid format: %s", err.Error())
+			}
+			maxScore, err = strconv.ParseFloat(lineSplit[1], 64)
 		case 1:
 			err = readChannelInfo(line)
 		case 2:
@@ -140,7 +153,7 @@ func writeFile(filePath string) error {
 	defer file.Close()
 
 	// write the number of previous runs
-	file.WriteString(strconv.Itoa(numberOfPreviousRuns))
+	file.WriteString(fmt.Sprintf("%d;$f", numberOfPreviousRuns, maxScore))
 
 	file.WriteString(fileBlockSep)
 

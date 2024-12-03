@@ -6,7 +6,7 @@ recorded. Other creations may be added later
 ## Trace element
 The basic form of the trace element is
 ```
-V,[tpost],[id],[elemType],[pos]
+V,[tpost],[id],[elemType],[num],[pos]
 ```
 where `N` identifies the element as a new element. The other fields are
 set as follows:
@@ -19,5 +19,8 @@ set as follows:
 	- `M`: mutex
 	- `O`: once
 	- `W`: wait group
+- [num]: Additional field for number with the following meanings:
+ - For channel: qSize
+ - Else: 0
 - [pos]: The last field show the position in the code, where the mutex operation
 was executed. It consists of the file and line number separated by a colon (:)

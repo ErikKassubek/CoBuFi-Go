@@ -17,7 +17,7 @@ type TraceElement interface {
 	GetID() int
 	GetTPre() int
 	GetTSort() int
-	getTPost() int
+	GetTPost() int
 	GetPos() string
 	GetObjType() string
 	GetTID() string

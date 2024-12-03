@@ -9,3 +9,39 @@
 // License: BSD-3-Clause
 
 package fuzzing
+
+import "math"
+
+func numberMutations() int {
+	score := calculateScore()
+	res := int(math.Ceil(5 * score / maxScore))
+	maxScore = math.Max(score, maxScore)
+	return res
+}
+
+/*
+ * Calculate the score of the given run
+ * score = sum log2 countChOpPair + 10 * createCh + 10 * closeCh + 10 * sum maxChBufFull
+ */
+func calculateScore() float64 {
+	res := 0.0
+
+	// number of communications per communication pair (countChOpPair)
+	for _, pair := range pairInfoTrace {
+		res += math.Log2(float64(pair.com))
+	}
+
+	// number of channels created (createCh)
+	res += 10 * float64(len(channelInfoTrace))
+
+	// number of close (closeCh)
+	res += 10 * float64(numberClose)
+
+	// maximum buffer size for each chan (maxChBufFull)
+	bufFullSum := 0.0
+	for _, ch := range channelInfoFile {
+		bufFullSum += float64(ch.maxQCount)
+	}
+
+	return res
+}

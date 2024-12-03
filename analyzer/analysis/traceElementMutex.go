@@ -165,7 +165,7 @@ func (mu *TraceElementMutex) GetTPre() int {
  * Returns:
  *   int: The tpost of the element
  */
-func (mu *TraceElementMutex) getTPost() int {
+func (mu *TraceElementMutex) GetTPost() int {
 	return mu.tPost
 }
 

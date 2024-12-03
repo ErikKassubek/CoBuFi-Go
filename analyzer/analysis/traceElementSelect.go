@@ -238,7 +238,7 @@ func (se *TraceElementSelect) GetTPre() int {
  * Returns:
  *   int: The timestamp at the end of the event
  */
-func (se *TraceElementSelect) getTPost() int {
+func (se *TraceElementSelect) GetTPost() int {
 	return se.tPost
 }
 
@@ -280,6 +280,17 @@ func (se *TraceElementSelect) GetTID() string {
  */
 func (se *TraceElementSelect) GetVC() clock.VectorClock {
 	return se.vc
+}
+
+/*
+ * Get the chosen case
+ * Return: the chosen case
+ */
+func (se *TraceElementSelect) GetChosenCase() *TraceElementChannel {
+	if se.chosenDefault {
+		return nil
+	}
+	return &se.chosenCase
 }
 
 /*
@@ -457,7 +468,7 @@ func (se *TraceElementSelect) SetCase(chanID int, op OpChannel) error {
 	found := false
 	for i, c := range se.cases {
 		if c.id == chanID && c.opC == op {
-			tPost := se.getTPost()
+			tPost := se.GetTPost()
 			if !se.chosenDefault {
 				se.cases[se.chosenIndex].SetTPost(0)
 			} else {

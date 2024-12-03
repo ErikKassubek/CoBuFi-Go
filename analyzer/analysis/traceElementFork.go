@@ -96,7 +96,7 @@ func (fo *TraceElementFork) GetTPre() int {
  * Returns:
  *   int: The tpost of the element
  */
-func (fo *TraceElementFork) getTPost() int {
+func (fo *TraceElementFork) GetTPost() int {
 	return fo.tPost
 }
 

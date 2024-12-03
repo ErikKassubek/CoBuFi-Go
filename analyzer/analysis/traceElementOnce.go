@@ -118,7 +118,7 @@ func (on *TraceElementOnce) GetTPre() int {
  * Returns:
  *   int: The tpost of the element
  */
-func (on *TraceElementOnce) getTPost() int {
+func (on *TraceElementOnce) GetTPost() int {
 	return on.tPost
 }
 

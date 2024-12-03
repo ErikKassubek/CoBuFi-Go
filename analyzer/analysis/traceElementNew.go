@@ -35,6 +35,7 @@ const (
  *   tPost (int): The timestamp of the new
  *   id (int): The id of the underlying operation
  *   elemType (newOpType): The type of the created object
+ *   num (int): Variable field for additional information
  *   pos (string): The position of the new
  * For now this is only creates the new for channel. This may be expanded later.
  */
@@ -43,11 +44,12 @@ type TraceElementNew struct {
 	tPost    int
 	id       int
 	elemType newOpType
+	num      int
 	pos      string
 	vc       clock.VectorClock
 }
 
-func AddTraceElementNew(routine int, tPost string, id string, elemType string, pos string) error {
+func AddTraceElementNew(routine int, tPost string, id string, elemType string, num string, pos string) error {
 	tPostInt, err := strconv.Atoi(tPost)
 	if err != nil {
 		return errors.New("tpost is not an integer")
@@ -58,11 +60,17 @@ func AddTraceElementNew(routine int, tPost string, id string, elemType string, p
 		return errors.New("id is not an integer")
 	}
 
+	numInt, err := strconv.Atoi(num)
+	if err != nil {
+		return errors.New("num is not an integer")
+	}
+
 	elem := TraceElementNew{
 		routine:  routine,
 		tPost:    tPostInt,
 		id:       idInt,
 		elemType: newOpType(elemType),
+		num:      numInt,
 		pos:      pos,
 	}
 
@@ -77,7 +85,7 @@ func (n *TraceElementNew) GetTPre() int {
 	return n.tPost
 }
 
-func (n *TraceElementNew) getTPost() int {
+func (n *TraceElementNew) GetTPost() int {
 	return n.tPost
 }
 
@@ -120,8 +128,12 @@ func (n *TraceElementNew) GetVC() clock.VectorClock {
 	return n.vc
 }
 
+func (n *TraceElementNew) GetNum() int {
+	return n.num
+}
+
 func (n *TraceElementNew) ToString() string {
-	return fmt.Sprintf("N,%d,%d,%s,%s", n.tPost, n.id, string(n.elemType), n.pos)
+	return fmt.Sprintf("N,%d,%d,%s,%d,%s", n.tPost, n.id, string(n.elemType), n.num, n.pos)
 }
 
 func (n *TraceElementNew) SetTPre(tSort int) {

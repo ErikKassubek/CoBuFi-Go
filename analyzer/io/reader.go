@@ -135,7 +135,7 @@ func processElement(element string, routine int, ignoreAtomics bool) error {
 		err = analysis.AddTraceElementAtomic(routine, fields[1], fields[2], fields[3], fields[4])
 	case "C":
 		err = analysis.AddTraceElementChannel(routine, fields[1], fields[2],
-			fields[3], fields[4], fields[5], fields[6], fields[7], fields[8])
+			fields[3], fields[4], fields[5], fields[6], fields[7], fields[8], fields[9])
 	case "M":
 		err = analysis.AddTraceElementMutex(routine, fields[1], fields[2],
 			fields[3], fields[4], fields[5], fields[6], fields[7])
@@ -155,7 +155,7 @@ func processElement(element string, routine int, ignoreAtomics bool) error {
 			fields[4], fields[5])
 	case "N":
 		err = analysis.AddTraceElementNew(routine, fields[1], fields[2], fields[3],
-			fields[4])
+			fields[4], fields[5])
 	case "E":
 		err = analysis.AddTraceElementRoutineEnd(routine, fields[1])
 	default:

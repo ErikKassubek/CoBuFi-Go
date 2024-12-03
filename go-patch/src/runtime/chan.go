@@ -136,7 +136,7 @@ func makechan(t *chantype, size int) *hchan {
 	c.advocateIgnore = advocateIgnored
 	if !c.advocateIgnore {
 		c.id = GetAdvocateObjectID()
-		AdvocateChanMake(c.id)
+		AdvocateChanMake(c.id, size)
 	}
 	// ADVOCATE-CHANGE-END
 
@@ -300,7 +300,7 @@ func chansend(c *hchan, ep unsafe.Pointer, block bool, callerpc uintptr, ignored
 	if sg := c.recvq.dequeue(replayElem); sg != nil {
 		if !ignored && !c.advocateIgnore {
 			CheckLastTPreReplay(replayElem.TimePre)
-			AdvocateChanPost(advocateIndex)
+			AdvocateChanPost(advocateIndex, c.qcount)
 		}
 		// ADVOCATE-CHANGE-END
 		// Found a waiting receiver. We pass the value we want to send
@@ -313,7 +313,7 @@ func chansend(c *hchan, ep unsafe.Pointer, block bool, callerpc uintptr, ignored
 		// ADVOCATE-CHANGE-START
 		if !ignored && !c.advocateIgnore {
 			CheckLastTPreReplay(replayElem.TimePre)
-			AdvocateChanPost(advocateIndex)
+			AdvocateChanPost(advocateIndex, c.qcount)
 		}
 		// ADVOCATE-CHANGE-END
 		// Space is available in the channel buffer. Enqueue the element to send.
@@ -335,7 +335,7 @@ func chansend(c *hchan, ep unsafe.Pointer, block bool, callerpc uintptr, ignored
 		// ADVOCATE-CHANGE-START
 		if !ignored && !c.advocateIgnore {
 			CheckLastTPreReplay(replayElem.TimePre)
-			AdvocateChanPost(advocateIndex)
+			AdvocateChanPost(advocateIndex, c.qcount)
 		}
 		// ADVOCATE-CHANGE-END
 		unlock(&c.lock)
@@ -390,7 +390,7 @@ func chansend(c *hchan, ep unsafe.Pointer, block bool, callerpc uintptr, ignored
 	// ADVOCATE-CHANGE-START
 	if !ignored && !c.advocateIgnore {
 		CheckLastTPreReplay(replayElem.TimePre)
-		AdvocateChanPost(advocateIndex)
+		AdvocateChanPost(advocateIndex, c.qcount)
 	}
 	// ADVOCATE-CHANGE-END
 	gp.waiting = nil
@@ -506,7 +506,7 @@ func closechan(c *hchan) {
 		if wait {
 			<-ch
 		}
-		AdvocateChanClose(c.id, c.dataqsiz)
+		AdvocateChanClose(c.id, c.dataqsiz, c.qcount)
 	}
 	// ADVOCATE-CHANGE-END
 
@@ -744,7 +744,7 @@ func chanrecv(c *hchan, ep unsafe.Pointer, block bool, ignored bool) (selected, 
 			// ADVOCATE-CHANGE-START
 			if !ignored && !c.advocateIgnore {
 				CheckLastTPreReplay(replayElem.TimePre)
-				AdvocateChanPost(advocateIndex)
+				AdvocateChanPost(advocateIndex, c.qcount)
 			}
 			// ADVOCATE-CHANGE-END
 			return true, true
@@ -770,7 +770,7 @@ func chanrecv(c *hchan, ep unsafe.Pointer, block bool, ignored bool) (selected, 
 		// ADVOCATE-CHANGE-START
 		if !ignored && !c.advocateIgnore {
 			CheckLastTPreReplay(replayElem.TimePre)
-			AdvocateChanPost(advocateIndex)
+			AdvocateChanPost(advocateIndex, c.qcount)
 		}
 		// ADVOCATE-CHANGE-END
 		return true, true
@@ -781,7 +781,7 @@ func chanrecv(c *hchan, ep unsafe.Pointer, block bool, ignored bool) (selected, 
 		// ADVOCATE-CHANGE-START
 		if !ignored && !c.advocateIgnore {
 			CheckLastTPreReplay(replayElem.TimePre)
-			AdvocateChanPost(advocateIndex)
+			AdvocateChanPost(advocateIndex, c.qcount)
 		}
 		// ADVOCATE-CHANGE-END
 		return false, false
@@ -849,7 +849,7 @@ func chanrecv(c *hchan, ep unsafe.Pointer, block bool, ignored bool) (selected, 
 	// ADVOCATE-CHANGE-START
 	if !ignored && !c.advocateIgnore {
 		CheckLastTPreReplay(replayElem.TimePre)
-		AdvocateChanPost(advocateIndex)
+		AdvocateChanPost(advocateIndex, c.qcount)
 	}
 	// ADVOCATE-CHANGE-END
 	return true, success
