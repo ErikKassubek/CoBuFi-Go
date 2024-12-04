@@ -19,5 +19,8 @@ func Fuzzing(fuzzingFilePath string) {
 	}
 
 	numMut := numberMutations()
-	mutate(numMut)
+	createMutations(numMut)
+
+	updateFileData()
+	writeFile(fuzzingFilePath)
 }

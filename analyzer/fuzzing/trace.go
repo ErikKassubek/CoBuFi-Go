@@ -18,20 +18,22 @@ import "analyzer/analysis"
 func parseTrace() {
 	for _, trace := range *analysis.GetTraces() {
 		for _, elem := range trace {
+			if elem.GetTPost() == 0 {
+				continue
+			}
+
 			switch e := elem.(type) {
 			case *analysis.TraceElementNew:
 				parseNew(e)
 			case *analysis.TraceElementChannel:
-				parseChannelOp(e)
+				parseChannelOp(e, -2) // -2: not part of select
 			case *analysis.TraceElementSelect:
-				ch := e.GetChosenCase()
-				if ch != nil {
-					parseChannelOp(ch)
-				}
+				parseSelectOp(e)
 			}
 		}
-
 	}
+
+	sortSelects()
 }
 
 /*
@@ -48,7 +50,7 @@ func parseNew(elem *analysis.TraceElementNew) {
 	fuzzingElem := fuzzingChannel{
 		globalID:  elem.GetPos(),
 		localID:   elem.GetID(),
-		closeInfo: unknown,
+		closeInfo: never,
 		qSize:     elem.GetNum(),
 		maxQCount: 0,
 	}
@@ -59,10 +61,11 @@ func parseNew(elem *analysis.TraceElementNew) {
 /*
  * Parse a channel operations.
  * If the operation is a close, update the data in channelInfoTrace
- * If it is an send (with tPost != 0), add it to pairInfoTrace
+ * If it is an send, add it to pairInfoTrace
  * If it is an recv, it is either tPost = 0 (ignore) or will be handled by the send
+ * selID is the case id if it is a select case, -2 otherwise
  */
-func parseChannelOp(elem *analysis.TraceElementChannel) {
+func parseChannelOp(elem *analysis.TraceElementChannel, selID int) {
 	op := elem.GetObjType()
 
 	// close -> update channelInfoTrace
@@ -72,9 +75,6 @@ func parseChannelOp(elem *analysis.TraceElementChannel) {
 		channelInfoTrace[elem.GetID()] = e
 		numberClose++
 	} else if op == "CS" {
-		if elem.GetTPost() == 0 {
-			return
-		}
 
 		recv := elem.GetPartner()
 		if recv == nil {
@@ -86,15 +86,22 @@ func parseChannelOp(elem *analysis.TraceElementChannel) {
 		chanID := elem.GetID()
 		key := sendPos + "-" + recvPos
 
+		// if receive is a select case
+		selIDRecv := -2
+		selRecv := recv.GetSelect()
+		if selRecv != nil {
+			selIDRecv = selRecv.GetChosenIndex()
+		}
+
 		if e, ok := pairInfoTrace[key]; ok {
 			e.com++
 			pairInfoTrace[key] = e
 		} else {
 			fp := fuzzingPair{
-				sendID: sendPos,
-				recvID: recvPos,
-				chanID: chanID,
-				com:    1,
+				chanID:  chanID,
+				com:     1,
+				sendSel: selID,
+				recvSel: selIDRecv,
 			}
 			pairInfoTrace[key] = fp
 		}
@@ -102,4 +109,13 @@ func parseChannelOp(elem *analysis.TraceElementChannel) {
 		channelNew := channelInfoTrace[chanID]
 		channelNew.maxQCount = max(channelNew.maxQCount, elem.GetQCount())
 	}
+}
+
+func parseSelectOp(e *analysis.TraceElementSelect) {
+	addFuzzingSelect(e.GetPos(), e.GetTPost(), e.GetChosenIndex(), len(e.GetCases()), e.GetContainsDefault())
+
+	if e.GetChosenDefault() {
+		return
+	}
+	parseChannelOp(e.GetChosenCase(), e.GetChosenIndex())
 }

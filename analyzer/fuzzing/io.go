@@ -124,7 +124,7 @@ func readChannelInfo(line string) error {
  * Read the info for a send/receive pair
  * It must have the following form:
  * fileSend:lineSend:selCaseSend;fileRecv:lineRecv:selCaseRecv;avgNumberCom
- * selCaseSend and selCaseRecv identify the cases in a select. If the send/recv is in a select, the value is set to the number of the case. If it is not part of a select, it is set to 0.
+ * selCaseSend and selCaseRecv identify the cases in a select. If the send/recv is in a select, the value is set to the number of the case. If it is not part of a select, it is set to -1.
  */
 func readPairInfo(line string) error {
 	lineSplit := strings.Split(line, ";")

@@ -294,6 +294,20 @@ func (se *TraceElementSelect) GetChosenCase() *TraceElementChannel {
 }
 
 /*
+ * Get the index of the chosen case
+ */
+func (se *TraceElementSelect) GetChosenIndex() int {
+	return se.chosenIndex
+}
+
+/*
+ * Get whether the select contains a default case
+ */
+func (se *TraceElementSelect) GetContainsDefault() bool {
+	return se.chosenDefault
+}
+
+/*
  * Get the communication partner of the select
  * Returns:
  *   *TraceElementChannel: The communication partner of the select or nil

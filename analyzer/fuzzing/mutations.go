@@ -10,6 +10,33 @@
 
 package fuzzing
 
-func mutate(numberMutations int) {
-	// TODO: implement mutations
+import (
+	"time"
+
+	"math/rand"
+)
+
+func createMutations(numberMutations int) []map[string][]fuzzingSelect {
+	rand.Seed(time.Now().UnixNano())
+
+	res := make([]map[string][]fuzzingSelect, 0)
+
+	for i := 0; i < numberMutations; i++ {
+		res = append(res, getMutations())
+	}
+
+	return res
+}
+
+func getMutations() map[string][]fuzzingSelect {
+	res := make(map[string][]fuzzingSelect)
+
+	for key, listSel := range allSelects {
+		res[key] = make([]fuzzingSelect, 0)
+		for _, sel := range listSel {
+			res[key] = append(res[key], sel.getCopyRandom(false))
+		}
+	}
+
+	return res
 }

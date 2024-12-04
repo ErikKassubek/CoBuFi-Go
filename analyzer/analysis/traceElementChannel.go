@@ -298,6 +298,10 @@ func (ch *TraceElementChannel) GetQCount() int {
 	return ch.qCount
 }
 
+func (ch *TraceElementChannel) GetSelect() *TraceElementSelect {
+	return ch.sel
+}
+
 // MARK: Setter
 
 /*
