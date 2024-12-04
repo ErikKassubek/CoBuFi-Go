@@ -293,7 +293,7 @@ func GetAdvocateObjectID() uint64 {
 	routine := currentGoRoutine()
 
 	if routine == nil {
-		getg().goInfo = newAdvocateRoutine(getg())
+		getg().goInfo = newAdvocateRoutine(getg(), false)
 		routine = currentGoRoutine()
 	}
 

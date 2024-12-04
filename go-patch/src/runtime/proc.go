@@ -4894,7 +4894,12 @@ func newproc(fn *funcval) {
 	systemstack(func() {
 		newg := newproc1(fn, gp, pc)
 
-		newg.goInfo = newAdvocateRoutine(newg)
+		ignoreDead := false
+		if contains(file, "advocate_replay.go") {
+			ignoreDead = true
+		}
+
+		newg.goInfo = newAdvocateRoutine(newg, ignoreDead)
 		if gp != nil && gp.goInfo != nil {
 			AdvocateSpawnCaller(gp.goInfo, newg.goInfo.id, file, line)
 		}
@@ -5889,6 +5894,12 @@ func checkdead() {
 
 	grunning := 0
 	forEachG(func(gp *g) {
+		// ADVOCATE-CHANGE-START
+		if gp.goInfo.ignoreDead {
+			return
+		}
+		// ADVOCATE-CHANGE-END
+
 		if isSystemGoroutine(gp, false) {
 			return
 		}

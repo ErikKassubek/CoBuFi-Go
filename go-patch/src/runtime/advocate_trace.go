@@ -122,10 +122,10 @@ func CurrentTraceToString() string {
  * Return:
  * 	string representation of the trace
  */
-func traceToString(trace *[]string, atomics *[]string) string {
+func traceToString(trace *[]string) string {
 	res := ""
 
-	println("TraceToString", len(*trace), len(*atomics), len(*trace)+len(*atomics))
+	println("TraceToString", len(*trace))
 
 	// if atomic recording is disabled
 	for i, elem := range *trace {
@@ -174,7 +174,7 @@ func TraceToStringByID(id uint64) (string, bool) {
 	lock(&AdvocateRoutinesLock)
 	defer unlock(&AdvocateRoutinesLock)
 	if routine, ok := AdvocateRoutines[id]; ok {
-		return traceToString(&routine.Trace, &routine.Atomics), true
+		return traceToString(&routine.Trace), true
 	}
 	return "", false
 }
@@ -246,7 +246,7 @@ func AllTracesToString() string {
 		if routine == nil {
 			panic("Trace is nil")
 		}
-		res += traceToString(&routine.Trace, &routine.Atomics) + "\n"
+		res += traceToString(&routine.Trace) + "\n"
 
 	}
 	return res
