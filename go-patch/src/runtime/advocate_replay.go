@@ -1,3 +1,13 @@
+// Copyright (c) 2024 Erik Kassubek
+//
+// File: advocate_replay.go
+// Brief: Functions for the replay
+//
+// Author: Erik Kassubek
+// Created: 2023-10-24
+//
+// License: BSD-3-Clause
+
 package runtime
 
 const (
@@ -256,16 +266,14 @@ func WaitForReplayFinish(exit bool) {
 				break
 			}
 
-			slowExecution()
+			sleep(0.001)
 		}
 
 		DisableReplay()
 
 		// wait long enough, that all operations that have been released in the displayReplay
 		// can record the pre
-		for i := 0; i < 1000000; i++ {
-			_ = i
-		}
+		sleep(1)
 	}
 
 	println("StuckReplayExecutedSuc: ", stuckReplayExecutedSuc)
@@ -283,7 +291,8 @@ func IsReplayEnabled() bool {
  */
 func ReleaseWaits() {
 	lastKey := ""
-	lastCounter := 0
+	lastTime := currentTime()
+	lastTimeWithoutOldest := currentTime()
 	for {
 		counter++
 		routine, replayElem := getNextReplayElement()
@@ -300,9 +309,7 @@ func ReleaseWaits() {
 
 			// wait long enough, that all operations that have been released but not
 			// finished executing can execute
-			for i := 0; i < 1000000; i++ {
-				_ = i
-			}
+			sleep(1)
 
 			DisableReplay()
 			// foundReplayElement(routine)
@@ -312,9 +319,7 @@ func ReleaseWaits() {
 		// key := intToString(routine) + ":" + replayElem.File + ":" + intToString(replayElem.Line)
 		key := replayElem.File + ":" + intToString(replayElem.Line)
 		if key == lastKey {
-			lastCounter++
-			// println(lastCounter)
-			if lastCounter == 5000000 {
+			if hasTimePast(lastTime, 5) {
 				var oldest = replayChan{nil, -1}
 				oldestKey := ""
 				lock(&waitingOpsMutex)
@@ -330,7 +335,7 @@ func ReleaseWaits() {
 					if printDebug {
 						println("RelO: ", replayElem.Op.ToString(), replayElem.File, replayElem.Line)
 					}
-					lastCounter = 0
+					lastTime = currentTime()
 
 					foundReplayElement(replayElem.Routine)
 
@@ -346,7 +351,7 @@ func ReleaseWaits() {
 					unlock(&waitingOpsMutex)
 				}
 			}
-			if lastCounter%50000000 == 0 && len(waitingOps) == 0 {
+			if hasTimePast(lastTimeWithoutOldest, 15) && len(waitingOps) == 0 {
 				DisableReplay()
 			}
 		}
@@ -379,7 +384,8 @@ func ReleaseWaits() {
 			if printDebug {
 				println("RelR: ", replayElem.Op.ToString(), replayElem.File, replayElem.Line)
 			}
-			lastCounter = 0
+			lastTime = currentTime()
+			lastTimeWithoutOldest = currentTime()
 
 			foundReplayElement(routine)
 
@@ -513,7 +519,7 @@ func getNextReplayElement() (int, ReplayElement) {
 
 	routine := -1
 	// set mintTime to max int
-	var minTime int = -1
+	var minTime = -1
 
 	for id, trace := range replayData {
 		if len(trace) == 0 {

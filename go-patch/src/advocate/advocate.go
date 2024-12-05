@@ -2,7 +2,6 @@ package advocate
 
 import (
 	"bufio"
-	"log"
 	"math"
 	"os"
 	"os/signal"
@@ -210,7 +209,7 @@ var tracePathRewritten = "rewritten_trace_"
 func InitReplay(index string, exitCode bool, timeout int, atomic bool) {
 	// use first as default
 
-	log.Printf("Init Replay for index %s", index)
+	println("Init Replay for index ", index)
 	runtime.SetExitCode(exitCode)
 	runtime.SetReplayAtomic(atomic) // set to true to include replay atomic
 
@@ -225,7 +224,7 @@ func InitReplay(index string, exitCode bool, timeout int, atomic bool) {
 		panic("Trace folder " + tracePathRewritten + " does not exist.")
 	}
 
-	log.Print("Reading trace from " + tracePathRewritten)
+	println("Reading trace from " + tracePathRewritten)
 
 	// traverse all files in the trace folder
 	files, err := os.ReadDir(tracePathRewritten)
@@ -380,7 +379,7 @@ func readTraceFile(fileName string, chanWithoutPartner *map[string]int) (int, ru
 			op = runtime.OperationReplayEnd
 			line, _ = strconv.Atoi(fields[2]) // misuse the line for the exit code
 			runtime.SetExpectedExitCode(line)
-			log.Printf("Set expected exit code %d", line)
+			println("Set expected exit code ", line)
 			lastTPre, _ := strconv.Atoi(fields[3]) // missuse pLie for the tPreLast
 			runtime.SetLastTPre(lastTPre)
 			println("Set last tPre: ", lastTPre)

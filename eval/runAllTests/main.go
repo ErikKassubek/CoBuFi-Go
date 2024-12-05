@@ -12,11 +12,8 @@ import (
 func main() {
 	names := []string{
 		// "canonicalTests",
-		"prometheus",
-		"moby",
-		"hugo",
-		"argo-cd",
-		"grpc-go",
+		// "prometheus",
+		// "grpc-go",
 		"go-ethereum",
 		"GoBench",
 		"syncthing",
@@ -24,6 +21,9 @@ func main() {
 		"nsq",
 		"bleve",
 		"bosun",
+		"argo-cd",
+		"hugo",
+		"moby",
 	}
 
 	mainPath := "~/Uni/HiWi/ADVOCATE/examples/"

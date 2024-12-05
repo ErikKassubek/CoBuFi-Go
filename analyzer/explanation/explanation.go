@@ -254,7 +254,7 @@ func writeFile(path string, index string, description map[string]string,
 	res += "## Replay\n"
 	res += replay["description"] + "\n\n"
 
-	replayPossible := replay["replaySuc"] != "was not possible"
+	replayPossible := replay["replaySuc"] != "was not possible" && replay["replaySuc"] != "was not run"
 	replayDouble := replay["exitCode"] == "double"
 
 	if replayDouble {

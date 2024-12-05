@@ -499,7 +499,8 @@ func unitTestReplay(pathToGoRoot, pathToPatchedGoRuntime, dir, pkg, file, testNa
 	rerecordCounter := 0
 	for i, trace := range rewrittenTraces {
 		traceNum := extractTraceNumber(trace)
-		record := getRerecord(trace)
+		// record := getRerecord(trace)
+		record := false
 
 		// limit the number of rerecordings
 		if numberRerecord != -1 {

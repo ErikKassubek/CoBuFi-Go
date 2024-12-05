@@ -1,5 +1,15 @@
 // ADVOCATE-FILE-START
 
+// Copyright (c) 2024 Erik Kassubek
+//
+// File: advocate_util.go
+// Brief: Helper functions
+//
+// Author: Erik Kassubek
+// Created: 2023-05-25
+//
+// License: BSD-3-Clause
+
 package runtime
 
 import (

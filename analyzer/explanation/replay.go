@@ -107,11 +107,15 @@ func getOutputCodes(path string) map[string]string {
 				replayCode[lastReplayIndex] = "panic"
 			}
 			lastReplayIndex = strings.TrimPrefix(line, replayReadPrefix)
-			if !strings.Contains(lastReplayIndex, "_") {
-				lastReplayIndex = "0_" + lastReplayIndex
-			}
+			// if !strings.Contains(lastReplayIndex, "_") {
+			// 	lastReplayIndex = "0_" + lastReplayIndex
+			// }
 			lastReplayIndexInfoFound = false
 		} else if strings.HasPrefix(line, exitCodePrefix) {
+			if lastReplayIndex == "" {
+				println("LRI empty")
+			}
+			println("Exit code line: ", line, lastReplayIndex)
 			line = strings.TrimPrefix(line, exitCodePrefix)
 			line = strings.TrimSpace(line)
 			replayCode[lastReplayIndex] = strings.Split(line, " ")[0]

@@ -1,5 +1,15 @@
 // ADVOCATE-FILE_START
 
+// Copyright (c) 2024 Erik Kassubek
+//
+// File: advocate_routine.go
+// Brief: Functionality for the routines
+//
+// Author: Erik Kassubek
+// Created: 2024-02-16
+//
+// License: BSD-3-Clause
+
 package runtime
 
 var AdvocateRoutines map[uint64]*AdvocateRoutine
