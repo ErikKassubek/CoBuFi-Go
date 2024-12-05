@@ -9,6 +9,12 @@ import (
 
 // MARK: INT -> STR
 
+var advocateIsTest bool  // set true, if a test is running
+func AdvocateSetIsTest(isTest bool) {
+	advocateIsTest = isTest
+}
+
+
 /*
  * Get a string representation of an uint64
  * Args:
@@ -293,7 +299,7 @@ func GetAdvocateObjectID() uint64 {
 	routine := currentGoRoutine()
 
 	if routine == nil {
-		getg().goInfo = newAdvocateRoutine(getg(), false)
+		getg().goInfo = newAdvocateRoutine(getg(), false, "", 0)
 		routine = currentGoRoutine()
 	}
 

@@ -4895,11 +4895,11 @@ func newproc(fn *funcval) {
 		newg := newproc1(fn, gp, pc)
 
 		ignoreDead := false
-		if contains(file, "advocate_replay.go") {
+		if contains(file, "advocate_replay.go") || contains(file, "src/testing") {
 			ignoreDead = true
 		}
 
-		newg.goInfo = newAdvocateRoutine(newg, ignoreDead)
+		newg.goInfo = newAdvocateRoutine(newg, ignoreDead, file, line)
 		if gp != nil && gp.goInfo != nil {
 			AdvocateSpawnCaller(gp.goInfo, newg.goInfo.id, file, line)
 		}
@@ -5856,6 +5856,7 @@ func incidlelocked(v int32) {
 // The check is based on number of running M's, if 0 -> deadlock.
 // sched.lock must be held.
 func checkdead() {
+	println("checkdead")
 	assertLockHeld(&sched.lock)
 
 	// For -buildmode=c-shared or -buildmode=c-archive it's OK if
@@ -5882,7 +5883,15 @@ func checkdead() {
 		run0 = 1
 	}
 
+	// // ADVOCATE-CHANGE-START
+	// // if we run tests, there can be an extra M handeling this
+	// if advocateIsTest {
+	// 	run0 = 1
+	// }
+	// // ADVOCATE-CHANGE-END
+
 	run := mcount() - sched.nmidle - sched.nmidlelocked - sched.nmsys
+	println("Run: ", run, run0)
 	if run > run0 {
 		return
 	}
@@ -5896,13 +5905,17 @@ func checkdead() {
 	forEachG(func(gp *g) {
 		// ADVOCATE-CHANGE-START
 		if gp.goInfo.ignoreDead {
+			println("Ignore: ", gp.goInfo.file, gp.goInfo.line)
 			return
 		}
-		// ADVOCATE-CHANGE-END
 
 		if isSystemGoroutine(gp, false) {
+			println("System: ", gp.goInfo.file, gp.goInfo.line)
 			return
 		}
+		println("Routine:  ", gp.goInfo.file, gp.goInfo.line)
+
+
 		s := readgstatus(gp)
 		switch s &^ _Gscan {
 		case _Gwaiting,
@@ -5911,11 +5924,17 @@ func checkdead() {
 		case _Grunnable,
 			_Grunning,
 			_Gsyscall:
-			print("runtime: checkdead: find g ", gp.goid, " in status ", s, "\n")
-			unlock(&sched.lock)
-			throw("checkdead: runnable g")
+				print("runtime: checkdead: find g ", gp.goid, " in status ", s, "\n")
+				unlock(&sched.lock)
+				throw("checkdead: runnable g")
 		}
 	})
+
+	println("grunning: ", grunning)
+
+	// ADVOCATE-CHANGE-END
+
+
 	if grunning == 0 { // possible if main goroutine calls runtime·Goexit()
 		unlock(&sched.lock) // unlock so that GODEBUG=scheddetail=1 doesn't hang
 		fatal("no goroutines (main called runtime.Goexit) - deadlock!")

@@ -18,6 +18,7 @@ Added files:
 - src/runtime/advocate_replay.go
 - src/advocate/advocate.go
 - src/sync/atomic/advocate_atomic.go
+- src/testing/testing.go
 
 Changed files (marked with ADVOCATE-CHANGE, außer in .s):
 

@@ -443,6 +443,10 @@ func Init() {
 	shuffle = flag.String("test.shuffle", "off", "randomize the execution order of tests and benchmarks")
 	fullPath = flag.Bool("test.fullpath", false, "show full file names in error messages")
 
+	// ADVOCATE-CHANGE-START
+	runtime.AdvocateSetIsTest(true)
+	// ADVOCATE-CHANGE-END
+
 	initBenchmarkFlags()
 	initFuzzFlags()
 }

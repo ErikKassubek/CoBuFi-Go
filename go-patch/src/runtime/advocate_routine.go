@@ -20,6 +20,8 @@ type AdvocateRoutine struct {
 	G           *g
 	Trace       []string
 	ignoreDead  bool
+	file string
+	line int32
 	// lock    *mutex
 }
 
@@ -27,14 +29,19 @@ type AdvocateRoutine struct {
  * Create a new advocate routine
  * Params:
  * 	g: the g struct of the routine
+ * 	ignoreDead: if true, the routine will be ignored fore checkdead
+ * 	file: file where the routine was created
+ * 	line: line where the routine was created
  * Return:
  * 	the new advocate routine
  */
-func newAdvocateRoutine(g *g, ignoreDead bool) *AdvocateRoutine {
+func newAdvocateRoutine(g *g, ignoreDead bool, file string, line int32) *AdvocateRoutine {
 	routine := &AdvocateRoutine{id: GetAdvocateRoutineID(), maxObjectId: 0,
 		G:          g,
 		Trace:      make([]string, 0),
 		ignoreDead: ignoreDead,
+		file: file,
+		line: line,
 	}
 
 	lock(&AdvocateRoutinesLock)
