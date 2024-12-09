@@ -608,8 +608,6 @@ func ExitReplayPanic(msg any) {
 		return
 	}
 
-	println("Expected exit code: ", expectedExitCode)
-
 	println("Exit with panic")
 	switch m := msg.(type) {
 	case plainError:
