@@ -29,6 +29,7 @@ var ExitCodeNames = map[int]string{
 	31: "Receive on close",
 	32: "Negative WaitGroup counter",
 	33: "Unlock of unlocked mutex",
+	41: "Cyclic Deadlock",
 }
 
 var hasReturnedExitCode = false
@@ -607,6 +608,8 @@ func ExitReplayPanic(msg any) {
 		return
 	}
 
+	println("Expected exit code: ", expectedExitCode)
+
 	println("Exit with panic")
 	switch m := msg.(type) {
 	case plainError:
@@ -616,6 +619,8 @@ func ExitReplayPanic(msg any) {
 	case string:
 		if expectedExitCode == ExitCodeNegativeWG && m == "sync: negative WaitGroup counter" {
 			ExitReplayWithCode(ExitCodeNegativeWG)
+		} else if expectedExitCode == ExitCodeCyclic && m == "all goroutines are asleep - deadlock!" {
+			ExitReplayWithCode(ExitCodeCyclic)
 		} else if expectedExitCode == ExitCodeUnlockBeforeLock {
 			if m == "sync: RUnlock of unlocked RWMutex" ||
 				m == "sync: Unlock of unlocked RWMutex" ||

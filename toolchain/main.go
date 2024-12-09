@@ -114,10 +114,13 @@ func main() {
 			return
 		}
 		if pathToFile == "" {
-			fmt.Println("Path to test folder required for mode main")
+			fmt.Println("Path to test folder required for mode test")
 			printHelpUnit()
 			return
 		}
+
+		pathToFile = strings.TrimSuffix(pathToFile, "/")
+
 		if (stats || measureTime) && progName == "" {
 			fmt.Println("If -s or -t is set, -N [name] must be set as well")
 			printHelpUnit()

@@ -108,7 +108,9 @@ func runWorkflowUnit(pathToAdvocate, dir, progName string,
 			fileName := filepath.Base(file)
 			fmt.Printf("\nRunning full workflow for test: %s in package: %s in file: %s\n\n", testFunc, packageName, file)
 
+			fmt.Println(packagePath, dir)
 			adjustedPackagePath := strings.TrimPrefix(packagePath, dir)
+			println(adjustedPackagePath)
 			fileNameWithoutEnding := strings.TrimSuffix(fileName, ".go")
 			directoryName := fmt.Sprintf("advocateResult/file(%d)-test(%d)-%s-%s", currentFile, attemptedTests, fileNameWithoutEnding, testFunc)
 			directoryPath := filepath.Join(dir, directoryName)
@@ -401,6 +403,7 @@ func unitTestRecord(pathToGoRoot, pathToPatchedGoRuntime, pkg, file, testName st
 	fmt.Println("GOROOT = " + pathToGoRoot + " exported")
 
 	timeStart := time.Now()
+	fmt.Println("PKG:", pkg)
 	err := runCommand(pathToPatchedGoRuntime, "test", "-v", "-timeout", timeout, "-count=1", "-run="+testName, "./"+pkg)
 	if err != nil {
 		log.Println(err)
@@ -518,7 +521,7 @@ func unitTestReplay(pathToGoRoot, pathToPatchedGoRuntime, dir, pkg, file, testNa
 
 		fmt.Printf("\nRun replay %d/%d\n", i+1, len(rewrittenTraces))
 		startTime := time.Now()
-		runCommand(pathToPatchedGoRuntime, "test", "-v", "-count=1", "-timeout", "15m", "-run="+testName, "./"+pkg)
+		runCommand(pathToPatchedGoRuntime, "test", "-v", "-count=1", "-timeout", "10m", "-run="+testName, "./"+pkg)
 		resTimes["replay"] += time.Since(startTime)
 		fmt.Println("Add replay time: ", resTimes["replay"])
 

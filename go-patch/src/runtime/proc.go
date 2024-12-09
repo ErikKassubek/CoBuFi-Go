@@ -5856,7 +5856,6 @@ func incidlelocked(v int32) {
 // The check is based on number of running M's, if 0 -> deadlock.
 // sched.lock must be held.
 func checkdead() {
-	println("checkdead")
 	assertLockHeld(&sched.lock)
 
 	// For -buildmode=c-shared or -buildmode=c-archive it's OK if
@@ -5883,15 +5882,18 @@ func checkdead() {
 		run0 = 1
 	}
 
-	// // ADVOCATE-CHANGE-START
-	// // if we run tests, there can be an extra M handeling this
-	// if advocateIsTest {
-	// 	run0 = 1
-	// }
-	// // ADVOCATE-CHANGE-END
+	// ADVOCATE-CHANGE-START
+	// if we run tests, there can be an extra M handeling this
+	if advocateIsTest {
+		run0 += 1
+	}
+
+	if replayEnabled {
+		run0 += 1
+	}
+	// ADVOCATE-CHANGE-END
 
 	run := mcount() - sched.nmidle - sched.nmidlelocked - sched.nmsys
-	println("Run: ", run, run0)
 	if run > run0 {
 		return
 	}
@@ -5902,19 +5904,22 @@ func checkdead() {
 	}
 
 	grunning := 0
+	gdead := 0
+	gtotal := 0
 	forEachG(func(gp *g) {
 		// ADVOCATE-CHANGE-START
 		if gp.goInfo.ignoreDead {
-			println("Ignore: ", gp.goInfo.file, gp.goInfo.line)
 			return
 		}
+		// ADVOCATE-CHANGE-END
 
 		if isSystemGoroutine(gp, false) {
-			println("System: ", gp.goInfo.file, gp.goInfo.line)
 			return
 		}
-		println("Routine:  ", gp.goInfo.file, gp.goInfo.line)
 
+		// ADVOCATE-CHANGE-START
+		gtotal++
+		// ADVOCATE-CHANGE-END
 
 		s := readgstatus(gp)
 		switch s &^ _Gscan {
@@ -5927,11 +5932,23 @@ func checkdead() {
 				print("runtime: checkdead: find g ", gp.goid, " in status ", s, "\n")
 				unlock(&sched.lock)
 				throw("checkdead: runnable g")
+		// ADVOCATE-CHANGE-START
+		case _Gdead:
+			gdead++
+		// ADVOCATE-CHANGE-END
 		}
 	})
 
-	println("grunning: ", grunning)
-
+	// ADVOCATE-CHANGE-START
+	if grunning + gdead == gtotal {
+		unlock(&sched.lock) // unlock so that GODEBUG=scheddetail=1 doesn't hang
+		fatal("all goroutines are asleep - deadlock!")
+	} else {
+		return
+	}
+	if run0 > 0 {
+		return
+	}
 	// ADVOCATE-CHANGE-END
 
 
@@ -5974,6 +5991,7 @@ func checkdead() {
 	// There are no goroutines running, so we can look at the P's.
 	for _, pp := range allp {
 		if len(pp.timers) > 0 {
+			println("PP.timers")
 			return
 		}
 	}
