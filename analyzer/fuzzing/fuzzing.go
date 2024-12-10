@@ -10,17 +10,30 @@
 
 package fuzzing
 
-func Fuzzing(fuzzingFilePath string) {
+import "path/filepath"
+
+/*
+ * Create the fuzzing data
+ * Args:
+ * 	path (string): path to the fuzzing data
+ * 	lastID (int): last ID of fuzzing select traces
+ * Returns:
+ * 	int: last ID of created fuzzing traces
+ */
+func Fuzzing(path string, lastID int) int {
+	fuzzingFilePath := filepath.Join(path, "fuzzingFile.info")
 	readFile(fuzzingFilePath)
 
 	// if the run was not interesting, there is nothing else to do
 	if !isInteresting() {
-		return
+		return lastID
 	}
 
 	numMut := numberMutations()
-	createMutations(numMut)
+	muts := createMutations(numMut)
 
 	updateFileData()
 	writeFileInfo(fuzzingFilePath)
+
+	return writeMutationsToFile(path, lastID, muts)
 }

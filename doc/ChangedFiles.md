@@ -17,10 +17,12 @@ Added files:
 - src/runtime/advocate_util.go
 - src/runtime/advocate_replay.go
 - src/runtime/advocate_time.go
-- src/advocate/advocate.go
+- src/advocate/advocate_fuzzing.go
+- src/advocate/advocate_replay.go
+- src/advocate/advocate_tracing.go
 - src/sync/atomic/advocate_atomic.go
 
-Changed files (marked with ADVOCATE-CHANGE, außer in .s):
+Changed files (marked with ADVOCATE-CHANGE):
 
 - src/runtime/proc.go
 - src/runtime/runtime2.go

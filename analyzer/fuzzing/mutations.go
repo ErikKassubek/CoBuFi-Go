@@ -10,15 +10,7 @@
 
 package fuzzing
 
-import (
-	"time"
-
-	"math/rand"
-)
-
 func createMutations(numberMutations int) []map[string][]fuzzingSelect {
-	rand.Seed(time.Now().UnixNano())
-
 	res := make([]map[string][]fuzzingSelect, 0)
 
 	for i := 0; i < numberMutations; i++ {

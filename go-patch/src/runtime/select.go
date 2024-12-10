@@ -129,6 +129,8 @@ func selectgo(cas0 *scase, order0 *uint16, pc0 *uintptr, nsends, nrecvs int, blo
 	if wait {
 		replayElem = <-ch
 	}
+
+	fuzzingContains, fuzzingIndex := AdvocateFuzzingGetPreferredCase(2)
 	// ADVOCATE-CHANGE-END
 
 	// NOTE: In order to maintain a lean stack size, the number of scases
@@ -287,19 +289,28 @@ func selectgo(cas0 *scase, order0 *uint16, pc0 *uintptr, nsends, nrecvs int, blo
 	}
 	// ADVOCATE-CHANGE-END
 
+	preferredCase := nil
 	for _, casei := range pollorder {
 		casi = int(casei)
 		cas = &scases[casi]
 		c = cas.c
 
 		// ADVOCATE-CHANGE-START
-		// make sure, only the correct case is enqueued
+		// make sure, only the correct case is used
 		if wait && replayEnabled {
 			if casi != replayElem.SelIndex {
 				continue
 			}
 		}
-		// // ADVOCATE-CHANGE-END
+
+		// only check for the preferred case for fuzzing
+		if ok, selIndex := AdvocateFuzzingGetPreferredCase(); ok {
+			if casi != selIndex {
+				continue
+			}
+		}
+		preferredCase = c
+		// ADVOCATE-CHANGE-END
 
 		if casi >= nsends {
 			// ADVOCATE-CHANGE-START
@@ -342,6 +353,27 @@ func selectgo(cas0 *scase, order0 *uint16, pc0 *uintptr, nsends, nrecvs int, blo
 			}
 		}
 	}
+
+	// ADVOCATE-CHANGE-START
+	// Fuzzing
+	if isAdvocateFuzzingEnabled() && fuzzingIndex != -1 {  // not if default is chosen case
+		// TODO: ADVOCATE: continue
+		caseIsExec := false
+		go func() {
+			start := nanotime()
+			durationNano := int64(fuzzingSelectTimeoutSec * 1e9)
+			for nanotime()-start < durationNano {
+				if caseIsExec {
+					return
+				}
+			}
+		}()
+
+
+
+	}
+	// ADVOCATE-CHANGE-END
+
 
 	// ADVOCATE-CHANGE-START
 	if !wait || !replayEnabled {
@@ -392,6 +424,13 @@ func selectgo(cas0 *scase, order0 *uint16, pc0 *uintptr, nsends, nrecvs int, blo
 			sg.replayEnabled = true
 			sg.pFile = replayElem.PFile
 			sg.pLine = replayElem.PLine
+		}
+
+		// make sure only the preferred fuzzing case is enqueued
+		if wait && replayEnabled {
+			if casi != replayElem.SelIndex {
+				continue
+			}
 		}
 		// ADVOCATE-CHANGE-END
 

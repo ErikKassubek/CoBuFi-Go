@@ -14,6 +14,7 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 )
@@ -170,4 +171,40 @@ func writeFileInfo(filePath string) error {
 	}
 
 	return nil
+}
+
+func writeMutationsToFile(pathToFolder string, lastID int, muts []map[string][]fuzzingSelect) int {
+	var index int
+	for i, mut := range muts {
+		index = lastID + i + 1
+		fileName := filepath.Join(pathToFolder, fmt.Sprintf("fuzzing_%d.log", index))
+
+		// Open the file for writing. If it doesn't exist, create it.
+		file, err := os.OpenFile(fileName, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0644)
+		if err != nil {
+			fmt.Printf("Error creating file: %v\n", err)
+			return index
+		}
+		defer file.Close() // Ensure the file is closed when we're done
+
+		// Write some content to the file
+		for id, selects := range mut {
+			content := fmt.Sprintf("%s;", id)
+
+			for i, sel := range selects {
+				if i != 0 {
+					content += ","
+				}
+				content += fmt.Sprintf("%d", sel.chosenCase)
+			}
+
+			_, err = file.WriteString(content)
+			if err != nil {
+				fmt.Printf("Error writing to file: %v\n", err)
+				return index
+			}
+		}
+	}
+
+	return index
 }

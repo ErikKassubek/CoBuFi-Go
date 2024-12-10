@@ -53,3 +53,32 @@
   - For each pair of operations we store the following line:
     - fileSend:lineSend:selCaseSend;fileRecv:lineRecv:selCaseRecv;avgNumberCom
       - selCaseSend and selCaseRecv identify the cases in a select. If the send/recv is in a select, the value is set to the number of the case. If it is not part of a select, it is set to 0.
+
+## Select File
+We adapt the selects, to prefer one of the select cases.
+Therefore, we create a file to store the list of preferred case ids for each
+select. The file contains one line for each select of the form
+
+- \[file\]:\[line\];\[listOfIds\]
+
+where the \[listOfIds\] contains the IDs separated by `,`.
+If in a fuzzing run, a select is more often run that specified in the file, the selects will run without a preferred case.
+
+## Select
+The internal implementation of a select consists of 3 passes.
+In the first pass it is checked, whether for one of the cases an immediate communication is possible.
+If this is possible, it is executed and the select is done.
+If this is not the case an intermediate step checks if there is a default case. If it is, it will be executed.
+In the second pass, all cases are added into the waiting queues for the corresponding channel and the select parks.
+If one of the cases is woken up by another routine that is willing to communicate, the communication is executed.
+In the 3rd pass, all not executed cases will be removed from the corresponding queues.\\
+
+The fuzzing is implemented in the following way.
+If the default case has been selected as preferred it is executed before the first pass and the select is done.
+For the first pass, only the preferred case will be checked. If it did not directly execute,
+a wait on the corresponding channel and direction for the preferred case will be started.
+Additionally, a background go routine will be started.
+This routine contains a timer. While the timer is running, it will
+constantly monitor, whether the waiting preferred has been executed. If this is the
+case, it will terminate. If the timer finishes while the channel has not executed,
+it will continue by running the complete, unmodified select implementation again.
