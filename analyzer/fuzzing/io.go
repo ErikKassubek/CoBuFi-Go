@@ -145,7 +145,7 @@ func readPairInfo(line string) error {
 /*
  * Write the current info to a file
  */
-func writeFile(filePath string) error {
+func writeFileInfo(filePath string) error {
 	file, err := os.Open(filePath)
 	if err != nil {
 		panic(err)

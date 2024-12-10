@@ -9,11 +9,15 @@ import (
 	"time"
 )
 
+const mainPath = "~/Uni/HiWi/ADVOCATE/examples/"
+
+var logMutex = sync.Mutex{}
+
 func main() {
 	names := []string{
 		// "canonicalTests",
-		// "prometheus",
-		// "grpc-go",
+		"prometheus",
+		"grpc-go",
 		"go-ethereum",
 		"GoBench",
 		"syncthing",
@@ -25,8 +29,6 @@ func main() {
 		"hugo",
 		"moby",
 	}
-
-	mainPath := "~/Uni/HiWi/ADVOCATE/examples/"
 
 	if err := os.Chdir("../../toolchain"); err != nil {
 		fmt.Printf("Failed to change directory: %v\n", err)
@@ -60,6 +62,7 @@ func runProg(name, mainPath, analysisTimeout string, replayTimeout string, wg *s
 	sem <- struct{}{}
 
 	fmt.Println("\n\nRun prog ", name)
+	logInfo(name, "Start")
 	path := filepath.Join(mainPath, name)
 
 	cmd := exec.Command("./tool", "test", "-a", "~/Uni/HiWi/ADVOCATE", "-f", path, "-m", "-s", "-t", "-N", name, "-T", analysisTimeout, "-R", replayTimeout)
@@ -91,7 +94,32 @@ func runProg(name, mainPath, analysisTimeout string, replayTimeout string, wg *s
 			return
 		}
 		file.Close()
+		logInfo(name, err.Error())
 	}
 
 	fmt.Println("Finished running", name)
+	logInfo(name, "End")
+}
+
+func logInfo(prog string, message string) {
+	logMutex.Lock()
+	defer logMutex.Unlock()
+
+	fileName := "./../runAllTests.log"
+
+	currentTime := time.Now().Format("2006-01-02 15:04:05")
+	logMessage := fmt.Sprintf("%s: %s - %s\n", currentTime, prog, message)
+
+	file, err := os.OpenFile(fileName, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		fmt.Printf("Error opening file: %v\n", err)
+		return
+	}
+	defer file.Close()
+
+	// Write the message to the file
+	if _, err := file.WriteString(logMessage); err != nil {
+		fmt.Printf("Error writing to file: %v\n", err)
+		return
+	}
 }

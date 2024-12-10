@@ -293,6 +293,12 @@ func ReleaseWaits() {
 	lastKey := ""
 	lastTime := currentTime()
 	lastTimeWithoutOldest := currentTime()
+
+	const releaseOldestWaitLastMax int64 = 6
+	const releaseWaitMaxWait = 20
+	const releaseWaitMaxNoWait = 10
+	releaseOldestWait := releaseOldestWaitLastMax
+
 	for {
 		counter++
 		routine, replayElem := getNextReplayElement()
@@ -319,7 +325,7 @@ func ReleaseWaits() {
 		// key := intToString(routine) + ":" + replayElem.File + ":" + intToString(replayElem.Line)
 		key := replayElem.File + ":" + intToString(replayElem.Line)
 		if key == lastKey {
-			if hasTimePast(lastTime, 5) {
+			if hasTimePast(lastTime, releaseOldestWait) {
 				var oldest = replayChan{nil, -1}
 				oldestKey := ""
 				lock(&waitingOpsMutex)
@@ -336,6 +342,9 @@ func ReleaseWaits() {
 						println("RelO: ", replayElem.Op.ToString(), replayElem.File, replayElem.Line)
 					}
 					lastTime = currentTime()
+					if releaseOldestWait > 1 {
+						releaseOldestWait--
+					}
 
 					foundReplayElement(replayElem.Routine)
 
@@ -351,7 +360,7 @@ func ReleaseWaits() {
 					unlock(&waitingOpsMutex)
 				}
 			}
-			if hasTimePast(lastTimeWithoutOldest, 15) && len(waitingOps) == 0 {
+			if (hasTimePast(lastTimeWithoutOldest, releaseWaitMaxNoWait) && len(waitingOps) == 0) || hasTimePast(lastTimeWithoutOldest, releaseWaitMaxWait) {
 				DisableReplay()
 			}
 		}
@@ -386,6 +395,7 @@ func ReleaseWaits() {
 			}
 			lastTime = currentTime()
 			lastTimeWithoutOldest = currentTime()
+			releaseOldestWait = releaseOldestWaitLastMax
 
 			foundReplayElement(routine)
 

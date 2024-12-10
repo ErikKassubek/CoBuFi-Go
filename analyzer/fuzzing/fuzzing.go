@@ -22,5 +22,5 @@ func Fuzzing(fuzzingFilePath string) {
 	createMutations(numMut)
 
 	updateFileData()
-	writeFile(fuzzingFilePath)
+	writeFileInfo(fuzzingFilePath)
 }
