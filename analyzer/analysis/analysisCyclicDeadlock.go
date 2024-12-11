@@ -28,7 +28,7 @@ type lockGraphNode struct {
 	rLock    bool              // true if the lock was a read lock
 	children []*lockGraphNode  // children of the node
 	outside  []*lockGraphNode  // nodes with the same lock ID that are in the tree of another routine
-	lockSet  []int             // ids of the nodes that are hold by the routine, when the node was created
+	lockSet  map[int]struct{}  // ids of the nodes that are hold by the routine, when the node was created
 	vc       clock.VectorClock // vector clock of the node, is equal to the vector clock of the lock event
 	parent   *lockGraphNode    // parent of the node
 	tID      string            // trace id of the lock
@@ -53,7 +53,7 @@ func newLockGraph(routine int) *lockGraphNode {
  *   vc (VectorClock): The vector clock of the childs lock operation
  *   lockSet ([]int): The lockSet of the child
  */
-func (node *lockGraphNode) addChild(childID int, tID string, childRw bool, childRLock bool, vc clock.VectorClock, lockSet []int) *lockGraphNode {
+func (node *lockGraphNode) addChild(childID int, tID string, childRw bool, childRLock bool, vc clock.VectorClock, lockSet map[int]struct{}) *lockGraphNode {
 	child := &lockGraphNode{id: childID, parent: node, rw: childRw,
 		rLock: childRLock, routine: node.routine, vc: vc, lockSet: lockSet, tID: tID}
 	node.children = append(node.children, child)
@@ -151,9 +151,13 @@ func CyclicDeadlockMutexLock(mu *TraceElementMutex, rLock bool, vc clock.VectorC
 		nodesPerID[mu.id][mu.routine] = []*lockGraphNode{}
 	}
 
+	// Remove this lock from its own lockset
+	currentLockSet := getCurrentLockSet(mu.routine)
+	delete(currentLockSet, mu.id)
+
 	// add the lock element to the lock tree
 	// update the current lock
-	node := currentNode[mu.routine][len(currentNode[mu.routine])-1].addChild(mu.id, mu.GetTID(), mu.rw, rLock, vc.Copy(), getCurrentLockSet(mu.routine))
+	node := currentNode[mu.routine][len(currentNode[mu.routine])-1].addChild(mu.id, mu.GetTID(), mu.rw, rLock, vc.Copy(), currentLockSet)
 	currentNode[mu.routine] = append(currentNode[mu.routine], node)
 	nodesPerID[mu.id][mu.routine] = append(nodesPerID[mu.id][mu.routine], node)
 }
@@ -398,24 +402,24 @@ func isCyclicPermutation(cycle1 []*lockGraphNode, cycle2 []*lockGraphNode) bool 
 func isCycleDeadlock(cycle []*lockGraphNode) bool {
 	// does the cycle consists of more than one different lock? (R1)
 	if !isCycleMoreThanOneMutex(cycle) {
-		println("Only one Mutex")
+		log.Println("Only one Mutex")
 		return false
 	}
 
 	// are the lock operation int the cycle for different routines concurrent? (R2)
 	if !isCycleConcurrent(cycle) {
-		println("No concurrent threads")
+		log.Println("No concurrent threads")
 		return false
 	}
 
 	// check, that the cycle is valid considering read-write locks (R3)
 	if !isCycleValidRead(cycle) {
-		println("No cycle because RW stuff")
+		log.Println("No cycle because it is only Read Locks")
 		return false
 	}
 
-	if !isCycleValidGate(cycle) {
-		println("No cycle because gate stuff")
+	if !isCycleValidGuard(cycle) {
+		log.Println("No cycle because of a guard lock")
 		return false
 	}
 
@@ -480,8 +484,8 @@ func isCycleConcurrent(cycle []*lockGraphNode) bool {
 func isCycleValidRead(cycle []*lockGraphNode) bool {
 	for i := 0; i < len(cycle); i++ {
 		for j := i + 1; j < len(cycle); j++ {
-			for _, ls1 := range cycle[i].lockSet {
-				for _, ls2 := range cycle[j].lockSet {
+			for ls1, _ := range cycle[i].lockSet {
+				for ls2, _ := range cycle[j].lockSet {
 					if ls1 != ls2 {
 						continue
 					}
@@ -497,21 +501,27 @@ func isCycleValidRead(cycle []*lockGraphNode) bool {
 }
 
 /*
- * Check, that the cycle is valid considering gate locks
+ * Check, that the cycle is valid considering guard locks
  * Args:
  *   cycle ([]*lockGraphNode): The cycle to check
  * Returns:
- *   (bool): True if the cycle is valid considering gate locks
+ *   (bool): True if the cycle is valid considering guard locks
  */
-func isCycleValidGate(cycle []*lockGraphNode) bool {
+func isCycleValidGuard(cycle []*lockGraphNode) bool {
 	for i := 0; i < len(cycle); i++ {
-		for j := i + 1; j < len(cycle); j++ {
-			if cycle[i].id != cycle[j].id {
-				continue
-			}
+		for ls_i, _ := range cycle[i].lockSet {
+			for j := i + 1; j < len(cycle); j++ {
+				log.Println(i, j, cycle[i].id, cycle[j].id)
+				log.Println(cycle[j].lockSet)
 
-			if cycle[i].rLock && cycle[j].rLock {
-				return false
+				if _, ok := cycle[j].lockSet[ls_i]; !ok {
+					continue
+				}
+
+				// Guard locks only work if they are exclusive - not read locks
+				if !cycle[i].rLock || !cycle[j].rLock {
+					return false
+				}
 			}
 		}
 	}
@@ -525,10 +535,11 @@ func isCycleValidGate(cycle []*lockGraphNode) bool {
  * Returns:
  *   ([]int): The current lock set of the routine
  */
-func getCurrentLockSet(routine int) []int {
-	ls := make([]int, len(currentNode[routine]))
+func getCurrentLockSet(routine int) map[int]struct{} {
+	ls := make(map[int]struct{})
 	for id, _ := range lockSet[routine] {
-		ls = append(ls, id)
+		ls[id] = struct{}{}
 	}
+	log.Println(ls)
 	return ls
 }
