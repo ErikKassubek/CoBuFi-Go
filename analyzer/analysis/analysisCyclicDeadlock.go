@@ -406,7 +406,7 @@ func isCycleDeadlock(cycle []*lockGraphNode) bool {
 		return false
 	}
 
-	// are the lock operation int the cycle for different routines concurrent? (R2)
+	// are the lock operation in the cycle for different routines concurrent? (R2)
 	if !isCycleConcurrent(cycle) {
 		log.Println("No concurrent threads")
 		return false
@@ -508,18 +508,25 @@ func isCycleValidRead(cycle []*lockGraphNode) bool {
  *   (bool): True if the cycle is valid considering guard locks
  */
 func isCycleValidGuard(cycle []*lockGraphNode) bool {
+	printTrees()
 	for i := 0; i < len(cycle); i++ {
-		for ls_i, _ := range cycle[i].lockSet {
-			for j := i + 1; j < len(cycle); j++ {
-				log.Println(i, j, cycle[i].id, cycle[j].id)
-				log.Println(cycle[j].lockSet)
+		for j := i + 1; j < len(cycle); j++ {
+			// Locks of the same routine are not guard locks
+			if cycle[i].routine == cycle[j].routine {
+				continue
+			}
 
+			for ls_i, _ := range cycle[i].lockSet {
+				// log.Println("Checking for", ls_i, "in lockset", cycle[j].lockSet, "of lock", cycle[j].id)
+
+				// if a lock appears in the lockSet of two different dependencies it is a guard lock
 				if _, ok := cycle[j].lockSet[ls_i]; !ok {
 					continue
 				}
 
 				// Guard locks only work if they are exclusive - not read locks
 				if !cycle[i].rLock || !cycle[j].rLock {
+					// This is not a cycle because of a guard lock!
 					return false
 				}
 			}
@@ -540,6 +547,5 @@ func getCurrentLockSet(routine int) map[int]struct{} {
 	for id, _ := range lockSet[routine] {
 		ls[id] = struct{}{}
 	}
-	log.Println(ls)
 	return ls
 }
