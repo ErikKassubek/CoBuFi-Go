@@ -472,7 +472,7 @@ func parseAnalysisCases(cases string) (map[string]bool, error) {
 		analysisCases["leak"] = true
 		analysisCases["selectWithoutPartner"] = true
 		analysisCases["unlockBeforeLock"] = true
-		// analysisCases["cyclicDeadlock"] = true
+		analysisCases["cyclicDeadlock"] = true
 		// analysisCases["mixedDeadlock"] = true
 
 		return analysisCases, nil

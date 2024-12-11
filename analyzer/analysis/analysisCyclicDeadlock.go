@@ -12,7 +12,9 @@ package analysis
 
 import (
 	"analyzer/clock"
+	"analyzer/results"
 	timemeasurement "analyzer/timeMeasurement"
+	"log"
 	"strconv"
 )
 
@@ -189,6 +191,7 @@ func checkForCyclicDeadlock() {
 	found, cycles := findCycles() // find all cycles in the lock graph
 
 	if !found { // no cycles
+		println("No cycles found")
 		return
 	}
 
@@ -197,16 +200,29 @@ func checkForCyclicDeadlock() {
 
 	for _, cycle := range cycles {
 		// check if the cycle can create a deadlock
+		log.Println("Checking a cycle")
 		res := isCycleDeadlock(cycle)
 		if res {
-			// TODO: add a result. Cyclic deadlock detection is currently disabled
-			// found := "Possible cyclic deadlock:\n"
-			// found += "\thead: " + cycle[0].tID + "\n"
-			// found += "\ttail: "
-			// for i := 0; i < len(cycle); i++ {
-			// 	found += cycle[i].tID + ";"
-			// }
-			// results.Result(found, results.CRITICAL)
+			var cycleElements []results.ResultElem
+			for i := 0; i < len(cycle); i++ {
+				file, line, tPre, err := infoFromTID(cycle[i].tID)
+				if err != nil {
+					log.Print(err.Error())
+					continue
+				}
+
+				cycleElements = append(cycleElements, results.TraceElementResult{
+					RoutineID: cycle[i].routine,
+					ObjID:     cycle[i].id,
+					TPre:      tPre,
+					ObjType:   "DC",
+					File:      file,
+					Line:      line,
+				})
+
+			}
+
+			results.Result(results.CRITICAL, results.PCyclicDeadlock, "head", []results.ResultElem{cycleElements[0]}, "tail", cycleElements)
 		}
 	}
 }
@@ -382,20 +398,24 @@ func isCyclicPermutation(cycle1 []*lockGraphNode, cycle2 []*lockGraphNode) bool 
 func isCycleDeadlock(cycle []*lockGraphNode) bool {
 	// does the cycle consists of more than one different lock? (R1)
 	if !isCycleMoreThanOneMutex(cycle) {
+		println("Only one Mutex")
 		return false
 	}
 
 	// are the lock operation int the cycle for different routines concurrent? (R2)
 	if !isCycleConcurrent(cycle) {
+		println("No concurrent threads")
 		return false
 	}
 
 	// check, that the cycle is valid considering read-write locks (R3)
 	if !isCycleValidRead(cycle) {
+		println("No cycle because RW stuff")
 		return false
 	}
 
 	if !isCycleValidGate(cycle) {
+		println("No cycle because gate stuff")
 		return false
 	}
 
@@ -466,7 +486,7 @@ func isCycleValidRead(cycle []*lockGraphNode) bool {
 						continue
 					}
 
-					if cycle[i].rw && cycle[j].rw {
+					if cycle[i].rLock && cycle[j].rLock {
 						return false
 					}
 				}
@@ -490,7 +510,7 @@ func isCycleValidGate(cycle []*lockGraphNode) bool {
 				continue
 			}
 
-			if cycle[i].rw && cycle[j].rw {
+			if cycle[i].rLock && cycle[j].rLock {
 				return false
 			}
 		}

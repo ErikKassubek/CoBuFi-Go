@@ -14,6 +14,7 @@ import (
 	"analyzer/analysis"
 	"analyzer/bugs"
 	"errors"
+	"fmt"
 )
 
 /*
@@ -65,6 +66,8 @@ import (
 func rewriteCyclicDeadlock(bug bugs.Bug) error {
 	firstTime := -1
 	lastTime := -1
+
+	analysis.PrintTrace([]string{}, false)
 
 	if len(bug.TraceElement2) == 0 {
 		return errors.New("No trace elements in bug")
@@ -141,5 +144,8 @@ func rewriteCyclicDeadlock(bug bugs.Bug) error {
 	// add start and end signal
 	analysis.AddTraceElementReplay(lastTime+1, exitCodeCyclic, max(bug.TraceElement1[0].GetTPre(), bug.TraceElement2[0].GetTPre()))
 
+	fmt.Println("Final Trace:")
+	analysis.PrintTrace([]string{}, false)
+	
 	return nil
 }

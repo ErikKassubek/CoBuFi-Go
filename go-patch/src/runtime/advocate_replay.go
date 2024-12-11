@@ -294,9 +294,9 @@ func ReleaseWaits() {
 
 		if replayElem.Op == OperationReplayEnd {
 			println("Operation Replay End")
-			// if !isExitCodeLeak(replayElem.Line) {
-			// 	ExitReplayWithCode(replayElem.Line)
-			// }
+			if !isExitCodeLeak(replayElem.Line) {
+				ExitReplayWithCode(replayElem.Line)
+			}
 
 			// wait long enough, that all operations that have been released but not
 			// finished executing can execute
