@@ -8,14 +8,13 @@
 //
 // License: BSD-3-Clause
 
-
 package runtime
 
-const fuzzingSelectTimeoutSec = 4
+const fuzzingSelectTimeoutSec int64 = 4
 
 var (
 	advocateFuzzingEnabled = false
-	fuzzingSelectData = make(map[string][]int)
+	fuzzingSelectData      = make(map[string][]int)
 	fuzzingSelectDataIndex = make(map[string]int)
 )
 
@@ -29,7 +28,7 @@ func InitFuzzing(selectData map[string][]int) {
 	advocateFuzzingEnabled = true
 }
 
-func isAdvocateFuzzingEnabled() {
+func isAdvocateFuzzingEnabled() bool {
 	return advocateFuzzingEnabled
 }
 
@@ -40,23 +39,24 @@ func isAdvocateFuzzingEnabled() {
  * Returns:
  * 	bool: true if a preferred case exists, false otherwise
  * 	int: preferred case, -1 for default
+ * 	int64: fuzzing timeout in seconds
  */
-func AdvocateFuzzingGetPreferredCase(skip int) (bool, int) {
+func AdvocateFuzzingGetPreferredCase(skip int) (bool, int, int64) {
 	if !advocateFuzzingEnabled {
-		return false, 0
+		return false, 0, fuzzingSelectTimeoutSec
 	}
 
 	_, file, line, _ := Caller(skip)
-	key = file + ":" + intToString(line)
+	key := file + ":" + intToString(line)
 
 	if val, ok := fuzzingSelectData[key]; ok {
-		index = fuzzingSelectDataIndex[key]
+		index := fuzzingSelectDataIndex[key]
 		if index >= len(val) {
-			return false, 0
+			return false, 0, fuzzingSelectTimeoutSec
 		}
 		fuzzingSelectDataIndex[key]++
-		return val[index]
+		return true, val[index], fuzzingSelectTimeoutSec
 	}
 
-	return false, 0
+	return false, 0, fuzzingSelectTimeoutSec
 }

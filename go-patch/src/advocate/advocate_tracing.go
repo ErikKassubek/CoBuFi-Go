@@ -1,15 +1,11 @@
 package advocate
 
 import (
-	"bufio"
-	"math"
 	"os"
 	"os/signal"
 	"path/filepath"
 	"runtime"
-	"sort"
 	"strconv"
-	"strings"
 	"sync"
 	"time"
 )
@@ -54,7 +50,6 @@ func FinishTracing() {
 
 	writeToTraceFiles(tracePathRecorded)
 }
-
 
 /*
  * Write the trace to a set of files. The traces are written into a folder

@@ -297,7 +297,7 @@ func chansend(c *hchan, ep unsafe.Pointer, block bool, callerpc uintptr, ignored
 	}
 
 	// ADVOCATE-CHANGE-START
-	if sg := c.recvq.dequeue(replayElem); sg != nil {
+	if sg := c.recvq.dequeue(); sg != nil {
 		if !ignored && !c.advocateIgnore {
 			CheckLastTPreReplay(replayElem.TimePre)
 			AdvocateChanPost(advocateIndex, c.qcount)
@@ -530,7 +530,7 @@ func closechan(c *hchan) {
 	// release all readers
 	for {
 		// ADVOCATE-CHANGE-START
-		sg := c.recvq.dequeue(ReplayElement{})
+		sg := c.recvq.dequeue()
 		// ADVOCATE-CHANGE-END
 		if sg == nil {
 			break
@@ -554,7 +554,7 @@ func closechan(c *hchan) {
 	// release all writers (they will panic)
 	for {
 		// ADVOCATE-CHANGE-START
-		sg := c.sendq.dequeue(ReplayElement{})
+		sg := c.sendq.dequeue()
 		// ADVOCATE-CHANGE-END
 		if sg == nil {
 			break
@@ -734,7 +734,7 @@ func chanrecv(c *hchan, ep unsafe.Pointer, block bool, ignored bool) (selected, 
 	} else {
 		// Just found waiting sender with not closed.
 		// ADVOCATE-CHANGE-START
-		if sg := c.sendq.dequeue(replayElem); sg != nil {
+		if sg := c.sendq.dequeue(); sg != nil {
 			// ADVOCATE-CHANGE-END
 			// Found a waiting sender. If buffer is size 0, receive value
 			// directly from sender. Otherwise, receive from head of queue
@@ -1092,24 +1092,13 @@ func (q *waitq) enqueue(sgp *sudog) {
 }
 
 // ADVOCATE-CHANGE-START
-func (q *waitq) dequeue(rElem ReplayElement) *sudog {
+func (q *waitq) dequeue() *sudog {
 	// ADVOCATE-CHANGE-END
 	for {
 		sgp := q.first
 		if sgp == nil {
 			return nil
 		}
-
-		// ADVOCATE-CHANGE-START
-		// if the channel partner is not correct, the goroutine is not woken up
-		// if replayEnabled && sgp.replayEnabled {
-		// 	if !(rElem.File == "" || rElem.Line == 0) && !sgp.c.advocateIgnore {
-		// 		if sgp.pFile != rElem.File || sgp.pLine != rElem.Line {
-		// 			return nil
-		// 		}
-		// 	}
-		// }
-		// ADVOCATE-CHANE-END
 
 		y := sgp.next
 		if y == nil {

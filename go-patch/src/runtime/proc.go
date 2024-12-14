@@ -402,6 +402,25 @@ func gopark(unlockf func(*g, unsafe.Pointer) bool, lock unsafe.Pointer, reason w
 	mcall(park_m)
 }
 
+// ADVOCATE-CHANGE-START
+func goparkWithTimeout(unlockf func(*g, unsafe.Pointer) bool, lock unsafe.Pointer, reason waitReason, traceReason traceBlockReason, traceskip int, timeout int64) {
+	gp := getg()
+	gp.waitreason = reason
+
+	// Setup timer if timeout is non-zero
+	if timeout > 0 {
+		go func() {
+			sleep(float64(timeout))
+			goready(gp, traceskip)
+		}()
+	}
+
+	// Call the original gopark logic
+	gopark(unlockf, lock, reason, traceReason, traceskip)
+}
+
+// ADVOCATE-CHANGE-END
+
 // Puts the current goroutine into a waiting state and unlocks the lock.
 // The goroutine can be made runnable again by calling goready(gp).
 func goparkunlock(lock *mutex, reason waitReason, traceReason traceBlockReason, traceskip int) {

@@ -10,6 +10,15 @@
 
 package advocate
 
+import (
+	"bufio"
+	"fmt"
+	"os"
+	"runtime"
+	"strconv"
+	"strings"
+)
+
 /*
  * Initialize fuzzing
  * Args:
@@ -34,12 +43,12 @@ func InitFuzzing(pathSelect string) {
  * 	map[string][]int: key: file:line of select, values: list of preferred cases
  * 	error
  */
-func readFile(pathSelect) (map[string][]int, error) {
-	res = make(map[string][]int)
+func readFile(pathSelect string) (map[string][]int, error) {
+	res := make(map[string][]int)
 
-	file, err := os.Open(fileName)
+	file, err := os.Open(pathSelect)
 	if err != nil {
-		return err
+		return res, err
 	}
 
 	scanner := bufio.NewScanner(file)
@@ -52,7 +61,7 @@ func readFile(pathSelect) (map[string][]int, error) {
 
 		elems := strings.Split(line, ";")
 		if len(elems) != 2 {
-			return fmt.Errorf("Incorrect line in fuzzing select file: %s", line)
+			return res, fmt.Errorf("Incorrect line in fuzzing select file: %s", line)
 		}
 
 		ids := strings.Split(elems[1], ",")
@@ -63,13 +72,13 @@ func readFile(pathSelect) (map[string][]int, error) {
 
 		res[elems[0]] = make([]int, len(ids))
 		for i, id := range ids {
-			idInt, err := strconv.Atoi()
+			idInt, err := strconv.Atoi(id)
 			if err != nil {
-				return err
+				return res, err
 			}
 			res[elems[0]][i] = idInt
 		}
 	}
 
-	return res
+	return res, nil
 }

@@ -10,10 +10,22 @@
 
 package advocate
 
+import (
+	"bufio"
+	"math"
+	"os"
+	"os/signal"
+	"runtime"
+	"sort"
+	"strconv"
+	"strings"
+	"time"
+)
+
 /*
  * FinishReplay waits for the replay to finish.
  */
- func FinishReplay() {
+func FinishReplay() {
 	if r := recover(); r != nil {
 		println("Replay failed.")
 	}
@@ -112,7 +124,7 @@ func InitReplay(index string, exitCode bool, timeout int, atomic bool) {
  * 	The routine id
  * 	The trace for this routine
  */
- func readTraceFile(fileName string, chanWithoutPartner *map[string]int) (int, runtime.AdvocateReplayTrace) {
+func readTraceFile(fileName string, chanWithoutPartner *map[string]int) (int, runtime.AdvocateReplayTrace) {
 	// get the routine id from the file name
 	routineID, err := strconv.Atoi(strings.TrimSuffix(strings.TrimPrefix(fileName, tracePathRewritten+"/trace_"), ".log"))
 	if err != nil {
@@ -353,7 +365,6 @@ func InitReplay(index string, exitCode bool, timeout int, atomic bool) {
 	return routineID, replayData
 }
 
-
 func swapTimerRwMutex(op string, time int, file string, line int, replayData *runtime.AdvocateReplayTrace) int {
 	if op == "L" {
 		if !strings.HasSuffix(file, "sync/rwmutex.go") || line != 266 {
@@ -391,7 +402,7 @@ func swapTimerRwMutex(op string, time int, file string, line int, replayData *ru
  * The function returns the index of the partner operation.
  * If the partner operation is not found, the function returns -1.
  */
- func findReplayPartner(cID string, oID string, index int, chanWithoutPartner *map[string]int) int {
+func findReplayPartner(cID string, oID string, index int, chanWithoutPartner *map[string]int) int {
 	opString := cID + ":" + oID
 	if ind, ok := (*chanWithoutPartner)[opString]; ok {
 		delete((*chanWithoutPartner), opString)
@@ -413,7 +424,6 @@ func sortReplayDataByTime(replayData runtime.AdvocateReplayTrace) runtime.Advoca
 	})
 	return replayData
 }
-
 
 func InitReplayTracing(index string, exitCode bool, timeout int, atomic bool) {
 	if index == "-1" {
