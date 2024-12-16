@@ -956,7 +956,24 @@ func selectnbsend(c *hchan, elem unsafe.Pointer) (selected bool) {
 	if c != nil && !c.advocateIgnore {
 		advocateIndex = AdvocateSelectPreOneNonDef(c, true)
 	}
-	res := chansend(c, elem, false, getcallerpc(), true)
+
+	fuzzingEnabled, fuzzingIndex, fuzzingTimeout := AdvocateFuzzingGetPreferredCase(2)
+
+	res := false
+	if !fuzzingEnabled {
+		res = chansend(c, elem, false, getcallerpc(), true)
+	} else {
+		if fuzzingIndex != -1 { // not the default
+			startTime := currentTime()
+			for {
+				res = chansend(c, elem, false, getcallerpc(), true)
+				if res || hasTimePast(startTime, fuzzingTimeout) {
+					break
+				}
+			}
+		}
+	}
+
 	if c != nil {
 		lock(&c.numberSendMutex)
 		defer unlock(&c.numberSendMutex)
@@ -1008,7 +1025,25 @@ func selectnbrecv(elem unsafe.Pointer, c *hchan) (selected, received bool) {
 	if c != nil && !c.advocateIgnore {
 		advocateIndex = AdvocateSelectPreOneNonDef(c, false)
 	}
-	res, recv := chanrecv(c, elem, false, true)
+
+	fuzzingEnabled, fuzzingIndex, fuzzingTimeout := AdvocateFuzzingGetPreferredCase(2)
+
+	res := false
+	recv := false
+	if !fuzzingEnabled {
+		res = chansend(c, elem, false, getcallerpc(), true)
+	} else {
+		if fuzzingIndex != -1 { // not the default
+			startTime := currentTime()
+			for {
+				res, recv = chanrecv(c, elem, false, true)
+				if res || hasTimePast(startTime, fuzzingTimeout) {
+					break
+				}
+			}
+		}
+	}
+
 	if c != nil {
 		lock(&c.numberRecvMutex)
 		defer unlock(&c.numberRecvMutex)
