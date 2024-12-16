@@ -34,8 +34,12 @@ func readFile(filePath string) error {
 
 	file, err := os.Open(filePath)
 	if err != nil {
-		println("Error opening file: " + filePath)
-		panic(err)
+		if os.IsNotExist(err) {
+			createNewFuzzingFile(filePath)
+		} else {
+			println("Error opening file: " + filePath)
+			panic(err)
+		}
 	}
 
 	scanner := bufio.NewScanner(file)
@@ -76,6 +80,22 @@ func readFile(filePath string) error {
 	}
 
 	return nil
+}
+
+func createNewFuzzingFile(filePath string) {
+	file, err := os.Create(filePath)
+	if err != nil {
+		fmt.Println("Error creating file:", err)
+		return
+	}
+	defer file.Close()
+
+	content := "0;0\n###########\n###########\n"
+	_, err = file.WriteString(content)
+	if err != nil {
+		fmt.Println("Error writing to file:", err)
+		return
+	}
 }
 
 /*
@@ -173,11 +193,11 @@ func writeFileInfo(filePath string) error {
 	return nil
 }
 
-func writeMutationsToFile(pathToFolder string, lastID int, muts []map[string][]fuzzingSelect) int {
+func writeMutationsToFile(pathToFolder string, lastID int, muts []map[string][]fuzzingSelect, progName string) int {
 	var index int
 	for i, mut := range muts {
 		index = lastID + i + 1
-		fileName := filepath.Join(pathToFolder, fmt.Sprintf("fuzzing_%d.log", index))
+		fileName := filepath.Join(pathToFolder, fmt.Sprintf("fuzzing_%s_%d.log", progName, index))
 
 		// Open the file for writing. If it doesn't exist, create it.
 		file, err := os.OpenFile(fileName, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0644)

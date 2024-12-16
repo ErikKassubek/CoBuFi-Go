@@ -47,6 +47,9 @@ func AdvocateFuzzingGetPreferredCase(skip int) (bool, int, int64) {
 	}
 
 	_, file, line, _ := Caller(skip)
+	if AdvocateIgnore(file) {
+		return false, 0, fuzzingSelectTimeoutSec
+	}
 	key := file + ":" + intToString(line)
 
 	if val, ok := fuzzingSelectData[key]; ok {

@@ -22,16 +22,27 @@ import (
 /*
  * Initialize fuzzing
  * Args:
- * 	pathSelect (string): path to the file containing the select
- * 		preferred cases
+ * 	progName (string): name of the prog/test used to create the fuzzing file.
+ * 		for test it must have the form progName_testName
+ * 	index (int): index of the fuzzing run
  */
-func InitFuzzing(pathSelect string) {
-	prefSel, err := readFile(pathSelect)
+func InitFuzzing(progName string, index int) {
+	// is first round -> run normal Tracing
+	if index == 0 {
+		InitTracing()
+	}
+
+	fuzzingSelectPath := fmt.Sprintf("fuzzing_%s_%d.log", progName, index)
+	prefSel, err := readFile(fuzzingSelectPath)
+
+	// if file was not found ->
 	if err != nil {
-		panic(err)
+		println("Could not open file: ", fuzzingSelectPath)
+		return
 	}
 
 	runtime.InitFuzzing(prefSel)
+	InitTracing()
 }
 
 /*

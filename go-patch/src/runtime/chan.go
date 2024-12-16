@@ -81,17 +81,6 @@ func makechan64(t *chantype, size int64) *hchan {
 func makechan(t *chantype, size int) *hchan {
 	elem := t.Elem
 
-	// ADVOCATE-CHANGE-START
-	advocateIgnored := false
-	if size == 1<<62 {
-		advocateIgnored = true
-		size = 0
-	} else if size == 1<<62+1 {
-		advocateIgnored = true
-		size = 1
-	}
-	// ADVOCATE-CHANGE-END
-
 	// compiler checks this but be safe.
 	if elem.Size_ >= 1<<16 {
 		throw("makechan: invalid channel element type")
@@ -133,10 +122,9 @@ func makechan(t *chantype, size int) *hchan {
 
 	// ADVOCATE-CHANGE-START
 	// get and save a new id for the channel
-	c.advocateIgnore = advocateIgnored
-	if !c.advocateIgnore {
-		c.id = GetAdvocateObjectID()
-		AdvocateChanMake(c.id, size)
+	id, notIgnored := AdvocateChanMake(size)
+	if notIgnored {
+		c.id = id
 	}
 	// ADVOCATE-CHANGE-END
 

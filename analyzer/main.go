@@ -24,6 +24,7 @@ import (
 	"analyzer/bugs"
 	"analyzer/complete"
 	"analyzer/explanation"
+	"analyzer/fuzzing"
 	"analyzer/io"
 	"analyzer/results"
 	"analyzer/rewriter"
@@ -55,6 +56,7 @@ func main() {
 	outR := flag.String("outR", "results_readable", "Name for the result readable file")
 	outT := flag.String("outT", "rewritten_trace", "Name for the rewritten traces")
 	ignoreRewrite := flag.String("ignoreRew", "", "Path to a result machine file. If a found bug is already in this file, it will not be rewritten")
+	lastIndexFuzzing := flag.Int("i", 0, "Index of last fuzzing run for this program")
 
 	scenarios := flag.String("s", "", "Select which analysis scenario to run, e.g. -s srd for the option s, r and d."+
 		"If not set, all scenarios are run.\n"+
@@ -75,17 +77,18 @@ func main() {
 
 	flag.Parse()
 
+	if *help {
+		printHelp()
+		return
+	}
+
 	var mode string
-	if len(os.Args) > 2 {
+	if len(os.Args) >= 2 {
 		mode = os.Args[1]
 		flag.CommandLine.Parse(os.Args[2:])
 	} else {
-		fmt.Printf("No mode selected")
-		fmt.Printf("Select one mode from 'run', 'stats', 'explain' or 'check'")
-		printHelp()
-	}
-
-	if *help {
+		fmt.Println("No mode selected")
+		fmt.Println("Select one mode from 'run', 'stats', 'explain' or 'check'")
 		printHelp()
 		return
 	}
@@ -123,11 +126,31 @@ func main() {
 		modeRun(pathTrace, noPrint, noRewrite, scenarios, outReadable,
 			outMachine, ignoreAtomics, fifo, ignoreCriticalSection,
 			noWarning, rewriteAll, folderTrace, newTrace, timeout, ignoreRewrite)
+	case "fuzzing":
+		modeFuzzing(*pathTrace, *progName, *testName, *lastIndexFuzzing)
 	default:
-		fmt.Printf("Unknown mode %s", os.Args[1])
-		fmt.Printf("Select one mode from 'run', 'stats', 'explain' or 'check'")
+		fmt.Printf("Unknown mode %s\n", os.Args[1])
+		fmt.Println("Select one mode from 'run', 'stats', 'explain' or 'check'")
 		printHelp()
 	}
+}
+
+func modeFuzzing(pathTrace string, progName string, testName string, index int) {
+	if pathTrace == "" {
+		fmt.Println("Please provide a path to the trace file. Set with -t [folder]")
+		return
+	}
+
+	if progName == "" {
+		fmt.Println("Provide a name for the analyzed program. Set with -N [name]")
+		return
+	}
+
+	if testName != "" {
+		progName = progName + "_" + testName
+	}
+
+	fuzzing.Fuzzing(pathTrace, pathTrace, progName, index)
 }
 
 func modeStats(pathFolder string, progName string, testName string) {
@@ -186,7 +209,7 @@ func modeRun(pathTrace *string, noPrint *bool, noRewrite *bool,
 	// printHeader()
 
 	if *pathTrace == "" {
-		fmt.Println("Please provide a path to the trace file. Set with -t [file]")
+		fmt.Println("Please provide a path to the trace files. Set with -t [folder]")
 		return
 	}
 
@@ -539,7 +562,8 @@ func printHelp() {
 	println("1. Analyze a trace file and create a reordered trace file based on the analysis results (Default)")
 	println("2. Create an explanation for a found bug")
 	println("3. Check if all concurrency elements of the program have been executed at least once")
-	println("4. Create statistics about a program\n\n")
+	println("4. Create statistics about a program")
+	println("5. Create new runs for fuzzing\n\n")
 	println("1. Analyze a trace file and create a reordered trace file based on the analysis results (Default)")
 	println("This mode is the default mode and analyzes a trace file and creates a reordered trace file based on the analysis results.")
 	println("Usage: ./analyzer run [options]")
@@ -588,5 +612,13 @@ func printHelp() {
 	println("  -t [file]   Path to the folder containing the results_machine file (required)")
 	println("  -N [name]   Name of the program")
 	println("  -M [name]   Name of the test")
-	println("\n")
+	println("\n\n")
+	println("5. Create runs for fuzzing")
+	println("This creates and updates the information required for the fuzzing runs")
+	println("Usage: ./analyzer fuzzing [options]")
+	println("  -t [file]   Path to the folder containing the results_machine file (required)")
+	println("  -N [name]   Name of the program")
+	println("  -M [name]   Name of the test (only if used on tests)")
+	println("  -i [index]  Index of the last fuzzing")
+
 }

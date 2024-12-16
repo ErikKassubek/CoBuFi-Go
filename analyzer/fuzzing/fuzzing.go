@@ -10,19 +10,28 @@
 
 package fuzzing
 
-import "path/filepath"
+import (
+	"analyzer/io"
+	"fmt"
+	"path/filepath"
+)
 
 /*
  * Create the fuzzing data
  * Args:
- * 	path (string): path to the fuzzing data
+ * 	pathFuzzing (string): path to the fuzzing data
+ * 	pathTrace (string): path to the trace
+ * 	progName (string): unique identifier for the program or test
  * 	lastID (int): last ID of fuzzing select traces
  * Returns:
  * 	int: last ID of created fuzzing traces
  */
-func Fuzzing(path string, lastID int) int {
-	fuzzingFilePath := filepath.Join(path, "fuzzingFile.info")
+func Fuzzing(pathFuzzing, pathTrace string, progName string, lastID int) int {
+	fuzzingFilePath := filepath.Join(pathFuzzing, fmt.Sprintf("fuzzingFile_%s.info", progName))
 	readFile(fuzzingFilePath)
+
+	io.CreateTraceFromFiles(pathTrace, true)
+	parseTrace()
 
 	// if the run was not interesting, there is nothing else to do
 	if !isInteresting() {
@@ -35,5 +44,5 @@ func Fuzzing(path string, lastID int) int {
 	updateFileData()
 	writeFileInfo(fuzzingFilePath)
 
-	return writeMutationsToFile(path, lastID, muts)
+	return writeMutationsToFile(pathFuzzing, lastID, muts, progName)
 }

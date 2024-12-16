@@ -36,7 +36,7 @@ import (
  *   error: An error if the trace could not be created
  */
 func CreateTraceFromFiles(filePath string, ignoreAtomics bool) (int, bool, error) {
-	numberIds := 0
+	numberRoutines := 0
 
 	println("Read trace from " + filePath)
 
@@ -58,9 +58,9 @@ func CreateTraceFromFiles(filePath string, ignoreAtomics bool) (int, bool, error
 
 		routine, err := getRoutineFromFileName(file.Name())
 		if err != nil {
-			return 0, containsElems, nil
+			continue
 		}
-		numberIds = max(numberIds, routine)
+		numberRoutines = max(numberRoutines, routine)
 
 		containsElem, err := CreateTraceFromFile(filePath+"/"+file.Name(), routine, ignoreAtomics)
 		if err != nil {
@@ -73,7 +73,7 @@ func CreateTraceFromFiles(filePath string, ignoreAtomics bool) (int, bool, error
 
 	analysis.Sort()
 
-	return numberIds, containsElems, nil
+	return numberRoutines, containsElems, nil
 }
 
 /*

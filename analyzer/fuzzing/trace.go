@@ -75,6 +75,9 @@ func parseChannelOp(elem *analysis.TraceElementChannel, selID int) {
 		channelInfoTrace[elem.GetID()] = e
 		numberClose++
 	} else if op == "CS" {
+		if elem.GetTPost() == 0 {
+			return
+		}
 
 		recv := elem.GetPartner()
 		if recv == nil {

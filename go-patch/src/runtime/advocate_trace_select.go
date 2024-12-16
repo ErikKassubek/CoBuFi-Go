@@ -26,7 +26,7 @@ func AdvocateSelectPre(cases *[]scase, nsends int, ncases int, block bool, locko
 	id := GetAdvocateObjectID()
 	caseElements := ""
 
-	_, file, line, _ := Caller(2)
+	_, file, line, _ := Caller(3)
 	if AdvocateIgnore(file) {
 		return -1
 	}

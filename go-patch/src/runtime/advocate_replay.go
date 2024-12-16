@@ -469,8 +469,7 @@ func WaitForReplayPath(op Operation, file string, line int) (bool, chan ReplayEl
 		println("Wait: ", op.ToString(), file, line)
 	}
 
-	ch := make(chan ReplayElement, 1<<62) // 1<<62 + 0 makes sure, that the channel is ignored for replay. The actual size is 0
-
+	ch := make(chan ReplayElement, 0)
 	lock(&waitingOpsMutex)
 	if _, ok := waitingOps[key]; ok {
 		println("Override key: ", key)

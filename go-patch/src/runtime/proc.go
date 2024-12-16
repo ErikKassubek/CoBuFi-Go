@@ -404,8 +404,8 @@ func gopark(unlockf func(*g, unsafe.Pointer) bool, lock unsafe.Pointer, reason w
 
 // ADVOCATE-CHANGE-START
 func goparkWithTimeout(unlockf func(*g, unsafe.Pointer) bool, lock unsafe.Pointer, reason waitReason, traceReason traceBlockReason, traceskip int, timeout int64) {
-	gp := getg()
-	gp.waitreason = reason
+	mp := acquirem()
+	gp := mp.curg
 
 	// Setup timer if timeout is non-zero
 	if timeout > 0 {
@@ -415,8 +415,23 @@ func goparkWithTimeout(unlockf func(*g, unsafe.Pointer) bool, lock unsafe.Pointe
 		}()
 	}
 
-	// Call the original gopark logic
-	gopark(unlockf, lock, reason, traceReason, traceskip)
+	// Run the original gopark logic
+	if reason != waitReasonSleep {
+		checkTimeouts() // timeouts may expire while two goroutines keep the scheduler busy
+	}
+
+	status := readgstatus(gp)
+	if status != _Grunning && status != _Gscanrunning {
+		throw("gopark: bad g status")
+	}
+	mp.waitlock = lock
+	mp.waitunlockf = unlockf
+	gp.waitreason = reason
+	mp.waitTraceBlockReason = traceReason
+	mp.waitTraceSkip = traceskip
+	releasem(mp)
+	// can't do anything that might move the G between Ms here.
+	mcall(park_m)
 }
 
 // ADVOCATE-CHANGE-END

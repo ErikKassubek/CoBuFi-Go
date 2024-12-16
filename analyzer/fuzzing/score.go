@@ -14,9 +14,14 @@ import "math"
 
 func numberMutations() int {
 	score := calculateScore()
-	res := int(math.Ceil(5 * score / maxScore))
+	res := 0.0
+	if maxScore == 0 {
+		res = 5.0 * score
+	} else {
+		res = math.Ceil(5.0 * score / maxScore)
+	}
 	maxScore = math.Max(score, maxScore)
-	return res
+	return int(res)
 }
 
 /*
@@ -28,6 +33,9 @@ func calculateScore() float64 {
 
 	// number of communications per communication pair (countChOpPair)
 	for _, pair := range pairInfoTrace {
+		if pair.com == 0 {
+			println("com 0")
+		}
 		res += math.Log2(float64(pair.com))
 	}
 

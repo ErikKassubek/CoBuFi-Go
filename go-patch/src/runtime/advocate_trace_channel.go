@@ -14,20 +14,25 @@ var unbufferedChannelComRecvMutex mutex
  * 	id: id of the channel
  * 	qSize: size of the channel
  * Return:
- * 	index of the operation in the trace, return -1 if it is a atomic operation
+ * 	(int): index for the channel
+ * 	(bool): true if the channel is not internal
  */
-func AdvocateChanMake(id uint64, qSize int) {
+func AdvocateChanMake(qSize int) (uint64, bool) {
 	timer := GetNextTimeStep()
 
-	_, file, line, _ := Caller(3)
+	_, file, line, _ := Caller(2)
 
 	if AdvocateIgnore(file) {
-		return
+		return 0, false
 	}
+
+	id := GetAdvocateObjectID()
 
 	elem := "N," + uint64ToString(timer) + "," + uint64ToString(id) + ",C," + intToString(qSize) + "," + file + ":" + intToString(line)
 
 	insertIntoTrace(elem)
+
+	return id, true
 }
 
 // MARK: Pre

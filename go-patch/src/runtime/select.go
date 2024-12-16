@@ -332,12 +332,6 @@ func fuzzingSelect(cas0 *scase, order0 *uint16, pc0 *uintptr, nsends, nrecvs int
 	for _, casei := range lockorder {
 		casi = int(casei)
 
-		// ADVOCATE-CHANGE-START
-		// only enqueu the preferred case
-		if casi != fuzzingIndex {
-			continue
-		}
-
 		cas = &scases[casi]
 		c = cas.c
 		sg := acquireSudog()
@@ -354,6 +348,11 @@ func fuzzingSelect(cas0 *scase, order0 *uint16, pc0 *uintptr, nsends, nrecvs int
 		// Construct waiting list in lock order.
 		*nextp = sg
 		nextp = &sg.waitlink
+
+		// only enqueu the preferred case
+		if casi != fuzzingIndex {
+			continue
+		}
 
 		if casi < nsends {
 			c.sendq.enqueue(sg)
@@ -419,7 +418,9 @@ func fuzzingSelect(cas0 *scase, order0 *uint16, pc0 *uintptr, nsends, nrecvs int
 	}
 
 	if cas == nil {
-		throw("selectgo: bad wakeup")
+		// ADVOCATE: routine wakeup because of time out
+		selunlock(scases, lockorder)
+		return false, casi, recvOK
 	}
 
 	c = cas.c
@@ -703,7 +704,6 @@ func originalSelect(cas0 *scase, order0 *uint16, pc0 *uintptr, nsends, nrecvs in
 			}
 		}
 	}
-
 	// ADVOCATE-CHANGE-START
 	// block if replay is enabled and the select is blocked
 	if wait && replayElem.Blocked {
@@ -738,7 +738,6 @@ func originalSelect(cas0 *scase, order0 *uint16, pc0 *uintptr, nsends, nrecvs in
 		qp     unsafe.Pointer
 		nextp  **sudog
 	)
-
 	// pass 1 - look for something already waiting
 	var casi int
 	var cas *scase
@@ -795,8 +794,8 @@ func originalSelect(cas0 *scase, order0 *uint16, pc0 *uintptr, nsends, nrecvs in
 			if c.closed != 0 {
 				goto sclose
 			}
-			// ADVOCATE-CHANGE-START
 			sg = c.recvq.dequeue()
+			// ADVOCATE-CHANGE-START
 			if wait && replayEnabled && !c.advocateIgnore && sg != nil {
 				sg.replayEnabled = true
 				sg.pFile = replayElem.PFile
