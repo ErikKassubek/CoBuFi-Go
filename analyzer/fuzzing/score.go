@@ -14,13 +14,13 @@ import "math"
 
 func numberMutations() int {
 	score := calculateScore()
+	maxScore = math.Max(score, maxScore)
 	res := 0.0
 	if maxScore == 0 {
 		res = 5.0 * score
 	} else {
 		res = math.Ceil(5.0 * score / maxScore)
 	}
-	maxScore = math.Max(score, maxScore)
 	return int(res)
 }
 
