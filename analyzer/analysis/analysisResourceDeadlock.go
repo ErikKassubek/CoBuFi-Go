@@ -71,21 +71,33 @@ type State struct {
 	cycles  []Cycle             // Computing cycles in phase 2
 }
 
-var currentState = State{}
+// TODO this isn't very pretty and will never get reset..
+var currentState = State{
+	threads: make(map[ThreadId]Thread),
+	cycles:  make([]Cycle, 0),
+}
 
 // Algorithm phase 1
 
 // We show the event processing functions for acquire and release.
 
 func acquire(s *State, x LockId, e Event) {
+	if _, ok := s.threads[e.thread_id]; !ok {
+		s.threads[e.thread_id] = Thread{
+			thread_id: e.thread_id,
+			ls:        make(Lockset),
+			ldeps:     make(map[LockId][]Dep),
+		}
+	}
+
 	ls := s.threads[e.thread_id].ls
 	if !ls.empty() {
-		insert(s.threads[e.thread_id].ldeps[x], ls, e)
+		deps := s.threads[e.thread_id].ldeps
+		deps[x] = insert(deps[x], ls, e)
 		// In an actual implementation we would record e's vector clock.
 		// In fact, we record the vector clock of the associated request.
 
 	}
-
 	s.threads[e.thread_id].ls.add(x)
 }
 
@@ -96,14 +108,14 @@ func release(s *State, x LockId, e Event) {
 // Insert a new lock dependency for a given thread and lock x.
 // We assume that event e acquired lock x.
 // We might have already an entry that shares the same lock and lockset!
-func insert(ds []Dep, ls Lockset, e Event) {
+func insert(ds []Dep, ls Lockset, e Event) []Dep {
 	for i, v := range ds {
 		if v.ls.equal(ls) {
 			ds[i].requests = append(ds[i].requests, e)
-			return
+			return ds
 		}
 	}
-	ds = append(ds, Dep{ls, []Event{e}})
+	return append(ds, Dep{ls, []Event{e}})
 }
 
 // The above insert function records all requests that share the same dependency (tid,l,ls).
@@ -115,7 +127,7 @@ func insert(ds []Dep, ls Lockset, e Event) {
 // if in between f and e no intra-thread synchronization took place.
 // This can be checked via helper function equalModuloTID.
 // Assumption: Vector clocks underapproximate the must happen-before relation.
-func insert2(ds []Dep, ls Lockset, e Event) {
+func insert2(ds []Dep, ls Lockset, e Event) []Dep {
 	// Helper function.
 	// Assumes that vc1 and vc2 are connected to two events that are from the same thread tid.
 	// Yields true if vc1[k] == vc2[k] for all threads k but tid.
@@ -156,10 +168,10 @@ func insert2(ds []Dep, ls Lockset, e Event) {
 			// TODO
 			// We also might want to impose a limit on the size of "[]Dep
 			// A good strategy is to evict by "replacing".
-			return
+			return ds
 		}
 	}
-	ds = append(ds, Dep{ls, []Event{e}})
+	return append(ds, Dep{ls, []Event{e}})
 }
 
 // Algorithm phase 2
@@ -181,6 +193,7 @@ func report(s *State, c Cycle) {
 }
 
 // After phase 1, the following function yields all cyclice lock depndencies.
+// TODO kinda unnecessary?
 func get_cycles(s *State) []Cycle {
 	s.cycles = []Cycle{}
 	find_cycles(s)
@@ -210,9 +223,9 @@ func find_cycles(s *State) {
 			continue
 		}
 		visiting := thread_id
+		is_traversed[thread_id] = true
 		for l, ds := range s.threads[thread_id].ldeps {
 			for _, d := range ds {
-				is_traversed[thread_id] = true
 				chain_stack = append(chain_stack, LockDependency{thread_id, l, d.ls, d.requests}) // push
 			}
 			dfs(s, &chain_stack, visiting, is_traversed, thread_ids)
@@ -309,12 +322,13 @@ func dfs(s *State, chain_stack *[]LockDependency, visiting ThreadId, is_traverse
 // ////////////////////////////////
 // High level functions for integration with Advocate
 func checkForResourceDeadlock() {
+	log.Println("Checking for Resource Deadlocks, current state is:", currentState)
 
-	find_cycles(&currentState)
+	get_cycles(&currentState)
 
 	for _, cycle := range currentState.cycles {
 		var cycleElements []results.ResultElem
-		log.Println("Found cycle of length", len(cycle))
+		log.Println("Found cycle:", cycle)
 		for i := 0; i < len(cycle); i++ {
 			// file, line, tPre, err := infoFromTID(cycle[i].thread_id)
 			// if err != nil {

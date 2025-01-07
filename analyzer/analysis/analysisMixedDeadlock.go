@@ -60,6 +60,7 @@ func lockSetRemoveLock(routine int, lock int) {
 		errorMsg := "Lock " + strconv.Itoa(lock) +
 			" not in lockSet for routine " + strconv.Itoa(routine)
 		log.Print(errorMsg)
+		// TODO: we can give up on deadlock detection when this happens - at least for now
 		return
 	}
 	delete(lockSet[routine], lock)

@@ -408,7 +408,7 @@ func isCycleDeadlock(cycle []*lockGraphNode) bool {
 
 	// are the lock operation in the cycle for different routines concurrent? (R2)
 	if !isCycleConcurrent(cycle) {
-		log.Println("No concurrent threads")
+		log.Println("The lockings are not concurrent")
 		return false
 	}
 
@@ -516,7 +516,7 @@ func isCycleValidGuard(cycle []*lockGraphNode) bool {
 				continue
 			}
 
-			for ls_i, _ := range cycle[i].lockSet {
+			for ls_i := range cycle[i].lockSet {
 				// log.Println("Checking for", ls_i, "in lockset", cycle[j].lockSet, "of lock", cycle[j].id)
 
 				// if a lock appears in the lockSet of two different dependencies it is a guard lock
