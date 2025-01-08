@@ -12,8 +12,10 @@ package analysis
 
 import (
 	"analyzer/clock"
-	"analyzer/results"
+	"fmt"
 	"log"
+	"strconv"
+	"strings"
 )
 
 // Computation of "abstract" lock dependencies
@@ -81,7 +83,7 @@ var currentState = State{
 
 // We show the event processing functions for acquire and release.
 
-func acquire(s *State, x LockId, e Event) {
+func acquire(s *State, lockId LockId, e Event) {
 	if _, ok := s.threads[e.thread_id]; !ok {
 		s.threads[e.thread_id] = Thread{
 			thread_id: e.thread_id,
@@ -93,12 +95,12 @@ func acquire(s *State, x LockId, e Event) {
 	ls := s.threads[e.thread_id].ls
 	if !ls.empty() {
 		deps := s.threads[e.thread_id].ldeps
-		deps[x] = insert(deps[x], ls, e)
+		deps[lockId] = insert(deps[lockId], ls, e)
 		// In an actual implementation we would record e's vector clock.
 		// In fact, we record the vector clock of the associated request.
 
 	}
-	s.threads[e.thread_id].ls.add(x)
+	s.threads[e.thread_id].ls.add(lockId)
 }
 
 func release(s *State, x LockId, e Event) {
@@ -115,7 +117,7 @@ func insert(ds []Dep, ls Lockset, e Event) []Dep {
 			return ds
 		}
 	}
-	return append(ds, Dep{ls, []Event{e}})
+	return append(ds, Dep{ls.Clone(), []Event{e}})
 }
 
 // The above insert function records all requests that share the same dependency (tid,l,ls).
@@ -171,7 +173,7 @@ func insert2(ds []Dep, ls Lockset, e Event) []Dep {
 			return ds
 		}
 	}
-	return append(ds, Dep{ls, []Event{e}})
+	return append(ds, Dep{ls.Clone(), []Event{e}})
 }
 
 // Algorithm phase 2
@@ -274,9 +276,9 @@ func isCycleChain(chain_stack *[]LockDependency, dependency *LockDependency) boo
 
 func dfs(s *State, chain_stack *[]LockDependency, visiting ThreadId, is_traversed map[ThreadId]bool, thread_ids map[ThreadId]bool) {
 	for tid := range thread_ids {
-		if tid <= visiting {
-			continue
-		}
+		// if tid <= visiting {
+		// 	continue
+		// }
 		if len(s.threads[tid].ldeps) == 0 {
 			continue
 		}
@@ -287,8 +289,7 @@ func dfs(s *State, chain_stack *[]LockDependency, visiting ThreadId, is_traverse
 					ld := LockDependency{tid, l, l_ls_d.ls, l_ls_d.requests}
 					if isChain(chain_stack, &ld) {
 						if isCycleChain(chain_stack, &ld) {
-							var c Cycle
-							c = make([]Entry, len(*chain_stack)+1)
+							var c Cycle = make([]Entry, len(*chain_stack)+1)
 							for i, d := range *chain_stack {
 								c[i].requests = d.reqs
 								c[i].thread_id = d.thread_id
@@ -322,12 +323,12 @@ func dfs(s *State, chain_stack *[]LockDependency, visiting ThreadId, is_traverse
 // ////////////////////////////////
 // High level functions for integration with Advocate
 func checkForResourceDeadlock() {
-	log.Println("Checking for Resource Deadlocks, current state is:", currentState)
+	log.Println("Checking for Resource Deadlocks, current state is:" + fmt.Sprint(currentState))
 
 	get_cycles(&currentState)
 
 	for _, cycle := range currentState.cycles {
-		var cycleElements []results.ResultElem
+		// var cycleElements []results.ResultElem
 		log.Println("Found cycle:", cycle)
 		for i := 0; i < len(cycle); i++ {
 			// file, line, tPre, err := infoFromTID(cycle[i].thread_id)
@@ -347,7 +348,7 @@ func checkForResourceDeadlock() {
 			log.Println("Cycle element in routine", cycle[i].thread_id, "with requests", cycle[i].requests)
 		}
 
-		results.Result(results.CRITICAL, results.PCyclicDeadlock, "head", []results.ResultElem{cycleElements[0]}, "tail", cycleElements)
+		//		results.Result(results.CRITICAL, results.PCyclicDeadlock, "head", []results.ResultElem{cycleElements[0]}, "tail", cycleElements)
 
 	}
 }
@@ -385,6 +386,24 @@ func (ls Lockset) add(x LockId) {
 
 func (ls Lockset) remove(x LockId) {
 	delete(ls, x)
+}
+
+func (ls Lockset) Clone() Lockset {
+	clone := make(Lockset, 0)
+	for l := range ls {
+		clone[l] = ls[l]
+	}
+	return clone
+}
+
+func (ls Lockset) String() string {
+	b := strings.Builder{}
+	b.WriteString("Lockset{")
+	for l := range ls {
+		b.WriteString(strconv.Itoa(int(l)))
+	}
+	b.WriteString("}")
+	return b.String()
 }
 
 func (ls Lockset) equal(ls2 Lockset) bool {
