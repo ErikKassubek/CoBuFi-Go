@@ -60,7 +60,10 @@ type Event struct {
 }
 
 type ThreadId int
-type LockId int
+type LockId struct {
+	id       int
+	readLock bool
+}
 type Lockset map[LockId]struct{}
 
 ///////////////////////////////
@@ -243,8 +246,17 @@ func find_cycles(s *State) {
 // Check if adding dependency to chain will still be a chain.
 func isChain(chain_stack *[]LockDependency, dependency *LockDependency) bool {
 
+	// for _, e := range dependency.reqs {
+	// 	for _, e2 := range dependency.reqs {
+	// 		if clock.GetHappensBefore(e.vector_clock, e2.vector_clock) != clock.Concurrent {
+	// 			log.Println("Not concurrent!")
+	// 			return false
+	// 		}
+	// 	}
+	// }
+
 	for _, d := range *chain_stack {
-		// Exit early. No two deps can hold the same lock.
+		// Exit early. No two deps can hold the same lock. -- TODO With readlocks they kinda can though?
 		if d.l == dependency.l {
 			return false
 		}
@@ -278,9 +290,6 @@ func isCycleChain(chain_stack *[]LockDependency, dependency *LockDependency) boo
 
 func dfs(s *State, chain_stack *[]LockDependency, visiting ThreadId, is_traversed map[ThreadId]bool, thread_ids map[ThreadId]bool) {
 	for tid := range thread_ids {
-		if tid <= visiting {
-			continue
-		}
 		if len(s.threads[tid].lock_dependencies) == 0 {
 			continue
 		}
@@ -333,16 +342,18 @@ func handleMutexEventForRessourceDeadlock(element TraceElementMutex) {
 
 	switch element.opM {
 	case LockOp:
-		acquire(&currentState, LockId(element.GetID()), event)
+		acquire(&currentState, LockId{element.GetID(), false}, event)
 	case TryLockOp:
 		// Currently suc seems to always be false on trylocks, we do not rly support them rightnow
 		if element.suc {
-			acquire(&currentState, LockId(element.GetID()), event)
+			acquire(&currentState, LockId{element.GetID(), false}, event)
 		}
 	case RLockOp:
+		acquire(&currentState, LockId{element.GetID(), true}, event)
 	case UnlockOp:
-		release(&currentState, LockId(element.GetID()), event)
+		release(&currentState, LockId{element.GetID(), false}, event)
 	case RUnlockOp:
+		release(&currentState, LockId{element.GetID(), true}, event)
 	}
 }
 
@@ -407,7 +418,7 @@ func (ls Lockset) String() string {
 	b := strings.Builder{}
 	b.WriteString("Lockset{")
 	for l := range ls {
-		b.WriteString(strconv.Itoa(int(l)))
+		b.WriteString(strconv.Itoa(int(l.id)))
 	}
 	b.WriteString("}")
 	return b.String()
