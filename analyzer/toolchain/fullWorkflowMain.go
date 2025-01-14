@@ -30,12 +30,11 @@ import (
  *    executableName (string): name of the executable
  *    timeoutAna (int): timeout for the analyzer
  *    timeoutReplay (int): timeout for replay
- *    measureTime (int): measure the runtime if set
+ *    keepTraces (bool): do not delete the traces after analysis
  * Returns:
  *    error
  */
-func runWorkflowMain(pathToAdvocate string, pathToFile string,
-	executableName string, timeoutAna int, timeoutReplay int, measureTime bool) error {
+func runWorkflowMain(pathToAdvocate string, pathToFile string, executableName string, timeoutAna int, timeoutReplay int, keepTraces bool) error {
 	if _, err := os.Stat(pathToFile); os.IsNotExist(err) {
 		return fmt.Errorf("file %s does not exist", pathToFile)
 	}
@@ -147,7 +146,8 @@ func runWorkflowMain(pathToAdvocate string, pathToFile string,
 	// Apply analyzer
 	analyzerOutput := filepath.Join(dir, "advocateTrace")
 	timeStart = time.Now()
-	if err := runCommand(pathToAnalyzer, "run", "-t", analyzerOutput, "-T", strconv.Itoa(timeoutAna)); err != nil {
+	// TODO (COMMAND): replace by direct call
+	if err := runCommand(pathToAnalyzer, "run", "-trace", analyzerOutput, "-timeout", strconv.Itoa(timeoutAna)); err != nil {
 		return fmt.Errorf("Error applying analyzer: %v", err)
 	}
 	durationAnalysis = time.Since(timeStart)
@@ -196,11 +196,15 @@ func runWorkflowMain(pathToAdvocate string, pathToFile string,
 
 	resultPath := filepath.Join(dir, "advocateResult")
 
+	if !keepTraces {
+		removeTraces(dir)
+	}
+
 	moveResults(dir, resultPath)
 
 	// Generate Bug Reports
 	fmt.Println("Generate Bug Reports")
-	generateBugReports(resultPath, pathToAdvocate)
+	generateBugReports(resultPath)
 
 	resTimes := map[string]time.Duration{
 		"run":      durationRun,
@@ -210,18 +214,20 @@ func runWorkflowMain(pathToAdvocate string, pathToFile string,
 	}
 
 	if measureTime {
-		updateTimeFiles(progName, "Main", resultPath, resTimes, len(rewrittenTraces), 1)
+		updateTimeFiles(programName, "Main", resultPath, resTimes, len(rewrittenTraces), 1)
 	}
 
 	if notExecuted {
 		fmt.Println("Check for untriggered selects and not executed progs")
-		runCommand(pathToAnalyzer, "check", "-R", filepath.Join(dir, "advocateResult"), "-P", dir)
+		// TODO (COMMAND): replace by direct call
+		runCommand(pathToAnalyzer, "check", "-resultTool", filepath.Join(dir, "advocateResult"), "-dir", dir)
 	}
 
-	if stats {
+	if createStats {
 		// create statistics
 		fmt.Println("Create statistics")
-		runCommand(pathToAnalyzer, "stats", "-R", filepath.Join(dir, "advocateResult"), "-P", dir, "-N", progName)
+		// TODO (COMMAND): replace by direct call
+		runCommand(pathToAnalyzer, "stats", "-resultTool", filepath.Join(dir, "advocateResult"), "-dir", dir, "-prog", programName)
 	}
 
 	return nil

@@ -40,11 +40,13 @@ const (
  *    stats (bool): create a stats file
  *    timeout (int): Set a timeout in seconds for the analysis
  *    timeoutReplay (int): timeout for replay
+ *    keepTraces (bool): do not delete traces after analysis
  * Returns:
  *    error
  */
 func runWorkflowUnit(pathToAdvocate, dir, progName string,
-	measureTime, notExecuted, stats bool, timeoutAna int, timeoutReplay int) error {
+	measureTime, notExecuted, stats bool, timeoutAna int, timeoutReplay int,
+	keepTraces bool) error {
 	// Validate required inputs
 	if pathToAdvocate == "" {
 		return errors.New("Path to advocate is empty")
@@ -82,7 +84,7 @@ func runWorkflowUnit(pathToAdvocate, dir, progName string,
 	ranTest := false
 	// Process each test file
 	for _, file := range testFiles {
-		if testNameFlag == "" {
+		if testName == "" {
 			fmt.Println("\n\n=================================================")
 			fmt.Printf("Progress %s: %d/%d", progName, currentFile, totalFiles)
 			fmt.Printf("\nProcessing file: %s\n", file)
@@ -98,7 +100,7 @@ func runWorkflowUnit(pathToAdvocate, dir, progName string,
 		}
 
 		for _, testFunc := range testFunctions {
-			if testNameFlag != "" && testNameFlag != testFunc {
+			if testName != "" && testName != testFunc {
 				continue
 			}
 			ranTest = true
@@ -124,6 +126,10 @@ func runWorkflowUnit(pathToAdvocate, dir, progName string,
 				updateTimeFiles(progName, testFunc, resultPath, times, nrReplay, nrAnalyzer)
 			}
 
+			if !keepTraces {
+				removeTraces(packagePath)
+			}
+
 			// Move logs and results to the appropriate directory
 			moveResults(packagePath, directoryName)
 
@@ -135,7 +141,7 @@ func runWorkflowUnit(pathToAdvocate, dir, progName string,
 			generateBugReports(directoryPath)
 
 			if stats {
-				updateStatsFiles(progName, testFunc, directoryPath)
+				updateStatsFiles(pathToAnalyzer, progName, testFunc, directoryPath)
 				// create statistics
 			}
 		}
@@ -143,26 +149,27 @@ func runWorkflowUnit(pathToAdvocate, dir, progName string,
 		currentFile++
 	}
 
-	if testNameFlag != "" && !ranTest {
-		return fmt.Errorf("Could not find test function %s\n", testNameFlag)
+	if testName != "" && !ranTest {
+		return fmt.Errorf("Could not find test function %s\n", testName)
 	}
 
 	// Check for untriggered selects
-	if notExecuted && testNameFlag != "" {
+	if notExecuted && testName != "" {
 		fmt.Println("Check for untriggered selects and not executed progs")
-		err := runCommand(pathToAnalyzer, "check", "-R", filepath.Join(dir, "advocateResult"), "-P", dir)
+		// TODO (COMMAND): replace by direct call
+		err := runCommand(pathToAnalyzer, "check", "-resultTool", filepath.Join(dir, "advocateResult"), "-dir", dir)
 		if err != nil {
 			fmt.Println("Could not run check for untriggered select and not executed progs")
 		}
 	}
 
 	// Output test summary
-	if testNameFlag == "" {
+	if testName == "" {
 		fmt.Println("Finished full workflow for all tests")
 		fmt.Printf("Attempted tests: %d\n", attemptedTests)
 		fmt.Printf("Skipped tests: %d\n", skippedTests)
 	} else {
-		fmt.Printf("Finished full work flow for %s\n", testNameFlag)
+		fmt.Printf("Finished full work flow for %s\n", testName)
 	}
 
 	return nil
@@ -427,12 +434,14 @@ func unitTestAnalyzer(pathToAnalyzer, dir, pkg, traceName, output string, resTim
 	startTime := time.Now()
 	var err error
 	if resultID == "-1" {
-		err = runCommand(pathToAnalyzer, "run", "-t", filepath.Join(dir, pkg, traceName), "-T", strconv.Itoa(timeoutAna))
+		// TODO (COMMAND): replace by direct call
+		err = runCommand(pathToAnalyzer, "run", "-trace", filepath.Join(dir, pkg, traceName), "-timeout", strconv.Itoa(timeoutAna))
 	} else {
 		outM := fmt.Sprintf("results_machine_%s", resultID)
 		outR := fmt.Sprintf("results_readable_%s", resultID)
 		outT := fmt.Sprintf("rewritten_trace_%s", resultID)
-		err = runCommand(pathToAnalyzer, "run", "-t", filepath.Join(dir, pkg, traceName), "-T", strconv.Itoa(timeoutAna), "-outM", outM, "-outR", outR, "-outT", outT, "-ignoreRew", "results_machine.log")
+		// TODO (COMMAND): replace by direct call
+		err = runCommand(pathToAnalyzer, "run", "-trace", filepath.Join(dir, pkg, traceName), "-timeout", strconv.Itoa(timeoutAna), "-outM", outM, "-outR", outR, "-outT", outT, "-ignoreRew", "results_machine.log")
 	}
 	if err != nil {
 		fmt.Println("Analyzer failed", err)

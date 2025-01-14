@@ -186,12 +186,12 @@ func addMainHeader(fileName string, replay bool, replayNumber string, replayTime
 					lines = append(lines, fmt.Sprintf(`	// ======= Preamble Start =======
   advocate.InitReplayTracing("%s", false, %d, false)
   defer advocate.FinishReplayTracing()
-  // ======= Preamble End =======`, replayNumber, replayTimeout))
+  // ======= Preamble End =======`, replayNumber, timeoutReplay))
 				} else {
 					lines = append(lines, fmt.Sprintf(`	// ======= Preamble Start =======
   advocate.InitReplay("%s", false, %d, false)
   defer advocate.FinishReplay()
-  // ======= Preamble End =======`, replayNumber, replayTimeout))
+  // ======= Preamble End =======`, replayNumber, timeoutReplay))
 				}
 			} else {
 				lines = append(lines, `	// ======= Preamble Start =======

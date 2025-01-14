@@ -25,11 +25,11 @@ var (
 	maxScore             = 0.0
 	// Info for the current trace
 	channelInfoTrace = make(map[int]fuzzingChannel) // localID -> fuzzingChannel
-	pairInfoTrace    = make(map[string]fuzzingPair) // posSend-posRecv -> fuzzing pair
+	pairInfoTrace    = make(map[string]fuzzingPair) // posSend-noPrintosRecv -> fuzzing pair
 	numberClose      = 0
 	// Info from the file/the previous runs
 	channelInfoFile = make(map[string]fuzzingChannel) // globalID -> fuzzingChannel
-	pairInfoFile    = make(map[string]fuzzingPair)    // posSend-posRecv -> fuzzing pair
+	pairInfoFile    = make(map[string]fuzzingPair)    // posSend-noPrintosRecv -> fuzzing pair
 )
 
 /*
@@ -88,39 +88,9 @@ func addFuzzingPair(sendID string, recvID string, com float64) {
 	pairInfoFile[key] = fp
 }
 
-func updateFileData() {
-	mergeTraceFile()
-	numberOfPreviousRuns++
-}
-
 func mergeCloseInfo(trace closeInfo, file closeInfo) closeInfo {
 	if trace != file {
 		return sometimes
 	}
 	return file
-}
-
-func mergeTraceFile() {
-	for _, info := range channelInfoTrace {
-		fileData, ok := channelInfoFile[info.globalID]
-
-		if !ok { // first time channel was created
-			channelInfoFile[info.globalID] = info
-		} else { // update
-			fileData.closeInfo = mergeCloseInfo(info.closeInfo, fileData.closeInfo)
-			fileData.maxQCount = max(info.maxQCount, fileData.maxQCount)
-			channelInfoFile[info.globalID] = fileData
-		}
-	}
-
-	for key, info := range pairInfoTrace {
-		fileData, ok := pairInfoFile[key]
-
-		if !ok { // first time pair communicated
-			pairInfoFile[key] = info
-		} else { // update
-			fileData.com = (fileData.com*float64(numberOfPreviousRuns) + info.com) / (float64(numberOfPreviousRuns) + 1)
-			pairInfoFile[key] = fileData
-		}
-	}
 }

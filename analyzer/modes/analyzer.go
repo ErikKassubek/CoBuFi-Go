@@ -33,7 +33,7 @@ func ModeAnalyzer(pathTrace *string, noPrint *bool, noRewrite *bool,
 	// printHeader()
 
 	if *pathTrace == "" {
-		fmt.Println("Please provide a path to the trace files. Set with -t [folder]")
+		fmt.Println("Please provide a path to the trace files. Set with -trace [folder]")
 		return
 	}
 
@@ -52,6 +52,13 @@ func ModeAnalyzer(pathTrace *string, noPrint *bool, noRewrite *bool,
 	analysisCases, err := parseAnalysisCases(*scenarios)
 	if err != nil {
 		panic(err)
+	}
+
+	// clean data in case of fuzzing
+	if analysis.DataUsed {
+		analysis.ClearData()
+		analysis.ClearTrace()
+		analysis.DataUsed = true
 	}
 
 	// run the analysis and, if requested, create a reordered trace file

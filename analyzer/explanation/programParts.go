@@ -107,7 +107,6 @@ func GetProgramCode(file string, line int, numbers bool) (string, error) {
 	}
 
 	// add line numbers
-	// TODO: fix <----- for selects
 	resWithLines := ""
 	for i, l := range strings.Split(res, "\n") {
 		if i == 0 || i == len(strings.Split(res, "\n"))-1 {

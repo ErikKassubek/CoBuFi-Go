@@ -39,7 +39,7 @@ func readProgInfo(path string) (map[string]string, error) {
 		}
 
 		// if strings.Contains(lines[i], "unitTestheaderInserter") {
-		// 	if strings.Contains(lines[i], "-r true") {
+		// 	if strings.Contains(lines[i], "-outtrue") {
 		// 		line := lines[i][:strings.LastIndex(lines[i], " ")]
 		// 		res["inserterReplay"] = line + " " + strconv.Itoa(index)
 		// 	} else {

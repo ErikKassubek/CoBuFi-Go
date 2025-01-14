@@ -17,12 +17,12 @@ import (
 
 func ModeCheck(resultFolderTool, programPath *string) {
 	if *resultFolderTool == "" {
-		fmt.Println("Please provide the path to the advocateResult folder created by the pipeline. Set with -R [folder]")
+		fmt.Println("Please provide the path to the advocateResult folder created by the pipeline. Set with -resultTool [folder]")
 		return
 	}
 
 	if *programPath == "" {
-		fmt.Println("Please provide the path to the program folder. Set with -P [folder]")
+		fmt.Println("Please provide the path to the program folder. Set with -dir [folder]")
 		return
 	}
 

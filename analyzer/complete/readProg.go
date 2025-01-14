@@ -230,7 +230,7 @@ func (v *visitor) Visit(n ast.Node) ast.Visitor {
 		for _, stmt := range x.Body.List {
 			caseClause, ok := stmt.(*ast.CommClause)
 			if !ok {
-				continue // Nicht ein case-Teil, weitermachen
+				continue // Nicht ein case-timeouteil, weitermachen
 			}
 			switch comm := caseClause.Comm.(type) {
 			case *ast.SendStmt:
@@ -244,7 +244,6 @@ func (v *visitor) Visit(n ast.Node) ast.Visitor {
 			}
 		}
 	case *ast.RangeStmt:
-		// TODO: Does not work yet
 		rangeExpr := x.X
 		rangeExprType := v.info.Types[rangeExpr].Type
 		// Check if the range expression is a channel

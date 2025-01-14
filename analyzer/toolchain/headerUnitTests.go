@@ -1,7 +1,8 @@
-// Copyright (c) 2025 Erik Kassubek, Mario Occhinegro
+// Copyright (c) 2024 Erik Kassubek, Mario Occhinegro
 //
 // File: headerUnitTests.go
-// Brief: Add the header to unit tests
+// Brief: Functions to add and remove the ADVOCATE header into file containing
+//    unit tests
 //
 // Author: Erik Kassubek, Mario Occhinegro
 // Created: 2024-09-18
@@ -28,12 +29,10 @@ import (
  *    replayNumber (string): id of the trace to replay
  *    timeoutReplay (int): timeout for replay
  *    record (bool): true to rerecord the leaks
- *    replayAtomics (bool): whether to replay atomics
  * Returns:
  *    error
  */
-func headerInserterUnit(fileName string, testName string, replay bool,
-	replayNumber string, timeoutReplay int, record bool, replayAtomic bool) error {
+func headerInserterUnit(fileName string, testName string, replay bool, replayNumber string, timeoutReplay int, record bool) error {
 	if _, err := os.Stat(fileName); os.IsNotExist(err) {
 		return fmt.Errorf("file %s does not exist", fileName)
 	}
@@ -47,7 +46,7 @@ func headerInserterUnit(fileName string, testName string, replay bool,
 		return errors.New("Test Method not found in file")
 	}
 
-	return addHeaderUnit(fileName, testName, replay, replayNumber, timeoutReplay, record, replayAtomic)
+	return addHeaderUnit(fileName, testName, replay, replayNumber, timeoutReplay, record)
 }
 
 /*
@@ -118,12 +117,10 @@ func testExists(fileName string, testName string) (bool, error) {
  *    replayNumber (string): id of the trace to replay
  *    timeoutReplay (int): timeout for replay
  *    record (bool): true to rerecord the trace
- *    replayAtomic (bool): true to replay atomics
  * Returns:
  *    error
  */
-func addHeaderUnit(fileName string, testName string, replay bool, replayNumber string,
-	timeoutReplay int, record bool, replayAtomic bool) error {
+func addHeaderUnit(fileName string, testName string, replay bool, replayNumber string, timeoutReplay int, record bool) error {
 	importAdded := false
 	file, err := os.OpenFile(fileName, os.O_RDWR, 0644)
 	if err != nil {

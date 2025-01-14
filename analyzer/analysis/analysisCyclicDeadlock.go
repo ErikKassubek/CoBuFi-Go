@@ -22,7 +22,7 @@ import (
 type lockGraphNode struct {
 	id       int               // id of the mutex represented by the node
 	routine  int               // id of the routine that holds the lock
-	rw       bool              // true if the mutex is a read-write lock
+	rw       bool              // true if the mutex is a read-noWarningrite lock
 	rLock    bool              // true if the lock was a read lock
 	children []*lockGraphNode  // children of the node
 	outside  []*lockGraphNode  // nodes with the same lock ID that are in the tree of another routine
@@ -46,7 +46,7 @@ func newLockGraph(routine int) *lockGraphNode {
  * Add a child to the node
  * Args:
  *   childID (int): The id of the child
- *   childRw (bool): True if the child is a read-write lock
+ *   childRw (bool): True if the child is a read-noWarningrite lock
  *   childRLock (bool): True if the child is a read lock
  *   vc (VectorClock): The vector clock of the childs lock operation
  *   lockSet ([]int): The lockSet of the child
@@ -390,7 +390,7 @@ func isCycleDeadlock(cycle []*lockGraphNode) bool {
 		return false
 	}
 
-	// check, that the cycle is valid considering read-write locks (R3)
+	// check, that the cycle is valid considering read-noWarningrite locks (R3)
 	if !isCycleValidRead(cycle) {
 		return false
 	}
@@ -450,12 +450,12 @@ func isCycleConcurrent(cycle []*lockGraphNode) bool {
 }
 
 /*
- * Check, that the cycle is valid considering read-write locks
+ * Check, that the cycle is valid considering read-noWarningrite locks
  * Two operations on the same lock connected by an edge are not both read operations
  * Args:
  *   cycle ([]*lockGraphNode): The cycle to check
  * Returns:
- *   (bool): True if the cycle is valid considering read-write locks
+ *   (bool): True if the cycle is valid considering read-noWarningrite locks
  */
 func isCycleValidRead(cycle []*lockGraphNode) bool {
 	for i := 0; i < len(cycle); i++ {

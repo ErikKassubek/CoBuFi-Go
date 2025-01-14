@@ -694,7 +694,6 @@ func GetConcurrentEarliest(element *TraceElement) map[int]*TraceElement {
  *   shift (int): The shift
  * Returns:
  *   bool: True if the shift was successful, false otherwise (shift <= 0)
- * TODO: is this allowed or will it create problems?
  */
 func ShiftRoutine(routine int, startTSort int, shift int) bool {
 	if shift <= 0 {

@@ -1,6 +1,6 @@
 module analyzer
 
-go 1.21
+go 1.23
 
 require github.com/shirou/gopsutil v3.21.11+incompatible
 

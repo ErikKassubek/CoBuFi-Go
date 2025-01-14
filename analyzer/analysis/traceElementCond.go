@@ -137,7 +137,6 @@ func (co *TraceElementCond) GetTPost() int {
  * Get the timer, that is used for sorting the trace
  * Returns:
  *   (int): The timer of the element
- * TODO: check if tPre is correct
  */
 func (co *TraceElementCond) GetTSort() int {
 	t := co.tPre
@@ -276,7 +275,6 @@ func (co *TraceElementCond) SetTPre(tPre int) {
  * Set the timer that is used for sorting the trace
  * Args:
  *   tSort (int): The timer of the element
- * TODO: check if tPre is correct
  */
 func (co *TraceElementCond) SetTSort(tSort int) {
 	co.SetTPre(tSort)

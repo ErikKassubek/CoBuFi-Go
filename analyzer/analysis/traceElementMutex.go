@@ -41,7 +41,7 @@ const (
  *   tpre (int): The timestamp at the start of the event
  *   tpost (int): The timestamp at the end of the event
  *   id (int): The id of the mutex
- *   rw (bool): Whether the mutex is a read-write mutex
+ *   rw (bool): Whether the mutex is a read-noWarningrite mutex
  *   opM (opMutex): The operation on the mutex
  *   suc (bool): Whether the operation was successful (only for trylock else always true)
  *   pos (string): The position of the mutex operation in the code
@@ -66,7 +66,7 @@ type TraceElementMutex struct {
  *   tPre (string): The timestamp at the start of the event
  *   tPost (string): The timestamp at the end of the event
  *   id (string): The id of the mutex
- *   rw (string): Whether the mutex is a read-write mutex
+ *   rw (string): Whether the mutex is a read-noWarningrite mutex
  *   opM (string): The operation on the mutex
  *   suc (string): Whether the operation was successful (only for trylock else always true)
  *   pos (string): The position of the mutex operation in the code

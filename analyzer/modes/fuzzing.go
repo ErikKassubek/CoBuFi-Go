@@ -15,20 +15,17 @@ import (
 	"fmt"
 )
 
-func ModeFuzzing(pathTrace string, progName string, testName string, index int) {
-	if pathTrace == "" {
-		fmt.Println("Please provide a path to the trace file. Set with -t [folder]")
-		return
-	}
-
+// TODO (FUZZING): make fuzzing work
+func ModeFuzzing(advocate, testPath, progName, testName string) {
 	if progName == "" {
-		fmt.Println("Provide a name for the analyzed program. Set with -N [name]")
+		fmt.Println("Provide a name for the analyzed program. Set with -prog [name]")
 		return
 	}
 
-	if testName != "" {
-		progName = progName + "_" + testName
+	if testName == "" {
+		fmt.Println("Provide a name for the analyzed test. Set with -test [name]")
+		return
 	}
 
-	fuzzing.Fuzzing(pathTrace, pathTrace, progName, index)
+	fuzzing.Fuzzing(advocate, testPath, progName, testName)
 }

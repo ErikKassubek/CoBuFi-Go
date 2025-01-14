@@ -84,7 +84,7 @@ var (
 	allLocks   = make(map[int][]TraceElement)
 	allUnlocks = make(map[int][]TraceElement) // id -> []TraceElement
 
-	// last acquire on mutex for each routine TODO: check if we need to store this
+	// last acquire on mutex for each routine
 	lockSet                = make(map[int]map[int]string)         // routine -> id -> string
 	mostRecentAcquire      = make(map[int]map[int]VectorClockTID) // routine -> id -> vcTID
 	mostRecentAcquireTotal = make(map[int]VectorClockTID3)        // id -> vcTID
@@ -102,6 +102,9 @@ var (
 
 	// all positions of creations of routines
 	allForks = make(map[int]*TraceElementFork) // routineId -> fork
+
+	// set to true if the analyzer has been started, so that it can clean it before reusing it
+	DataUsed = false
 )
 
 // InitAnalysis initializes the analysis cases

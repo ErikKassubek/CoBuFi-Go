@@ -11,7 +11,9 @@
 package toolchain
 
 import (
-	"analyzer/modes"
+	"analyzer/explanation"
+	"fmt"
+	"log"
 	"os"
 	"path/filepath"
 )
@@ -20,10 +22,12 @@ import (
  * Generate the bug reports
  * Args:
  *    folderName string: path to folder containing the results
- *    advocateRoot string: path to ADVOCATE
  */
 func generateBugReports(folder string) {
-	modes.ModeExplain(folder, true)
+	err := explanation.CreateOverview(folder, true)
+	if err != nil {
+		log.Println("Error creating explanation: ", err.Error())
+	}
 }
 
 /*
@@ -89,9 +93,33 @@ func moveResults(packagePath, destination string) {
 			_ = os.Rename(trace, dest)
 		}
 	}
-
 }
 
-func updateStatsFiles(progName string, testName string, dir string) {
-	modes.ModeStats(dir, progName, testName)
+/*
+ * Remove all traces, both recorded and rewritten from the path
+ * Args:
+ * 	path (string): path to the folder containing the traces
+ */
+func removeTraces(path string) {
+	pattersToMove := []string{
+		"advocateTrace",
+		"rewritten_trace*",
+		"advocateTraceReplay_*",
+		"fuzzingData.log",
+	}
+
+	for _, pattern := range pattersToMove {
+		files, _ := filepath.Glob(filepath.Join(path, pattern))
+		for _, trace := range files {
+			os.RemoveAll(trace)
+		}
+	}
+}
+
+func updateStatsFiles(pathToAnalyzer string, progName string, testName string, dir string) {
+	// TODO (COMMAND): replace by direct call
+	err := runCommand(pathToAnalyzer, "stats", "-trace", dir, "-prog", progName, "-test", testName)
+	if err != nil {
+		fmt.Println("Could not create statistics")
+	}
 }

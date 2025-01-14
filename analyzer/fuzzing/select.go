@@ -18,7 +18,8 @@ import (
 )
 
 var (
-	allSelects = make(map[string][]fuzzingSelect) // id -> []fuzzingSelects
+	allSelects    = make(map[string][]fuzzingSelect) // id -> []fuzzingSelects
+	numberSelects = 0
 )
 
 /*
@@ -47,6 +48,7 @@ func addFuzzingSelect(id string, t int, chosenCase int, numberCases int, contain
 	}
 
 	allSelects[id] = append(allSelects[id], fs)
+	numberSelects++
 }
 
 func sortSelects() {
@@ -65,10 +67,16 @@ func (fs fuzzingSelect) toString() string {
  * Get a copy of fs with a randomly selected case id
  * Args:
  *   def (bool): if true, default is a possible value, if false it is not
+ *   flipChange (bool): probability that a select case is chosen randomly. Otherwise the chosen case is kept
  * Return:
  *   (int): the chosen case ID
  */
-func (fs fuzzingSelect) getCopyRandom(def bool) fuzzingSelect {
+func (fs fuzzingSelect) getCopyRandom(def bool, flipChance float64) fuzzingSelect {
+	// do only flip with certain chance
+	if rand.Float64() > flipChance {
+		return fuzzingSelect{id: fs.id, t: fs.t, chosenCase: fs.chosenCase, numberCases: fs.numberCases, containsDefault: fs.containsDefault}
+	}
+
 	// if def == false -> rand between 0 and fs.numberCases - 1
 	// otherwise rand between -1 and fs.numberCases - 1
 	shift := 0
@@ -79,4 +87,8 @@ func (fs fuzzingSelect) getCopyRandom(def bool) fuzzingSelect {
 	chosenCase := rand.Intn(fs.numberCases+shift) - shift
 
 	return fuzzingSelect{id: fs.id, t: fs.t, chosenCase: chosenCase, numberCases: fs.numberCases, containsDefault: fs.containsDefault}
+}
+
+func (fs fuzzingSelect) isEqual(fs2 fuzzingSelect) bool {
+	return fs.id == fs2.id && fs.chosenCase == fs2.chosenCase && fs.numberCases == fs2.numberCases && fs.containsDefault == fs2.containsDefault
 }

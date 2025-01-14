@@ -92,7 +92,7 @@ func calculateMaxFlow(graph map[string][]string) (int, map[string][]string, erro
 }
 
 /*
- * Find a path in a graph using a breadth-first search
+ * Find a path in a graph using a breadth-fifoirst search
  * Args:
  *   graph ([]Edge): The graph
  * Returns:

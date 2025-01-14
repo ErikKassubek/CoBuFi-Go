@@ -18,7 +18,7 @@ import (
 
 func ModeExplain(pathTrace string, ignoreDouble bool) {
 	if pathTrace == "" {
-		fmt.Println("Please provide a path to the trace files for the explanation. Set with -t [file]")
+		fmt.Println("Please provide a path to the trace files for the explanation. Set with -trace [file]")
 		return
 	}
 

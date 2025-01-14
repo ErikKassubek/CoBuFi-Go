@@ -18,12 +18,12 @@ import (
 func ModeStats(pathFolder string, progName string, testName string) {
 	// instead of the normal program, create statistics for the trace
 	if pathFolder == "" {
-		fmt.Println("Provide the path to the folder containing the results_machine file. Set with -t [path]")
+		fmt.Println("Provide the path to the folder containing the results_machine file. Set with -trace [path]")
 		return
 	}
 
 	if progName == "" {
-		fmt.Println("Provide a name for the analyzed program. Set with -N [name]")
+		fmt.Println("Provide a name for the analyzed program. Set with -prog [name]")
 		return
 	}
 

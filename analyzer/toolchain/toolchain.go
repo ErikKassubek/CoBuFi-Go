@@ -1,10 +1,10 @@
-// Copyright (c) 2024 Erik Kassubek, Mario Occhinegro
+// Copyright (c) 2024 Erik Kassubek
 //
 // File: headerUnitTests.go
 // Brief: Functions to add and remove the ADVOCATE header into file containing
 //    unit tests
 //
-// Author: Erik Kassubek, Mario Occhinegro
+// Author: Erik Kassubek
 // Created: 2024-09-18
 //
 // License: BSD-3-Clause
@@ -17,85 +17,103 @@ import (
 	"strings"
 )
 
-/*
- * Main function to run the toolchain for main functions
- * TODO: add stats and measure time for main
- * Args:
- * 	pathToAdvocate (string): path to the ADVOCATE folder
- * 	pathToFile (string): path to the main file
- * 	executableName (string): name of the program executable
- * 	progName (string): name of the programs, used for stats
- * 	stats (bool): whether to create stats
- * 	measureTime (bool): whether to measure the runtime
- * 	timeoutAna (int): timeout of analysis
- * 	timeoutReplay (int): timeout for replay
- */
-func runMain(pathToAdvocate string, pathToFile string, executableName string,
-	progName string, stats, measureTime bool, timeoutAna, timeoutReplay int) error {
-	// replace ~ in path with home
-	home, _ := os.UserHomeDir()
-	pathToAdvocate = strings.Replace(pathToAdvocate, "~", home, -1)
-	pathToFile = strings.Replace(pathToFile, "~", home, -1)
-
-	if pathToAdvocate == "" {
-		return fmt.Errorf("Path to advocate required for mode main")
-	}
-	if pathToFile == "" {
-		return fmt.Errorf("Path to file required")
-	}
-	if executableName == "" {
-		return fmt.Errorf("Name of the executable required")
-	}
-	if (stats || measureTime) && progName == "" {
-		return fmt.Errorf("If stats or measureTime is set, progName cannot be empty")
-	}
-	return runWorkflowMain(pathToAdvocate, pathToFile, executableName, timeoutAna, timeoutReplay)
-}
+var (
+	pathToAdvocate string
+	pathToFile     string
+	programName    string
+	executableName string
+	testName       string
+	timeoutAna     int
+	timeoutReplay  int
+	numberRerecord int
+	replayAtomic   bool
+	measureTime    bool
+	notExecuted    bool
+	createStats    bool
+)
 
 /*
- * Main function to run the toolchain for tests
+ * Main function for the toolchain
  * Args:
- * 	pathToAdvocate (string): path to the ADVOCATE folder
- * 	pathToTests (string): path to the test folder
- * 	progName (string): name of the programs, used for stats
- * 	stats (bool): whether to create stats
- * 	measureTime (bool): whether to measure the runtime
- * 	notExecuted (bool): check for never executed operations
- * 	timeoutAna (int): timeout of analysis
- * 	timeoutReplay (int): timeout for replay
+ * 	mode (string): mode of the toolchain (main or test or explain)
+ * 	advocate (string): path to the root ADVOCATE folder.
+ * 	file (string): if mode is main, path to main file, if mode test, path to test folder
+ * 	execName (string): name of the executable, only needed for mode main
+ * 	progName (string): name of the program, used for stats
+ * 	test (string): which test to run, if empty run all tests
+ * 	timeoutA (int): timeout for analysis
+ * 	timeoutR (int): timeout for replay
+ * 	numRerecorded (int): limit of number of rerecordings
+ * 	replayAt (bool): replay atomics
+ * 	meaTime (bool): measure runtime
+ * 	notExec (bool): find never executed operations
+ * 	stats (bool): create statistics
+ * 	keepTraces (bool): keep the traces after analysis
  */
-func runTest(pathToAdvocate, pathToTests, progName string, stats,
-	measureTime bool, notExecuted bool, timeoutAna, timeoutReplay int) error {
-	// replace ~ in path with home
+func Run(mode, advocate, file, execName, progName, test string,
+	timeoutA, timeoutR, numRerecorded int,
+	replayAt, meaTime, notExec, stats, keepTraces bool) error {
 	home, _ := os.UserHomeDir()
-	pathToAdvocate = strings.Replace(pathToAdvocate, "~", home, -1)
-	pathToTests = strings.Replace(pathToTests, "~", home, -1)
+	pathToAdvocate = strings.Replace(advocate, "~", home, -1)
+	pathToFile = strings.Replace(file, "~", home, -1)
 
-	if pathToAdvocate == "" {
-		return fmt.Errorf("Path to advocate required")
-	}
-	if pathToTests == "" {
-		return fmt.Errorf("Path to test folder required for mode main")
-	}
-	if (stats || measureTime) && progName == "" {
-		return fmt.Errorf("If -s or -t is set, -N [name] must be set as well")
-	}
-	return runWorkflowUnit(pathToAdvocate, pathToTests, progName, measureTime, notExecuted, stats, timeoutAna, timeoutReplay)
-}
+	executableName = execName
+	programName = progName
+	testName = test
 
-/*
- * Generate bug reports
- * Args:
- * 	pathToFolder (string): path to the result folder
- */
-func runReport(pathToFolder string) error {
-	// replace ~ in path with home
-	home, _ := os.UserHomeDir()
-	pathToFolder = strings.Replace(pathToFolder, "~", home, -1)
+	timeoutAna = timeoutA
+	timeoutR = timeoutReplay
+	numberRerecord = numRerecorded
 
-	if pathToFolder == "" {
-		return fmt.Errorf("Path to test folder required for mode main")
+	replayAtomic = replayAt
+	measureTime = meaTime
+	notExecuted = notExec
+	createStats = stats
+
+	switch mode {
+	case "main":
+		if pathToAdvocate == "" {
+			return fmt.Errorf("Path to advocate required for mode main")
+		}
+		if pathToFile == "" {
+			return fmt.Errorf("Path to file required")
+		}
+		if executableName == "" {
+			return fmt.Errorf("Name of the executable required")
+		}
+		if (stats || measureTime) && progName == "" {
+			return fmt.Errorf("If -scen or -trace is set, -prog [name] must be set as well")
+		}
+		return runWorkflowMain(pathToAdvocate, pathToFile, executableName, timeoutAna, timeoutReplay, keepTraces)
+	case "test", "tests":
+		if pathToAdvocate == "" {
+			return fmt.Errorf("Path to advocate required")
+		}
+		if pathToFile == "" {
+			return fmt.Errorf("Path to test folder required for mode main")
+		}
+		if (stats || measureTime) && progName == "" {
+			return fmt.Errorf("If -scen or -trace is set, -prog [name] must be set as well")
+		}
+		return runWorkflowUnit(pathToAdvocate, pathToFile, progName, measureTime,
+			notExecuted, stats, timeoutAna, timeoutReplay,
+			keepTraces)
+	case "explain":
+		if pathToAdvocate == "" {
+			return fmt.Errorf("Path to advocate required")
+		}
+		if pathToFile == "" {
+			fmt.Println("Path to test folder required for mode main")
+		}
+		generateBugReports(pathToFile)
+	default:
+		return fmt.Errorf("Choose one mode from 'main' or 'test' or 'explain'")
 	}
-	generateBugReports(pathToFolder)
+
 	return nil
+}
+
+func getAbsolutPath(path string) string {
+	home, _ := os.UserHomeDir()
+	return strings.Replace(path, "~", home, -1)
 }

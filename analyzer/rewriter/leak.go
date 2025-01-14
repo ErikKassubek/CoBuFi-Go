@@ -520,8 +520,6 @@ func rewriteCondLeak(bug bugs.Bug) error {
 
 		// move the signal after the wait
 		analysis.ShiftConcurrentOrAfterToAfter(wait)
-
-		// TODO: Problem: locks create a happens before relation -> currently only works with -c
 	}
 
 	// possible broadcasts to release the wait

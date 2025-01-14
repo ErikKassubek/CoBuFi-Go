@@ -26,28 +26,43 @@ import (
 
 func main() {
 	help := flag.Bool("h", false, "Print this help")
-	pathTrace := flag.String("t", "", "Path to the trace folder to analyze or rewrite")
-	fifo := flag.Bool("f", false, "Assume a FIFO ordering for buffered channels (default false)")
-	ignoreCriticalSection := flag.Bool("c", false, "Ignore happens before relations of critical sections (default false)")
-	noRewrite := flag.Bool("x", false, "Do not rewrite the trace file (default false)")
-	noWarning := flag.Bool("w", false, "Do not print warnings (default false)")
-	noPrint := flag.Bool("p", false, "Do not print the results to the terminal (default false). Automatically set -x to true")
-	resultFolder := flag.String("r", "", "Path to where the result file should be saved.")
-	ignoreAtomics := flag.Bool("a", false, "Ignore atomic operations (default false). Use to reduce memory header for large traces.")
-	resultFolderTool := flag.String("R", "", "Path where the advocateResult folder created by the pipeline is located")
-	programPath := flag.String("P", "", "Path to the program folder")
-	progName := flag.String("N", "", "Name of the program")
-	testName := flag.String("M", "", "Name of the test")
-	rewriteAll := flag.Bool("S", false, "If a the same position is flagged multiple times, run the replay for each of them. "+
-		"If not set, only the first occurence is rewritten")
-	timeout := flag.Int("T", -1, "Set a timeout in seconds for the analysis")
+
+	pathToAdvocate := flag.String("advocate", "", "Path to advocate")
+
+	pathTrace := flag.String("trace", "", "Path to the trace folder to analyze or rewrite")
+	programPath := flag.String("dir", "", "Path to the program folder, for toolMain: path to main file, for toolTest: path to test folder")
+
+	progName := flag.String("prog", "", "Name of the program")
+	testName := flag.String("test", "", "Name of the test")
+	execName := flag.String("exec", "", "Name of the executable")
+
+	timeoutAnalysis := flag.Int("timeout", -1, "Set a timeout in seconds for the analysis")
+	timeoutReplay := flag.Int("timeoutReplay", -1, "Set a timeout in seconds for the replay")
+	recordTime := flag.Bool("time", true, "measure the runtime")
+
+	resultFolder := flag.String("out", "", "Path to where the result file should be saved.")
+	resultFolderTool := flag.String("resultTool", "", "Path where the advocateResult folder created by the pipeline is located")
 	outM := flag.String("outM", "results_machine", "Name for the result machine file")
 	outR := flag.String("outR", "results_readable", "Name for the result readable file")
 	outT := flag.String("outT", "rewritten_trace", "Name for the rewritten traces")
-	ignoreRewrite := flag.String("ignoreRew", "", "Path to a result machine file. If a found bug is already in this file, it will not be rewritten")
-	lastIndexFuzzing := flag.Int("i", 0, "Index of last fuzzing run for this program")
 
-	scenarios := flag.String("s", "", "Select which analysis scenario to run, e.g. -s srd for the option s, r and d."+
+	fifo := flag.Bool("fifo", false, "Assume a FIFO ordering for buffered channels (default false)")
+	ignoreCriticalSection := flag.Bool("ignCritSec", false, "Ignore happens before relations of critical sections (default false)")
+	ignoreAtomics := flag.Bool("ignoreAtomics", false, "Ignore atomic operations (default false). Use to reduce memory header for large traces.")
+	ignoreRewrite := flag.String("ignoreRew", "", "Path to a result machine file. If a found bug is already in this file, it will not be rewritten")
+
+	rewriteAll := flag.Bool("rewriteAll", false, "If a the same position is flagged multiple times, run the replay for each of them. "+
+		"If not set, only the first occurence is rewritten")
+
+	noRewrite := flag.Bool("noRewrite", false, "Do not rewrite the trace file (default false)")
+	noWarning := flag.Bool("noWarning", false, "Do not print warnings (default false)")
+	noPrint := flag.Bool("noPrint", false, "Do not print the results to the terminal (default false). Automatically set -noRewrite to true")
+	keepTraces := flag.Bool("keepTrace", false, "If set, the traces are not deleted after analysis. Can result in very large output folders")
+
+	notExec := flag.Bool("notExec", false, "Find never executed operations, *notExec, *stats")
+	statistics := flag.Bool("stats", false, "Create statistics")
+
+	scenarios := flag.String("scen", "", "Select which analysis scenario to run, e.g. -scen srd for the option s, r and d."+
 		"If not set, all scenarios are run.\n"+
 		"Options:\n"+
 		"\ts: Send on closed channel\n"+
@@ -105,6 +120,10 @@ func main() {
 	}
 
 	switch mode {
+	case "toolMain":
+		modes.ModeToolchain("main", *pathToAdvocate, *programPath, *execName, *progName, *testName, *timeoutAnalysis, *timeoutReplay, 0, *ignoreAtomics, *recordTime, *notExec, *statistics, *keepTraces)
+	case "toolTest":
+		modes.ModeToolchain("test", *pathToAdvocate, *programPath, "", *progName, *testName, *timeoutAnalysis, *timeoutReplay, 0, *ignoreAtomics, *recordTime, *notExec, *statistics, *keepTraces)
 	case "stats":
 		modes.ModeStats(*pathTrace, *progName, *testName)
 	case "explain":
@@ -114,9 +133,9 @@ func main() {
 	case "run":
 		modes.ModeAnalyzer(pathTrace, noPrint, noRewrite, scenarios, outReadable,
 			outMachine, ignoreAtomics, fifo, ignoreCriticalSection,
-			noWarning, rewriteAll, folderTrace, newTrace, timeout, ignoreRewrite)
+			noWarning, rewriteAll, folderTrace, newTrace, timeoutAnalysis, ignoreRewrite)
 	case "fuzzing":
-		modes.ModeFuzzing(*pathTrace, *progName, *testName, *lastIndexFuzzing)
+		modes.ModeFuzzing(*pathToAdvocate, *programPath, *progName, *testName)
 	default:
 		fmt.Printf("Unknown mode %s\n", os.Args[1])
 		fmt.Println("Select one mode from 'run', 'stats', 'explain' or 'check'")
@@ -175,7 +194,7 @@ func printHeader() {
 		"Be aware, that the analysis may contain false positives and false negatives.\n" +
 		"\n" +
 		"If the rewrite of a trace file does not create the expected result, it can help to run the\n" +
-		"analyzer with the -c flag to ignore the happens before relations of critical sections (mutex lock/unlock operations).\n" +
+		"analyzer with the -ignCritSecflag to ignore the happens before relations of critical sections (mutex lock/unlock operations).\n" +
 		"For the first analysis this is not recommended, because it increases the likelihood of false positives." +
 		"\n\n\n"
 
@@ -184,67 +203,96 @@ func printHeader() {
 
 func printHelp() {
 	println("Usage: ./analyzer [mode] [options]\n")
-	println("There are four modes of operation:")
+	println("There are different modes of operation:")
 	println("1. Analyze a trace file and create a reordered trace file based on the analysis results (Default)")
 	println("2. Create an explanation for a found bug")
 	println("3. Check if all concurrency elements of the program have been executed at least once")
 	println("4. Create statistics about a program")
-	println("5. Create new runs for fuzzing\n\n")
+	println("5. Run the toolchain on tests")
+	println("6. Run the toolchain on a main function")
+	println("7. Create new runs for fuzzing\n\n")
 	println("1. Analyze a trace file and create a reordered trace file based on the analysis results (Default)")
 	println("This mode is the default mode and analyzes a trace file and creates a reordered trace file based on the analysis results.")
 	println("Usage: ./analyzer run [options]")
 	println("It has the following options:")
-	println("  -t [file]   Path to the trace folder to analyze or rewrite (required)")
-	println("  -d [level]  Debug Level, 0 = silent, 1 = errors, 2 = info, 3 = debug (default 1)")
-	println("  -f          Assume a FIFO ordering for buffered channels (default false)")
-	println("  -c          Ignore happens before relations of critical sections (default false)")
-	println("  -x          Do not rewrite the trace file (default false)")
-	println("  -w          Do not print warnings (default false)")
-	println("  -p          Do not print the results to the terminal (default false). Automatically set -x to true")
-	println("  -r [folder] Path to where the result file should be saved. (default parallel to -t)")
-	println("  -a          Ignore atomic operations (default false). Use to reduce memory header for large traces.")
-	println("  -S          If the same bug is detected multiple times, run the replay for each of them. If not set, only the first occurence is rewritten")
-	println("  -T [second] Set a timeout in seconds for the analysis")
-	println("  -s [cases]  Select which analysis scenario to run, e.g. -s srd for the option s, r and d.")
-	println("              If it is not set, all scenarios are run")
-	println("              Options:")
-	println("                  s: Send on closed channel")
-	println("                  r: Receive on closed channel")
-	println("                  w: Done before add on waitGroup")
-	println("                  n: Close of closed channel")
-	println("                  b: Concurrent receive on channel")
-	println("                  l: Leaking routine")
-	println("                  u: Select case without partner")
-	// println("                  c: Cyclic deadlock")
-	// println("                  m: Mixed deadlock")
+	println("  -trace [file]          Path to the trace folder to analyze or rewrite (required)")
+	println("  -fifo                  Assume a FIFO ordering for buffered channels (default false)")
+	println("  -ignCritSec            Ignore happens before relations of critical sections (default false)")
+	println("  -noRewrite             Do not rewrite the trace file (default false)")
+	println("  -noWarning             Do not print warnings (default false)")
+	println("  -noPrint               Do not print the results to the terminal (default false). Automatically set -noRewrite to true")
+	println("  -keepTrace             Do not delete the trace files after analysis finished")
+	println("  -out [folder]          Path to where the result file should be saved. (default parallel to -t)")
+	println("  -ignoreAtomics         Ignore atomic operations (default false). Use to reduce memory header for large traces.")
+	println("  -rewriteAll            If the same bug is detected multiple times, run the replay for each of them. If not set, only the first occurence is rewritten")
+	println("  -timeout [second]      Set a timeout in seconds for the analysis")
+	println("  -scen [cases]          Select which analysis scenario to run, e.g. -scen srd for the option s, r and d.")
+	println("                         If it is not set, all scenarios are run")
+	println("                         Options:")
+	println("                             s: Send on closed channel")
+	println("                             r: Receive on closed channel")
+	println("                             w: Done before add on waitGroup")
+	println("                             n: Close of closed channel")
+	println("                             b: Concurrent receive on channel")
+	println("                             l: Leaking routine")
+	println("                             u: Select case without partner")
+	// println("                             c: Cyclic deadlock")
+	// println("                             m: Mixed deadlock")
 	println("\n\n")
 	println("2. Create an explanation for a found bug")
 	println("Usage: ./analyzer explain [options]")
 	println("This mode creates an explanation for a found bug in the trace file.")
 	println("It has the following options:")
-	println("  -t [file]   Path to the folder containing the machine readable result file (required)")
+	println("  -trace [file]          Path to the folder containing the machine readable result file (required)")
 	println("\n\n")
 	println("3. Check if all concurrency elements of the program have been executed at least once")
 	println("Usage: ./analyzer check [options]")
 	println("This mode checks if all concurrency elements of the program have been executed at least once.")
 	println("It has the following options:")
-	println("  -R [folder] Path where the advocateResult folder created by the pipeline is located (required)")
-	println("  -P [folder] Path to the program folder (required)")
+	println("  -resultTool [folder]   Path where the advocateResult folder created by the pipeline is located (required)")
+	println("  -dir [folder]          Path to the program folder (required)")
 	println("\n\n")
 	println("4. Create statistics about a program")
 	println("This creates some statistics about the program and the trace")
 	println("Usage: ./analyzer stats [options]")
-	// println("  -P [folder] Path to the program folder (required)")
-	println("  -t [file]   Path to the folder containing the results_machine file (required)")
-	println("  -N [name]   Name of the program")
-	println("  -M [name]   Name of the test")
+	// println("  -dir [folder] Path to the program folder (required)")
+	println("  -trace [file]          Path to the folder containing the results_machine file (required)")
+	println("  -prog [name]           Name of the program")
+	println("  -test [name]           Name of the test")
 	println("\n\n")
-	println("5. Create runs for fuzzing")
+	println("5. Run the toolchain on tests")
+	println("This runs the toolchain on a given main function")
+	println("Usage: ./analyzer toolMain [options]")
+	println("  -advocate [path]       Path to advocate")
+	println("  -dir [path]            Path to the folder containing the program and tests")
+	println("  -test [name]           Name of the test to run. If not set, all tests are run")
+	println("  -prog [name]           Name of the program (used for statistics)")
+	println("  -timeout [sec]         Timeout for the analysis")
+	println("  -timeoutRelay [sec]    Timeout for the replay")
+	println("  -ignoreAtomics         Set to ignore atomics in replay")
+	println("  -recordTime            Set to record runtimes")
+	println("  -notExec               Set to determine never executed operations")
+	println("  -stats                 Set to create statistics")
+	println("  -keepTrace             Do not delete the trace files after analysis finished")
+	println("\n\n")
+	println("6. Run the toolchain on a main function")
+	println("This runs the toolchain on a given main function")
+	println("Usage: ./analyzer toolMain [options]")
+	println("  -advocate [path]       Path to advocate")
+	println("  -dir [path]            Path to the file containing the main function")
+	println("  -exec [name]           Name of the executable")
+	println("  -prog [name]           Name of the program (used for statistics)")
+	println("  -timeout [sec]         Timeout for the analysis")
+	println("  -timeoutRelay [sec]    Timeout for the replay")
+	println("  -ignoreAtomics         Set to ignore atomics in replay")
+	println("  -recordTime            Set to record runtimes")
+	println("  -notExec               Set to determine never executed operations")
+	println("  -stats                 Set to create statistics")
+	println("  -keepTrace             Do not delete the trace files after analysis finished")
+	println("\n\n")
+	println("7. Create runs for fuzzing")
 	println("This creates and updates the information required for the fuzzing runs")
 	println("Usage: ./analyzer fuzzing [options]")
-	println("  -t [file]   Path to the folder containing the results_machine file (required)")
-	println("  -N [name]   Name of the program")
-	println("  -M [name]   Name of the test (only if used on tests)")
-	println("  -i [index]  Index of the last fuzzing")
-
+	println("  -prog [name]           Name of the program")
+	println("  -test [name]           Name of the test (only if used on tests)")
 }
